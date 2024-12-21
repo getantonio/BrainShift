@@ -3,10 +3,24 @@ import { Card, CardContent } from "@/components/ui/card";
 import { AlertCircle } from "lucide-react";
 import Home from "./pages/Home";
 import { ThemeProvider } from "./lib/theme-context";
+import { LoadingScreen } from "@/components/LoadingScreen";
+import { useState, useEffect } from "react";
 
 function App() {
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Simulate initial loading
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <ThemeProvider>
+      <LoadingScreen isLoading={isLoading} message="Initializing Brain Wave Studio..." />
       <Switch>
         <Route path="/" component={Home} />
         <Route component={NotFound} />
