@@ -15,6 +15,16 @@ import {
 // Predefined behavior categories
 const BEHAVIOR_CATEGORIES = [
   {
+    id: "custom",
+    label: "Custom Affirmations",
+    examples: [
+      "I'll never be successful in life",
+      "Nobody understands or supports me",
+      "I'm too broken to be fixed",
+      "Everything I try ends in failure"
+    ],
+  },
+  {
     id: "confidence",
     label: "Build Confidence",
     examples: ["I'm not good enough", "I feel insecure", "People won't like me"],
@@ -68,11 +78,6 @@ const BEHAVIOR_CATEGORIES = [
     id: "career",
     label: "Career Growth",
     examples: ["I'm stuck in my career", "I'm undervalued", "I lack direction"],
-  },
-  {
-    id: "custom",
-    label: "Custom Affirmations",
-    examples: ["Enter your own situation", "Describe what you want to change"],
   }
 ];
 
@@ -165,7 +170,10 @@ export function AffirmationWizard({ onAffirmationsGenerated }: AffirmationWizard
         {step === 2 && (
           <div className="space-y-4">
             <Label className="text-white">
-              What negative thought or trigger would you like to address?
+              {selectedCategory === 'custom' 
+                ? "Type the negative self-talk you want to change:"
+                : "What negative thought or trigger would you like to address?"
+              }
             </Label>
             <div className="space-y-2">
               <Input
@@ -175,7 +183,7 @@ export function AffirmationWizard({ onAffirmationsGenerated }: AffirmationWizard
                 placeholder="Enter your negative thought..."
               />
               <div className="text-sm text-zinc-400">
-                Examples:
+                {selectedCategory === 'custom' ? "Examples of negative self-talk to transform:" : "Examples:"}
                 {BEHAVIOR_CATEGORIES.find((c) => c.id === selectedCategory)?.examples.map(
                   (example, index) => (
                     <span key={index} className="block ml-2">• {example}</span>
@@ -195,9 +203,14 @@ export function AffirmationWizard({ onAffirmationsGenerated }: AffirmationWizard
 
         {step === 3 && (
           <div className="space-y-4">
-            <Label className="text-white">
-              Your Personalized Affirmations
-            </Label>
+            <div className="space-y-2">
+              <h3 className="text-xl font-semibold text-white">
+                {BEHAVIOR_CATEGORIES.find(c => c.id === selectedCategory)?.label}
+              </h3>
+              <Label className="text-zinc-400">
+                Your Personalized Affirmations
+              </Label>
+            </div>
             <div className="space-y-2 max-h-[300px] overflow-y-auto">
               {generatedAffirmations.map((affirmation, index) => (
                 <div
