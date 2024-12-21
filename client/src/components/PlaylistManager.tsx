@@ -11,7 +11,11 @@ interface PlaylistData {
   tracks: Array<{ name: string; url: string; }>;
 }
 
-export function PlaylistManager() {
+interface PlaylistManagerProps {
+  allCollapsed?: boolean;
+}
+
+export function PlaylistManager({ allCollapsed = false }: PlaylistManagerProps) {
   const [playlists, setPlaylists] = useState<PlaylistData[]>([
     { id: Date.now(), name: "Playlist 1", tracks: [] }
   ]);
@@ -524,6 +528,7 @@ export function PlaylistManager() {
                 updateTrack(playlist.id, trackIndex, newName, moveToPlaylistId)}
               onTrackDelete={(trackIndex) => deleteTrack(playlist.id, trackIndex)}
               onSave={() => savePlaylist(playlist.id)}
+              allCollapsed={allCollapsed}
             />
             <div className="flex justify-end">
               <input
