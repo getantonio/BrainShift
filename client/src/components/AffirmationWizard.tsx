@@ -75,17 +75,23 @@ export function AffirmationWizard({ onAffirmationsGenerated }: AffirmationWizard
         }),
       });
 
+      const data = await response.json();
+      
       if (!response.ok) {
-        throw new Error("Failed to generate affirmations");
+        throw new Error(data.error || "Failed to generate affirmations");
       }
 
-      const data = await response.json();
+      if (!data.affirmations || !Array.isArray(data.affirmations)) {
+        throw new Error("Invalid response format from server");
+      }
+
       onAffirmationsGenerated(data.affirmations);
       setStep(3);
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Affirmation generation error:', error);
       toast({
         title: "Error",
-        description: "Failed to generate affirmations. Please try again.",
+        description: error.message || "Failed to generate affirmations. Please try again.",
         variant: "destructive",
       });
     } finally {
