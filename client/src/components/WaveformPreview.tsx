@@ -6,15 +6,25 @@ interface WaveformPreviewProps {
   audioUrl: string;
   isPlaying?: boolean;
   onPlayPause?: (playing: boolean) => void;
+  onSelectionChange?: (selection: { start: number; end: number }) => void;
+  allowEditing?: boolean;
 }
 
-export function WaveformPreview({ audioUrl, isPlaying = false, onPlayPause }: WaveformPreviewProps) {
+export function WaveformPreview({ 
+  audioUrl, 
+  isPlaying = false, 
+  onPlayPause,
+  onSelectionChange,
+  allowEditing = false 
+}: WaveformPreviewProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const animationRef = useRef<number>();
   const [audioContext, setAudioContext] = useState<AudioContext | null>(null);
   const [analyser, setAnalyser] = useState<AnalyserNode | null>(null);
   const [audioSource, setAudioSource] = useState<MediaElementAudioSourceNode | null>(null);
+  const [selection, setSelection] = useState<{ start: number; end: number | null }>({ start: 0, end: null });
+  const [isDragging, setIsDragging] = useState(false);
 
   useEffect(() => {
     const audio = new Audio(audioUrl);
@@ -41,6 +51,51 @@ export function WaveformPreview({ audioUrl, isPlaying = false, onPlayPause }: Wa
       context.close();
     };
   }, [audioUrl]);
+  useEffect(() => {
+    if (!canvasRef.current || !allowEditing) return;
+    
+    const canvas = canvasRef.current;
+    let startX = 0;
+    
+    const handleMouseDown = (e: MouseEvent) => {
+      if (!allowEditing) return;
+      const rect = canvas.getBoundingClientRect();
+      startX = (e.clientX - rect.left) / canvas.width;
+      setSelection({ start: startX, end: null });
+      setIsDragging(true);
+    };
+    
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDragging || !allowEditing) return;
+      const rect = canvas.getBoundingClientRect();
+      const currentX = Math.max(0, Math.min(1, (e.clientX - rect.left) / canvas.width));
+      setSelection(prev => ({
+        start: Math.min(startX, currentX),
+        end: Math.max(startX, currentX)
+      }));
+    };
+    
+    const handleMouseUp = () => {
+      if (!isDragging || !allowEditing) return;
+      setIsDragging(false);
+      if (selection.end !== null && onSelectionChange) {
+        onSelectionChange({
+          start: selection.start,
+          end: selection.end
+        });
+      }
+    };
+    
+    canvas.addEventListener('mousedown', handleMouseDown);
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+    
+    return () => {
+      canvas.removeEventListener('mousedown', handleMouseDown);
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging, allowEditing, onSelectionChange]);
 
   useEffect(() => {
     if (!audioRef.current) return;
@@ -105,6 +160,26 @@ export function WaveformPreview({ audioUrl, isPlaying = false, onPlayPause }: Wa
 
       ctx.lineTo(width, height / 2);
       ctx.stroke();
+
+      // Draw selection overlay if editing is enabled
+      if (allowEditing && selection.end !== null) {
+        const startX = selection.start * width;
+        const endX = selection.end * width;
+        
+        // Draw semi-transparent overlay
+        ctx.fillStyle = 'rgba(236, 72, 153, 0.2)'; // Pink color matching theme
+        ctx.fillRect(startX, 0, endX - startX, height);
+        
+        // Draw selection borders
+        ctx.strokeStyle = 'rgba(236, 72, 153, 0.8)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(startX, 0);
+        ctx.lineTo(startX, height);
+        ctx.moveTo(endX, 0);
+        ctx.lineTo(endX, height);
+        ctx.stroke();
+      }
 
       animationRef.current = requestAnimationFrame(draw);
     };
