@@ -16,6 +16,11 @@ import {
 // Predefined behavior categories
 const BEHAVIOR_CATEGORIES = [
   {
+    id: "custom",
+    label: "✨ Custom Affirmations",
+    examples: ["I want to change something specific", "I have a personal goal", "I need motivation"],
+  },
+  {
     id: "addiction",
     label: "💖 Quit Smoking and Addictions",
     examples: ["I can't quit my bad habits", "I'm powerless over my addiction", "I'll never be free"],
@@ -89,6 +94,7 @@ const BEHAVIOR_CATEGORIES = [
 
 interface AffirmationWizardProps {
   onAffirmationsGenerated: (affirmations: string[]) => void;
+  onCategorySelect?: (category: string) => void;
 }
 
 export function AffirmationWizard({ onAffirmationsGenerated }: AffirmationWizardProps) {
@@ -102,6 +108,7 @@ export function AffirmationWizard({ onAffirmationsGenerated }: AffirmationWizard
 
   const handleCategorySelect = (value: string) => {
     setSelectedCategory(value);
+    onCategorySelect?.(value);
     setStep(2);
   };
 
