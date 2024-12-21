@@ -21,7 +21,7 @@ export default function Home() {
       <header 
         className="py-4 px-8 text-center text-3xl font-bold shadow-lg"
         style={{ 
-          backgroundColor: colors?.header?.background || '#000000',
+          backgroundColor: '#18181B',
           borderBottom: `1px solid ${colors?.header?.border || 'rgba(255, 255, 255, 0.2)'}`,
           color: colors?.header?.text || '#FFFFFF'
         }}
@@ -32,6 +32,7 @@ export default function Home() {
       </header>
       
       <main className="container mx-auto px-4 py-8 flex flex-col gap-6">
+        <AudioRecorder />
         <div className="flex justify-end gap-4">
           <Button
             variant="outline"
@@ -52,8 +53,6 @@ export default function Home() {
             )}
           </Button>
         </div>
-        <ThemeCustomizer />
-        <AudioRecorder />
         <PlaylistManager allCollapsed={arePlaylistsCollapsed} />
       </main>
     </div>
