@@ -62,7 +62,11 @@ async function generateSimilarPhrases(input: string, category: string): Promise<
     const affirmationEmbeddings = await model.embed(baseAffirmations);
     
     // Calculate semantic similarities
-    const similarities = tf.matMul(affirmationEmbeddings, inputEmbedding, false, true);
+    const similarities = tf.tidy(() => {
+      // Ensure proper tensor ranks and shapes
+      const reshapedInput = inputEmbedding.reshape([1, -1]);
+      return tf.matMul(affirmationEmbeddings, reshapedInput, false, true);
+    });
     const values = await similarities.data();
     
     // Sort and get the most relevant affirmations
