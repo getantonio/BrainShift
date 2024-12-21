@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Play, Square, Download, Trash2, Edit2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { AudioVisualizer } from "./AudioVisualizer";
 interface AudioItemProps {
   track: {
     name: string;
@@ -16,12 +17,37 @@ export function AudioItem({ track, onRename, onDelete }: AudioItemProps) {
   const [audio] = useState(() => track?.url ? new Audio(track.url) : null);
   const [isRenaming, setIsRenaming] = useState(false);
   const [newName, setNewName] = useState(track?.name || '');
+  const [analyzerNode, setAnalyzerNode] = useState<AnalyserNode | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const sourceNodeRef = useRef<MediaElementAudioSourceNode | null>(null);
+
+  const setupAudioContext = () => {
+    if (!audio) return;
+    
+    if (!audioContextRef.current) {
+      audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
+      const analyzer = audioContextRef.current.createAnalyser();
+      analyzer.fftSize = 2048;
+      setAnalyzerNode(analyzer);
+      
+      sourceNodeRef.current = audioContextRef.current.createMediaElementSource(audio);
+      sourceNodeRef.current.connect(analyzer);
+      analyzer.connect(audioContextRef.current.destination);
+    }
+  };
 
   const playAudio = () => {
     if (!audio || !track?.url) return;
+    
+    setupAudioContext();
     audio.play().catch(console.error);
     setIsPlaying(true);
-    audio.onended = () => setIsPlaying(false);
+    audio.onended = () => {
+      setIsPlaying(false);
+      if (audioContextRef.current) {
+        audioContextRef.current.suspend();
+      }
+    };
   };
 
   const stopAudio = () => {
@@ -29,6 +55,9 @@ export function AudioItem({ track, onRename, onDelete }: AudioItemProps) {
     audio.pause();
     audio.currentTime = 0;
     setIsPlaying(false);
+    if (audioContextRef.current) {
+      audioContextRef.current.suspend();
+    }
   };
 
   const handleRename = () => {
@@ -40,14 +69,23 @@ export function AudioItem({ track, onRename, onDelete }: AudioItemProps) {
     }
   };
 
+  useEffect(() => {
+    return () => {
+      if (audioContextRef.current) {
+        audioContextRef.current.close();
+      }
+    };
+  }, []);
+
   return (
-    <div 
-      className="flex items-center justify-between p-2 rounded-lg bg-gray-800"
-      draggable
-      onDragStart={(e) => {
-        e.dataTransfer.setData('text/plain', JSON.stringify(track));
-      }}
-    >
+    <div className="space-y-2">
+      <div 
+        className="flex items-center justify-between p-2 rounded-lg bg-gray-800"
+        draggable
+        onDragStart={(e) => {
+          e.dataTransfer.setData('text/plain', JSON.stringify(track));
+        }}
+      >
       {isRenaming ? (
         <Input
           value={newName}
@@ -108,5 +146,13 @@ export function AudioItem({ track, onRename, onDelete }: AudioItemProps) {
         </Button>
       </div>
     </div>
+    {isPlaying && analyzerNode && (
+      <AudioVisualizer
+        isRecording={false}
+        isPlaying={true}
+        analyserNode={analyzerNode}
+      />
+    )}
+  </div>
   );
 }
