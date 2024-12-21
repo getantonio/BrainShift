@@ -27,7 +27,7 @@ export default function Home() {
       }}
     >
       <header 
-        className="py-4 px-8 text-center text-3xl font-bold shadow-lg"
+        className="py-3 px-6 text-center text-3xl font-bold shadow-lg"
         style={{ 
           backgroundColor: '#18181B',
           borderBottom: `1px solid ${colors?.header?.border || 'rgba(255, 255, 255, 0.2)'}`,
@@ -37,13 +37,13 @@ export default function Home() {
         <div className="flex items-center justify-center gap-3">
           <span className="text-5xl opacity-75 transform scale-x-[-1]">🧠</span>
           <h1 className="font-extrabold tracking-wider">
-            BrainShift Studio
+            Brain-Shift Studio
           </h1>
           <span className="text-5xl opacity-75">🧠</span>
         </div>
       </header>
       
-      <main className="container mx-auto px-4 py-8 flex flex-col gap-6">
+      <main className="container mx-auto px-4 py-4 flex flex-col gap-4">
         <AffirmationWizard 
           onAffirmationsGenerated={setGeneratedAffirmations} 
           onCategorySelect={(category) => setSelectedCategory(category)}
