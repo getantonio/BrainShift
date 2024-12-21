@@ -113,10 +113,46 @@ export function AffirmationWizard({ onAffirmationsGenerated }: AffirmationWizard
     setIsGenerating(true);
     try {
       const { generateSimilarPhrases } = await import('@/lib/localAffirmationGenerator');
-      const affirmations = await generateSimilarPhrases(negativeThought, selectedCategory);
+      let affirmations = await generateSimilarPhrases(negativeThought, selectedCategory);
       
       if (!affirmations || affirmations.length === 0) {
         throw new Error("Failed to generate affirmations");
+      }
+
+      // For custom category, generate additional variations
+      if (selectedCategory === 'custom') {
+        const customPrefixes = [
+          "I am capable of",
+          "I choose to be",
+          "I embrace being",
+          "I deserve to be",
+          "I am becoming",
+          "I naturally attract",
+          "I confidently",
+          "I joyfully",
+          "I easily",
+          "I powerfully"
+        ];
+        
+        const positiveThought = negativeThought
+          .toLowerCase()
+          .replace(/^i am/, '')
+          .replace(/^i'm/, '')
+          .replace(/^i/, '')
+          .trim()
+          .replace(/never|not|can't|cannot|won't|don't/g, '')
+          .replace(/fail/g, 'succeed')
+          .replace(/weak/g, 'strong')
+          .replace(/bad/g, 'good')
+          .replace(/hate/g, 'love')
+          .replace(/fear/g, 'embrace')
+          .trim();
+
+        const customAffirmations = customPrefixes.map(prefix => 
+          `${prefix} ${positiveThought}`
+        );
+        
+        affirmations = [...new Set([...affirmations, ...customAffirmations])];
       }
 
       // Filter to ensure all affirmations start with "I"
@@ -129,8 +165,9 @@ export function AffirmationWizard({ onAffirmationsGenerated }: AffirmationWizard
       setStep(3);
       
       toast({
-        title: "Success",
         description: "Affirmations generated successfully",
+        duration: 2000,
+        className: "bg-zinc-800 text-white border-none",
       });
     } catch (error: any) {
       console.error('Affirmation generation error:', error);
