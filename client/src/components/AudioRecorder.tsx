@@ -97,7 +97,7 @@ export function AudioRecorder() {
             onClick={startRecording}
             disabled={isRecording}
             variant="outline"
-            size="lg"
+            size="sm"
             className="bg-red-500 hover:bg-red-600 text-white border-0 transition-all duration-300"
           >
             <Mic className="h-6 w-6" />
@@ -106,7 +106,7 @@ export function AudioRecorder() {
             onClick={stopRecording}
             disabled={!isRecording}
             variant="outline"
-            size="lg"
+            size="sm"
             className="bg-white hover:bg-gray-100 text-black border-0 transition-all duration-300"
           >
             <Square className="h-6 w-6" />

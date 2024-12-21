@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { ArrowLeft, RotateCw } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -280,15 +281,17 @@ export function AffirmationWizard({ onAffirmationsGenerated }: AffirmationWizard
             <div className="flex gap-2">
               <Button
                 onClick={() => setStep(1)}
-                className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-white"
+                className="flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 text-white"
+                title="Back to Categories"
               >
-                Back to Categories
+                <ArrowLeft className="h-4 w-4" />
               </Button>
               <Button
                 onClick={handleNegativeThoughtSubmit}
-                className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-white"
+                className="flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 text-white"
+                title="Regenerate Affirmations"
               >
-                Regenerate Affirmations
+                <RotateCw className="h-4 w-4" />
               </Button>
             </div>
           </div>
