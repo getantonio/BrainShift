@@ -9,9 +9,20 @@ interface AudioItemProps {
   };
 }
 
-export function AudioItem({ track }: AudioItemProps) {
+interface AudioItemProps {
+  track: {
+    name: string;
+    url: string;
+  };
+  onRename?: (newName: string) => void;
+  onDelete?: () => void;
+}
+
+export function AudioItem({ track, onRename, onDelete }: AudioItemProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [audio] = useState(new Audio(track.url));
+  const [isRenaming, setIsRenaming] = useState(false);
+  const [newName, setNewName] = useState(track.name);
 
   const playAudio = () => {
     audio.play();
@@ -25,9 +36,32 @@ export function AudioItem({ track }: AudioItemProps) {
     setIsPlaying(false);
   };
 
+  const handleRename = () => {
+    if (isRenaming && newName.trim() && onRename) {
+      onRename(newName.trim());
+      setIsRenaming(false);
+    } else {
+      setIsRenaming(true);
+    }
+  };
+
   return (
     <div className="flex items-center justify-between p-2 rounded-lg bg-gray-800">
-      <span className="text-sm font-medium">{track.name}</span>
+      {isRenaming ? (
+        <Input
+          value={newName}
+          onChange={(e) => setNewName(e.target.value)}
+          className="max-w-[200px]"
+          autoFocus
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              handleRename();
+            }
+          }}
+        />
+      ) : (
+        <span className="text-sm font-medium">{track.name}</span>
+      )}
       <div className="flex gap-2">
         <Button
           variant="outline"
@@ -36,6 +70,14 @@ export function AudioItem({ track }: AudioItemProps) {
           className="h-8 w-8"
         >
           {isPlaying ? <Square className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+        </Button>
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={handleRename}
+          className="h-8 w-8"
+        >
+          <Edit2 className="h-4 w-4" />
         </Button>
         <a
           href={track.url}
@@ -55,7 +97,9 @@ export function AudioItem({ track }: AudioItemProps) {
           size="icon"
           onClick={() => {
             stopAudio();
-            // Remove track from playlist logic would go here
+            if (onDelete) {
+              onDelete();
+            }
           }}
           className="h-8 w-8"
         >

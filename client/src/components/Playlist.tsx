@@ -11,8 +11,11 @@ interface PlaylistProps {
     name: string;
     tracks: Array<{ name: string; url: string; }>;
   };
+  playlists: Array<{ id: number; name: string; }>;
   onDelete: () => void;
   onRename: (newName: string) => void;
+  onTrackUpdate: (trackIndex: number, newName?: string, moveToPlaylistId?: number) => void;
+  onTrackDelete: (trackIndex: number) => void;
 }
 
 export function Playlist({ playlist, onDelete, onRename }: PlaylistProps) {
@@ -99,7 +102,36 @@ export function Playlist({ playlist, onDelete, onRename }: PlaylistProps) {
       <CardContent>
         <div className="space-y-2">
           {playlist.tracks.map((track, index) => (
-            <AudioItem key={index} track={track} />
+            <div key={index} className="relative group">
+              <AudioItem
+                track={track}
+                onRename={(newName) => onTrackUpdate(index, newName)}
+                onDelete={() => onTrackDelete(index)}
+              />
+              {playlists.length > 1 && (
+                <div className="absolute right-0 top-0 -mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <select
+                    className="text-xs bg-gray-700 border border-gray-600 rounded p-1"
+                    onChange={(e) => {
+                      const targetPlaylistId = parseInt(e.target.value);
+                      if (!isNaN(targetPlaylistId)) {
+                        onTrackUpdate(index, undefined, targetPlaylistId);
+                      }
+                    }}
+                    defaultValue=""
+                  >
+                    <option value="" disabled>Move to...</option>
+                    {playlists
+                      .filter((p) => p.id !== playlist.id)
+                      .map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.name}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+              )}
+            </div>
           ))}
         </div>
         <div className="flex gap-2 mt-4">
