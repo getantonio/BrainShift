@@ -169,7 +169,7 @@ export function LoadingScreen({ isLoading, message = "Loading..." }: LoadingScre
             className="relative z-10 text-center"
           >
             <h2 className="text-3xl font-bold text-white mb-4">Brain Shift Studio</h2>
-            <p className="text-white mb-4">{message}</p>
+            <p className="text-white mb-4">{message.replace("Brain Wave Studio", "Brain Shift Studio")}</p>
             <div className="flex space-x-2 justify-center">
               {[...Array(3)].map((_, i) => (
                 <motion.div
