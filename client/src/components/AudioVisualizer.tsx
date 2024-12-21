@@ -47,15 +47,29 @@ export function AudioVisualizer({
   }>>([]);
 
   useEffect(() => {
-    if ((!isRecording && !isPlaying) || !analyserNode || !canvasRef.current) return;
+    if (!canvasRef.current) return;
 
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
+    // Create a dummy analyzer node for idle animation
+    let dummyAnalyser: AnalyserNode | null = null;
+    let dummyContext: AudioContext | null = null;
+    if (!analyserNode) {
+      // Create AudioContext with proper type checking
+      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+      dummyContext = new AudioContextClass();
+      dummyAnalyser = dummyContext.createAnalyser();
+      dummyAnalyser.fftSize = 2048;
+    }
+    
+    const currentAnalyser = analyserNode || dummyAnalyser;
+    if (!currentAnalyser) return;
+    
     // Initialize frequency data arrays
-    const frequencyData = new Uint8Array(analyserNode.frequencyBinCount);
-    const timeData = new Uint8Array(analyserNode.frequencyBinCount);
+    const frequencyData = new Uint8Array(currentAnalyser.frequencyBinCount);
+    const timeData = new Uint8Array(currentAnalyser.frequencyBinCount);
     let animationFrameId: number;
     let startTime = Date.now();
 
@@ -212,9 +226,23 @@ export function AudioVisualizer({
       
       animationFrameId = requestAnimationFrame(draw);
       
-      // Get audio data
-      analyserNode.getByteFrequencyData(frequencyData);
-      analyserNode.getByteTimeDomainData(timeData);
+      if (isRecording || isPlaying) {
+        // Get real audio data
+        currentAnalyser.getByteFrequencyData(frequencyData);
+        currentAnalyser.getByteTimeDomainData(timeData);
+      } else {
+        // Generate synthetic waveform data for idle animation
+        const time = Date.now() * 0.001;
+        for (let i = 0; i < timeData.length; i++) {
+          const t = i / timeData.length;
+          // Create a smooth, continuous wave pattern
+          const wave = Math.sin(t * 10 + time * 2) * 0.3 + // Base wave
+                      Math.sin(t * 20 + time * 3) * 0.1 +  // Higher frequency detail
+                      Math.sin(t * 5 - time) * 0.2;        // Slower moving wave
+          timeData[i] = (wave * 30 + 128);
+          frequencyData[i] = Math.abs(wave) * 100 + 50;
+        }
+      }
       
       // Calculate audio metrics
       const avgFrequency = frequencyData.reduce((sum, value) => sum + value, 0) / frequencyData.length;
@@ -363,8 +391,11 @@ export function AudioVisualizer({
       if (animationFrameId) {
         cancelAnimationFrame(animationFrameId);
       }
+      if (dummyContext) {
+        dummyContext.close();
+      }
     };
-  }, [isRecording, analyserNode]);
+  }, [isRecording, isPlaying, analyserNode]);
 
   return (
     <canvas
