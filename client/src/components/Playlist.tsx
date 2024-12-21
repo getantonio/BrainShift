@@ -16,6 +16,7 @@ interface PlaylistProps {
   onRename: (newName: string) => void;
   onTrackUpdate: (trackIndex: number, newName?: string, moveToPlaylistId?: number) => void;
   onTrackDelete: (trackIndex: number) => void;
+  onSave: () => void;
 }
 
 export function Playlist({ 
@@ -24,7 +25,8 @@ export function Playlist({
   onDelete, 
   onRename, 
   onTrackUpdate, 
-  onTrackDelete 
+  onTrackDelete,
+  onSave
 }: PlaylistProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [newName, setNewName] = useState(playlist.name);
@@ -62,18 +64,18 @@ export function Playlist({
     setCurrentTrackIndex(0);
     
     const playTrack = (index: number) => {
-    if (!playlist.tracks.length || index >= playlist.tracks.length) {
-      console.error('Invalid track index or empty playlist');
+    if (!playlist.tracks.length) {
+      console.error('Empty playlist');
       return;
     }
 
-    const trackIndex = playbackOrder[index];
-    if (trackIndex === undefined || !playlist.tracks[trackIndex]) {
-      console.error('Invalid track in playback order');
+    const effectiveIndex = isShuffled ? playbackOrder[index] : index;
+    if (effectiveIndex === undefined || !playlist.tracks[effectiveIndex]) {
+      console.error('Invalid track index');
       return;
     }
 
-    const track = playlist.tracks[trackIndex];
+    const track = playlist.tracks[effectiveIndex];
     if (!track.url) {
       console.error('Track URL is missing');
       return;
@@ -82,7 +84,7 @@ export function Playlist({
     const audio = new Audio(track.url);
     
     audio.onended = () => {
-      const nextIndex = (index + 1) % playbackOrder.length;
+      const nextIndex = (index + 1) % playlist.tracks.length;
       if (nextIndex === 0 && !isLooping) {
         stopPlaylist();
         return;
@@ -110,20 +112,26 @@ export function Playlist({
     const newIsShuffled = !isShuffled;
     setIsShuffled(newIsShuffled);
     
-    const indices = Array.from({ length: playlist.tracks.length }, (_, i) => i);
     if (newIsShuffled) {
-      // Fisher-Yates shuffle
+      // Create a new shuffled order
+      const indices = Array.from({ length: playlist.tracks.length }, (_, i) => i);
       for (let i = indices.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [indices[i], indices[j]] = [indices[j], indices[i]];
       }
+      setPlaybackOrder(indices);
     }
-    setPlaybackOrder(indices);
     
     // If currently playing, restart with new order
     if (currentAudio) {
+      const currentTime = currentAudio.currentTime;
       stopPlaylist();
-      setTimeout(() => playPlaylist(), 0);
+      setTimeout(() => {
+        playPlaylist();
+        if (currentAudio) {
+          currentAudio.currentTime = currentTime;
+        }
+      }, 0);
     }
   };
 
@@ -182,6 +190,14 @@ export function Playlist({
             className="h-8 w-8 bg-gray-800 hover:bg-gray-700 text-gray-200 border-gray-600"
           >
             <Edit2 className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => onSave()}
+            className="h-8 w-8 bg-gray-800 hover:bg-gray-700 text-gray-200 border-gray-600"
+          >
+            💾
           </Button>
           <Button
             variant="outline"

@@ -23,7 +23,36 @@ export function PlaylistManager() {
     if (savedPlaylists) {
       try {
         const parsed = JSON.parse(savedPlaylists);
-        setPlaylists(parsed);
+        // Recreate blob URLs for each track
+        const reconstructedPlaylists = parsed.map((playlist: PlaylistData) => ({
+          ...playlist,
+          tracks: playlist.tracks.map(track => {
+            // Convert base64 to blob and create new URL
+            if (track.url.startsWith('data:')) {
+              const response = fetch(track.url)
+                .then(res => res.blob())
+                .then(blob => {
+                  const newUrl = URL.createObjectURL(blob);
+                  // Update the track's URL in the playlists state
+                  setPlaylists(current =>
+                    current.map(p =>
+                      p.id === playlist.id
+                        ? {
+                            ...p,
+                            tracks: p.tracks.map(t =>
+                              t.name === track.name ? { ...t, url: newUrl } : t
+                            ),
+                          }
+                        : p
+                    )
+                  );
+                });
+              return track;
+            }
+            return track;
+          }),
+        }));
+        setPlaylists(reconstructedPlaylists);
         toast({
           title: "Playlists loaded",
           description: "Your saved playlists have been restored"
@@ -39,13 +68,59 @@ export function PlaylistManager() {
     }
   }, []);
 
-  const savePlaylists = () => {
+  const savePlaylist = async (playlistId?: number) => {
     try {
-      localStorage.setItem('audioPlaylists', JSON.stringify(playlists));
-      toast({
-        title: "Playlists saved",
-        description: "Your playlists have been saved successfully"
-      });
+      const playlistsToSave = playlistId 
+        ? playlists.filter(p => p.id === playlistId)
+        : playlists;
+
+      // Convert all blob URLs to base64 before saving
+      const processedPlaylists = await Promise.all(
+        playlistsToSave.map(async (playlist) => {
+          const processedTracks = await Promise.all(
+            playlist.tracks.map(async (track) => {
+              if (track.url.startsWith('blob:')) {
+                const response = await fetch(track.url);
+                const blob = await response.blob();
+                return new Promise<{ name: string; url: string }>((resolve) => {
+                  const reader = new FileReader();
+                  reader.onloadend = () => resolve({
+                    name: track.name,
+                    url: reader.result as string
+                  });
+                  reader.readAsDataURL(blob);
+                });
+              }
+              return track;
+            })
+          );
+
+          return {
+            ...playlist,
+            tracks: processedTracks
+          };
+        })
+      );
+
+      if (playlistId) {
+        // Save single playlist
+        const existingPlaylists = JSON.parse(localStorage.getItem('audioPlaylists') || '[]');
+        const updatedPlaylists = existingPlaylists.map((p: PlaylistData) =>
+          p.id === playlistId ? processedPlaylists[0] : p
+        );
+        localStorage.setItem('audioPlaylists', JSON.stringify(updatedPlaylists));
+        toast({
+          title: "Playlist saved",
+          description: `${processedPlaylists[0].name} has been saved successfully`
+        });
+      } else {
+        // Save all playlists
+        localStorage.setItem('audioPlaylists', JSON.stringify(processedPlaylists));
+        toast({
+          title: "All playlists saved",
+          description: "Your playlists have been saved successfully"
+        });
+      }
     } catch (error) {
       console.error('Failed to save playlists:', error);
       toast({
@@ -186,7 +261,7 @@ export function PlaylistManager() {
         <CardTitle>Playlists</CardTitle>
         <div className="flex gap-2">
           <Button
-            onClick={savePlaylists}
+            onClick={() => savePlaylist()}
             variant="outline"
             className="bg-gray-800 hover:bg-gray-700 text-gray-200 border-gray-600"
           >
@@ -213,6 +288,7 @@ export function PlaylistManager() {
               onTrackUpdate={(trackIndex, newName, moveToPlaylistId) => 
                 updateTrack(playlist.id, trackIndex, newName, moveToPlaylistId)}
               onTrackDelete={(trackIndex) => deleteTrack(playlist.id, trackIndex)}
+              onSave={() => savePlaylist(playlist.id)}
             />
             <div className="flex justify-end">
               <input
