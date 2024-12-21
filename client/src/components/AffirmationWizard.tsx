@@ -99,6 +99,46 @@ export function AffirmationWizard({ onAffirmationsGenerated }: AffirmationWizard
     setStep(2);
   };
 
+  const generateCustomAffirmations = (negativeThought: string, baseAffirmations: string[] = []): string[] => {
+    const customPrefixes = [
+      "I am capable of",
+      "I choose to be",
+      "I embrace being",
+      "I deserve to be",
+      "I am becoming",
+      "I naturally attract",
+      "I confidently",
+      "I joyfully",
+      "I easily",
+      "I powerfully"
+    ];
+    
+    const positiveThought = negativeThought
+      .toLowerCase()
+      .replace(/^i am/, '')
+      .replace(/^i'm/, '')
+      .replace(/^i/, '')
+      .trim()
+      .replace(/never|not|can't|cannot|won't|don't/g, '')
+      .replace(/fail/g, 'succeed')
+      .replace(/weak/g, 'strong')
+      .replace(/bad/g, 'good')
+      .replace(/hate/g, 'love')
+      .replace(/fear/g, 'embrace')
+      .replace(/impossible/g, 'possible')
+      .replace(/difficult/g, 'achievable')
+      .trim();
+
+    const customAffirmations = customPrefixes.map(prefix => 
+      `${prefix} ${positiveThought}`
+    );
+    
+    const allAffirmations = [...baseAffirmations, ...customAffirmations];
+    const uniqueAffirmations = Array.from(new Set(allAffirmations));
+    
+    return uniqueAffirmations;
+  };
+
   const handleNegativeThoughtSubmit = async () => {
     if (!negativeThought.trim() && step === 2) {
       toast({
@@ -119,47 +159,22 @@ export function AffirmationWizard({ onAffirmationsGenerated }: AffirmationWizard
         throw new Error("Failed to generate affirmations");
       }
 
-      // For custom category, generate additional variations
+      // Generate custom affirmations if in custom category
       if (selectedCategory === 'custom') {
-        const customPrefixes = [
-          "I am capable of",
-          "I choose to be",
-          "I embrace being",
-          "I deserve to be",
-          "I am becoming",
-          "I naturally attract",
-          "I confidently",
-          "I joyfully",
-          "I easily",
-          "I powerfully"
-        ];
-        
-        const positiveThought = negativeThought
-          .toLowerCase()
-          .replace(/^i am/, '')
-          .replace(/^i'm/, '')
-          .replace(/^i/, '')
-          .trim()
-          .replace(/never|not|can't|cannot|won't|don't/g, '')
-          .replace(/fail/g, 'succeed')
-          .replace(/weak/g, 'strong')
-          .replace(/bad/g, 'good')
-          .replace(/hate/g, 'love')
-          .replace(/fear/g, 'embrace')
-          .trim();
-
-        const customAffirmations = customPrefixes.map(prefix => 
-          `${prefix} ${positiveThought}`
-        );
-        
-        const uniqueAffirmations = new Set([...affirmations, ...customAffirmations]);
-        affirmations = Array.from(uniqueAffirmations);
+        affirmations = generateCustomAffirmations(negativeThought, affirmations);
       }
 
-      // Filter to ensure all affirmations start with "I"
-      const processedAffirmations = affirmations
-        .filter(a => a.startsWith('I '))
-        .slice(0, 15); // Limit to 15 affirmations for better readability
+      // Filter to ensure all affirmations start with "I" and are unique
+      const processedAffirmations = Array.from(new Set(
+        affirmations
+          .filter(a => a.trim().startsWith('I '))
+          .map(a => a.trim())
+          .filter(Boolean)
+      )).slice(0, 15); // Limit to 15 affirmations for better readability
+
+      if (processedAffirmations.length < 3) {
+        throw new Error("Not enough valid affirmations generated");
+      }
 
       setGeneratedAffirmations(processedAffirmations);
       onAffirmationsGenerated(processedAffirmations);
