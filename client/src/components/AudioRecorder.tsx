@@ -98,7 +98,7 @@ export function AudioRecorder() {
             disabled={isRecording}
             variant="outline"
             size="sm"
-            className="bg-red-500 hover:bg-red-600 text-white border-0 transition-all duration-300"
+            className="bg-pink-500 hover:bg-pink-600 text-white border-0 transition-all duration-300 shadow-lg hover:shadow-pink-500/50"
           >
             <Mic className="h-6 w-6" />
           </Button>
