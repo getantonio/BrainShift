@@ -72,17 +72,9 @@ export function HypnosisGuide() {
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <div>
-          <CardTitle className="text-white font-display text-2xl">Self-Hypnosis Guide</CardTitle>
-          <p className="text-sm text-zinc-400 mt-2">
-            Need inspiration? <a 
-              href="https://www.mindvalley.com/blog/positive-affirmations" 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              className="text-[#FF1493] hover:text-[#FF69B4] underline-offset-4 hover:underline transition-colors"
-            >
-              Learn about creating powerful affirmations →
-            </a>
-          </p>
+          <CardTitle className="text-white font-display text-2xl flex items-center gap-2">
+            <span className="text-3xl">🧠</span> Self-Hypnosis Guide
+          </CardTitle>
         </div>
         <ChevronDown 
           className={`h-6 w-6 text-white hover:text-zinc-300 transition-transform duration-200 cursor-pointer ${isExpanded ? 'rotate-180' : ''}`}
@@ -109,6 +101,17 @@ export function HypnosisGuide() {
               </AccordionItem>
             ))}
           </Accordion>
+          <div className="mt-6 text-sm text-center">
+            <span className="text-zinc-400">Need inspiration? </span>
+            <a 
+              href="https://www.mindvalley.com/blog/positive-affirmations" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="text-[#FF8DC1] hover:text-[#FFA7CF] underline-offset-4 hover:underline transition-colors"
+            >
+              Learn about creating powerful affirmations →
+            </a>
+          </div>
         </CardContent>
       )}
     </Card>
