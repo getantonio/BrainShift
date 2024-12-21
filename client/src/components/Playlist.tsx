@@ -18,7 +18,14 @@ interface PlaylistProps {
   onTrackDelete: (trackIndex: number) => void;
 }
 
-export function Playlist({ playlist, onDelete, onRename }: PlaylistProps) {
+export function Playlist({ 
+  playlist, 
+  playlists, 
+  onDelete, 
+  onRename, 
+  onTrackUpdate, 
+  onTrackDelete 
+}: PlaylistProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [newName, setNewName] = useState(playlist.name);
   const [isLooping, setIsLooping] = useState(false);

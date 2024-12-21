@@ -1,13 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Play, Square, Download, Trash2 } from "lucide-react";
-
-interface AudioItemProps {
-  track: {
-    name: string;
-    url: string;
-  };
-}
+import { Play, Square, Download, Trash2, Edit2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
 
 interface AudioItemProps {
   track: {
@@ -50,10 +44,10 @@ export function AudioItem({ track, onRename, onDelete }: AudioItemProps) {
       {isRenaming ? (
         <Input
           value={newName}
-          onChange={(e) => setNewName(e.target.value)}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewName(e.target.value)}
           className="max-w-[200px]"
           autoFocus
-          onKeyDown={(e) => {
+          onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
             if (e.key === 'Enter') {
               handleRename();
             }

@@ -18,13 +18,14 @@ export function PlaylistManager() {
   const { toast } = useToast();
 
   useEffect(() => {
-    const handleNewRecording = (event: CustomEvent<{ name: string; url: string }>) => {
+    const handleNewRecording = (event: Event) => {
+    const customEvent = event as CustomEvent<{ name: string; url: string }>;
       setPlaylists(current => {
         const updated = [...current];
         const firstPlaylist = updated[0];
         firstPlaylist.tracks.push({
-          name: event.detail.name,
-          url: event.detail.url
+          name: customEvent.detail.name,
+          url: customEvent.detail.url
         });
         return updated;
       });
