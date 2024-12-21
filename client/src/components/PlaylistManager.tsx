@@ -19,39 +19,41 @@ export function PlaylistManager() {
 
   // Load playlists from localStorage on component mount
   useEffect(() => {
-    const savedPlaylists = localStorage.getItem('audioPlaylists');
-    if (savedPlaylists) {
+    const loadSavedPlaylists = async () => {
+      const savedPlaylists = localStorage.getItem('audioPlaylists');
+      if (!savedPlaylists) return;
+
       try {
         const parsed = JSON.parse(savedPlaylists);
-        // Recreate blob URLs for each track
-        const reconstructedPlaylists = parsed.map((playlist: PlaylistData) => ({
-          ...playlist,
-          tracks: playlist.tracks.map(track => {
-            // Convert base64 to blob and create new URL
-            if (track.url.startsWith('data:')) {
-              const response = fetch(track.url)
-                .then(res => res.blob())
-                .then(blob => {
-                  const newUrl = URL.createObjectURL(blob);
-                  // Update the track's URL in the playlists state
-                  setPlaylists(current =>
-                    current.map(p =>
-                      p.id === playlist.id
-                        ? {
-                            ...p,
-                            tracks: p.tracks.map(t =>
-                              t.name === track.name ? { ...t, url: newUrl } : t
-                            ),
-                          }
-                        : p
-                    )
-                  );
-                });
-              return track;
-            }
-            return track;
-          }),
-        }));
+        const reconstructedPlaylists = await Promise.all(
+          parsed.map(async (playlist: PlaylistData) => {
+            const reconstructedTracks = await Promise.all(
+              playlist.tracks.map(async (track) => {
+                if (track.url.startsWith('data:')) {
+                  try {
+                    const response = await fetch(track.url);
+                    if (!response.ok) throw new Error('Failed to fetch audio data');
+                    const blob = await response.blob();
+                    return {
+                      ...track,
+                      url: URL.createObjectURL(blob)
+                    };
+                  } catch (error) {
+                    console.error('Failed to reconstruct track:', error);
+                    return null;
+                  }
+                }
+                return track;
+              })
+            );
+
+            return {
+              ...playlist,
+              tracks: reconstructedTracks.filter(Boolean)
+            };
+          })
+        );
+
         setPlaylists(reconstructedPlaylists);
         toast({
           title: "Playlists loaded",
@@ -65,7 +67,9 @@ export function PlaylistManager() {
           variant: "destructive"
         });
       }
-    }
+    };
+
+    loadSavedPlaylists();
   }, []);
 
   const savePlaylist = async (playlistId?: number) => {

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AudioItem } from "@/components/AudioItem";
@@ -63,27 +63,38 @@ export function Playlist({
     updatePlaybackOrder();
     setCurrentTrackIndex(0);
     
-    const playTrack = (index: number) => {
-    if (!playlist.tracks.length) {
-      console.error('Empty playlist');
-      return;
-    }
-
-    const effectiveIndex = isShuffled ? playbackOrder[index] : index;
-    if (effectiveIndex === undefined || !playlist.tracks[effectiveIndex]) {
-      console.error('Invalid track index');
-      return;
-    }
-
-    const track = playlist.tracks[effectiveIndex];
-    if (!track.url) {
-      console.error('Track URL is missing');
-      return;
-    }
-
+    const playTrack = async (index: number) => {
     try {
+      if (!playlist.tracks.length) {
+        throw new Error('Empty playlist');
+      }
+
+      const effectiveIndex = isShuffled ? playbackOrder[index] : index;
+      if (effectiveIndex === undefined || !playlist.tracks[effectiveIndex]) {
+        throw new Error('Invalid track index');
+      }
+
+      const track = playlist.tracks[effectiveIndex];
+      if (!track.url) {
+        throw new Error('Track URL is missing');
+      }
+
+      // Clean up existing audio before creating new one
+      if (currentAudio) {
+        try {
+          currentAudio.pause();
+          currentAudio.currentTime = 0;
+          currentAudio.src = '';
+          URL.revokeObjectURL(currentAudio.src);
+          currentAudio.remove();
+        } catch (cleanupError) {
+          console.error('Error cleaning up previous audio:', cleanupError);
+        }
+      }
+
       const audio = new Audio();
       
+      // Set up error handling before setting src
       audio.onerror = (e) => {
         console.error('Audio error:', e);
         stopPlaylist();
@@ -96,29 +107,27 @@ export function Playlist({
           return;
         }
         setCurrentTrackIndex(nextIndex);
-        playTrack(nextIndex);
+        playTrack(nextIndex).catch(error => {
+          console.error('Error playing next track:', error);
+          stopPlaylist();
+        });
       };
 
-      if (currentAudio) {
-        currentAudio.pause();
-        currentAudio.currentTime = 0;
-        currentAudio.src = '';
-        currentAudio.remove();
-      }
-
+      // Load and play the audio
       audio.src = track.url;
       setCurrentAudio(audio);
       
-      const playPromise = audio.play();
-      if (playPromise !== undefined) {
-        playPromise.catch(error => {
-          console.error('Error playing audio:', error);
-          stopPlaylist();
-        });
+      try {
+        await audio.play();
+      } catch (playError) {
+        console.error('Error playing audio:', playError);
+        stopPlaylist();
+        throw playError;
       }
     } catch (error) {
-      console.error('Error setting up audio:', error);
+      console.error('Error in playTrack:', error);
       stopPlaylist();
+      throw error;
     }
   };
     
@@ -154,11 +163,27 @@ export function Playlist({
 
   const stopPlaylist = () => {
     if (currentAudio) {
-      currentAudio.pause();
-      currentAudio.currentTime = 0;
-      setCurrentAudio(null);
+      try {
+        currentAudio.pause();
+        currentAudio.currentTime = 0;
+        currentAudio.src = '';
+        URL.revokeObjectURL(currentAudio.src);
+        currentAudio.remove();
+        setCurrentAudio(null);
+      } catch (error) {
+        console.error('Error stopping playlist:', error);
+      }
     }
   };
+
+  // Clean up audio resources when component unmounts
+  useEffect(() => {
+    return () => {
+      if (currentAudio) {
+        stopPlaylist();
+      }
+    };
+  }, []);
 
   const toggleLoop = () => {
     setIsLooping(!isLooping);
