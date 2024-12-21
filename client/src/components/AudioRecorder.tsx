@@ -98,11 +98,11 @@ export function AudioRecorder({ currentCategory }: AudioRecorderProps) {
 
   return (
     <Card className="bg-zinc-900 border-white/10">
-      <CardHeader className="py-2">
+      <CardHeader className="py-1">
         <CardTitle className="text-white text-lg">Record Audio</CardTitle>
       </CardHeader>
-      <CardContent className="py-2">
-        <div className="flex justify-center gap-2 mb-2">
+      <CardContent className="py-1">
+        <div className="flex justify-center gap-2 mb-1">
           <Button
             onClick={startRecording}
             disabled={isRecording}
