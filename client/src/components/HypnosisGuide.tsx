@@ -72,8 +72,8 @@ export function HypnosisGuide() {
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <div>
-          <CardTitle className="text-white font-display text-2xl flex items-center gap-2">
-            <span className="text-3xl">🧠</span> Self-Hypnosis Guide
+          <CardTitle className="text-white font-display text-2xl">
+            Self-Hypnosis Guide
           </CardTitle>
         </div>
         <ChevronDown 
