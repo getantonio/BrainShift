@@ -54,6 +54,52 @@ export function PlaylistManager() {
     ));
   };
 
+  const updateTrack = (playlistId: number, trackIndex: number, newName?: string, moveToPlaylistId?: number) => {
+    setPlaylists(current => {
+      const updated = [...current];
+      const sourcePlaylist = updated.find(p => p.id === playlistId);
+      
+      if (!sourcePlaylist) return current;
+
+      if (moveToPlaylistId !== undefined) {
+        const targetPlaylist = updated.find(p => p.id === moveToPlaylistId);
+        if (!targetPlaylist) return current;
+
+        const [track] = sourcePlaylist.tracks.splice(trackIndex, 1);
+        targetPlaylist.tracks.push(track);
+      } else if (newName) {
+        sourcePlaylist.tracks[trackIndex].name = newName;
+      }
+
+      return updated;
+    });
+  };
+
+  const deleteTrack = (playlistId: number, trackIndex: number) => {
+    setPlaylists(current => {
+      const updated = [...current];
+      const playlist = updated.find(p => p.id === playlistId);
+      if (playlist) {
+        playlist.tracks.splice(trackIndex, 1);
+      }
+      return updated;
+    });
+  };
+
+  const handleFileUpload = (playlistId: number, files: FileList) => {
+    const playlist = playlists.find(p => p.id === playlistId);
+    if (!playlist) return;
+
+    Array.from(files).forEach(file => {
+      const url = URL.createObjectURL(file);
+      playlist.tracks.push({
+        name: file.name,
+        url: url
+      });
+    });
+    setPlaylists([...playlists]);
+  };
+
   return (
     <Card className="bg-gray-800/80 border-gray-700">
       <CardHeader className="flex flex-row items-center justify-between">
@@ -69,12 +115,40 @@ export function PlaylistManager() {
       </CardHeader>
       <CardContent className="space-y-4">
         {playlists.map(playlist => (
-          <Playlist
-            key={playlist.id}
-            playlist={playlist}
-            onDelete={() => deletePlaylist(playlist.id)}
-            onRename={(newName) => renamePlaylist(playlist.id, newName)}
-          />
+          <div key={playlist.id} className="space-y-2">
+            <Playlist
+              playlist={playlist}
+              playlists={playlists.map(p => ({ id: p.id, name: p.name }))}
+              onDelete={() => deletePlaylist(playlist.id)}
+              onRename={(newName) => renamePlaylist(playlist.id, newName)}
+              onTrackUpdate={(trackIndex, newName, moveToPlaylistId) => 
+                updateTrack(playlist.id, trackIndex, newName, moveToPlaylistId)}
+              onTrackDelete={(trackIndex) => deleteTrack(playlist.id, trackIndex)}
+            />
+            <div className="flex justify-end">
+              <input
+                type="file"
+                accept="audio/*"
+                multiple
+                className="hidden"
+                id={`upload-${playlist.id}`}
+                onChange={(e) => e.target.files && handleFileUpload(playlist.id, e.target.files)}
+              />
+              <label htmlFor={`upload-${playlist.id}`}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="cursor-pointer"
+                  asChild
+                >
+                  <span>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Audio Files
+                  </span>
+                </Button>
+              </label>
+            </div>
+          </div>
         ))}
       </CardContent>
     </Card>
