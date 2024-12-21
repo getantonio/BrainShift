@@ -402,16 +402,6 @@ export function AffirmationWizard({ onAffirmationsGenerated }: AffirmationWizard
     <Card className="bg-zinc-900/50 border-zinc-700">
       <CardHeader>
         <CardTitle className="text-white">Build Affirmations</CardTitle>
-        <p className="text-sm text-zinc-400 mt-2">
-          Need inspiration? <a 
-            href="https://www.mindvalley.com/blog/positive-affirmations" 
-            target="_blank" 
-            rel="noopener noreferrer" 
-            className="text-pink-400 hover:text-pink-300 underline-offset-4 hover:underline transition-colors"
-          >
-            Learn about creating powerful affirmations →
-          </a>
-        </p>
       </CardHeader>
       <CardContent>
         {step === 1 && (
@@ -456,13 +446,29 @@ export function AffirmationWizard({ onAffirmationsGenerated }: AffirmationWizard
                 )}
               </div>
             </div>
-            <Button
-              onClick={handleNegativeThoughtSubmit}
-              disabled={isGenerating}
-              className="w-full bg-zinc-800 hover:bg-zinc-700 text-white"
-            >
-              {isGenerating ? "Generating Affirmations..." : "Generate Affirmations"}
-            </Button>
+            <div className="flex justify-center gap-4">
+              <Button
+                onClick={() => setStep(1)}
+                className="bg-zinc-800 hover:bg-zinc-700 text-white"
+                title="Back to Categories"
+              >
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+              <Button
+                onClick={handleNegativeThoughtSubmit}
+                disabled={isGenerating}
+                className="bg-zinc-800 hover:bg-zinc-700 text-white"
+                title={isGenerating ? "Generating..." : "Generate Affirmations"}
+              >
+                {isGenerating ? (
+                  <span className="animate-spin">
+                    <RotateCw className="h-4 w-4" />
+                  </span>
+                ) : (
+                  <RotateCw className="h-4 w-4" />
+                )}
+              </Button>
+            </div>
           </div>
         )}
 
