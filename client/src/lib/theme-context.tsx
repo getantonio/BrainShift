@@ -28,6 +28,12 @@ interface ThemeColors {
     border: string;
     text: string;
   };
+  recorder: {
+    primary: string;
+    secondary: string;
+    background: string;
+    text: string;
+  };
 }
 
 interface ThemeContextType {
@@ -62,6 +68,12 @@ const defaultColors: ThemeColors = {
     hover: 'rgba(63, 63, 70, 0.8)',
     border: '#3F3F46',
     text: '#E4E4E7'
+  },
+  recorder: {
+    primary: '#4ade80',
+    secondary: '#2563eb',
+    background: '#111827',
+    text: '#FFFFFF'
   }
 };
 

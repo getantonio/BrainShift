@@ -13,14 +13,17 @@ export default function Home() {
   return (
     <div 
       className="min-h-screen" 
-      style={{ background: colors.body.background, color: colors.body.text }}
+      style={{ 
+        backgroundColor: colors?.body?.background || '#18181B',
+        color: colors?.body?.text || '#FFFFFF'
+      }}
     >
       <header 
         className="py-4 px-8 text-center text-3xl font-bold shadow-lg"
         style={{ 
-          background: colors.header.background,
-          borderBottom: `1px solid ${colors.header.border}`,
-          color: colors.header.text
+          backgroundColor: colors?.header?.background || '#000000',
+          borderBottom: `1px solid ${colors?.header?.border || 'rgba(255, 255, 255, 0.2)'}`,
+          color: colors?.header?.text || '#FFFFFF'
         }}
       >
         <h1 className="font-extrabold tracking-wider">
