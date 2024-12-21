@@ -40,7 +40,13 @@ export function AudioItem({ track, onRename, onDelete }: AudioItemProps) {
   };
 
   return (
-    <div className="flex items-center justify-between p-2 rounded-lg bg-gray-800">
+    <div 
+      className="flex items-center justify-between p-2 rounded-lg bg-gray-800"
+      draggable
+      onDragStart={(e) => {
+        e.dataTransfer.setData('text/plain', JSON.stringify(track));
+      }}
+    >
       {isRenaming ? (
         <Input
           value={newName}

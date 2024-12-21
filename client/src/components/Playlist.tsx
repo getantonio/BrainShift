@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AudioItem } from "./AudioItem";
-import { Edit2, Trash2, Play, Repeat, Square } from "lucide-react";
+import { Edit2, Trash2, Play, Repeat, Square, Shuffle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
 interface PlaylistProps {
@@ -39,27 +39,49 @@ export function Playlist({
     setIsEditing(!isEditing);
   };
 
+  const [isShuffled, setIsShuffled] = useState(false);
+  const [playbackOrder, setPlaybackOrder] = useState<number[]>([]);
+
+  const updatePlaybackOrder = () => {
+    const indices = Array.from({ length: playlist.tracks.length }, (_, i) => i);
+    if (isShuffled) {
+      // Fisher-Yates shuffle
+      for (let i = indices.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [indices[i], indices[j]] = [indices[j], indices[i]];
+      }
+    }
+    setPlaybackOrder(indices);
+  };
+
   const playPlaylist = () => {
     stopPlaylist();
     if (playlist.tracks.length === 0) return;
     
-    const audio = new Audio(playlist.tracks[0].url);
+    updatePlaybackOrder();
+    const audio = new Audio(playlist.tracks[playbackOrder[0]].url);
     setCurrentAudio(audio);
     setCurrentTrackIndex(0);
     
     audio.onended = () => {
-      const nextIndex = (currentTrackIndex + 1) % playlist.tracks.length;
+      const nextIndex = (currentTrackIndex + 1) % playbackOrder.length;
       if (nextIndex === 0 && !isLooping) {
         stopPlaylist();
         return;
       }
       setCurrentTrackIndex(nextIndex);
-      const nextAudio = new Audio(playlist.tracks[nextIndex].url);
+      const nextTrackIndex = playbackOrder[nextIndex];
+      const nextAudio = new Audio(playlist.tracks[nextTrackIndex].url);
       setCurrentAudio(nextAudio);
       nextAudio.play();
     };
     
     audio.play();
+  };
+
+  const toggleShuffle = () => {
+    setIsShuffled(!isShuffled);
+    updatePlaybackOrder();
   };
 
   const stopPlaylist = () => {
@@ -75,7 +97,29 @@ export function Playlist({
   };
 
   return (
-    <Card className="bg-gray-700/50 border-gray-600">
+    <Card 
+      className="bg-gray-700/50 border-gray-600"
+      onDragOver={(e) => {
+        e.preventDefault();
+        e.currentTarget.style.borderColor = 'rgb(75, 85, 99)';
+      }}
+      onDragLeave={(e) => {
+        e.currentTarget.style.borderColor = 'rgb(75, 85, 99, 0.5)';
+      }}
+      onDrop={(e) => {
+        e.preventDefault();
+        e.currentTarget.style.borderColor = 'rgb(75, 85, 99, 0.5)';
+        try {
+          const trackData = JSON.parse(e.dataTransfer.getData('text/plain'));
+          const event = new CustomEvent('trackMove', {
+            detail: { track: trackData, targetPlaylistId: playlist.id }
+          });
+          window.dispatchEvent(event);
+        } catch (err) {
+          console.error('Failed to parse dragged track data:', err);
+        }
+      }}
+    >
       <CardHeader className="flex flex-row items-center justify-between">
         {isEditing ? (
           <Input
@@ -147,6 +191,7 @@ export function Playlist({
             size="sm"
             onClick={playPlaylist}
             disabled={playlist.tracks.length === 0}
+            className="bg-gray-800 hover:bg-gray-700 text-gray-200 border-gray-600"
           >
             <Play className="mr-2 h-4 w-4" />
             Play All
@@ -155,7 +200,9 @@ export function Playlist({
             variant="outline"
             size="sm"
             onClick={toggleLoop}
-            className={isLooping ? "bg-emerald-700" : ""}
+            className={`bg-gray-800 hover:bg-gray-700 text-gray-200 border-gray-600 ${
+              isLooping ? "ring-2 ring-gray-500" : ""
+            }`}
           >
             <Repeat className="mr-2 h-4 w-4" />
             Loop
@@ -163,8 +210,20 @@ export function Playlist({
           <Button
             variant="outline"
             size="sm"
+            onClick={toggleShuffle}
+            className={`bg-gray-800 hover:bg-gray-700 text-gray-200 border-gray-600 ${
+              isShuffled ? "ring-2 ring-gray-500" : ""
+            }`}
+          >
+            <Shuffle className="mr-2 h-4 w-4" />
+            Shuffle
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
             onClick={stopPlaylist}
             disabled={!currentAudio}
+            className="bg-gray-800 hover:bg-gray-700 text-gray-200 border-gray-600"
           >
             <Square className="mr-2 h-4 w-4" />
             Stop
