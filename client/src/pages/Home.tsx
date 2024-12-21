@@ -1,6 +1,6 @@
 import { AudioRecorder } from "@/components/AudioRecorder";
 import { PlaylistManager } from "@/components/PlaylistManager";
-import { ThemeCustomizer } from "@/components/ThemeCustomizer";
+import { AffirmationWizard } from "@/components/AffirmationWizard";
 import { useTheme } from "@/lib/theme-context";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,8 @@ import { ChevronUp, ChevronDown } from "lucide-react";
 export default function Home() {
   const { colors } = useTheme();
   const [arePlaylistsCollapsed, setArePlaylistsCollapsed] = useState(false);
+
+  const [generatedAffirmations, setGeneratedAffirmations] = useState<string[]>([]);
 
   return (
     <div 
@@ -32,6 +34,7 @@ export default function Home() {
       </header>
       
       <main className="container mx-auto px-4 py-8 flex flex-col gap-6">
+        <AffirmationWizard onAffirmationsGenerated={setGeneratedAffirmations} />
         <AudioRecorder />
         <div className="flex justify-end gap-4">
           <Button
