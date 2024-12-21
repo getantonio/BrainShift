@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus } from "lucide-react";
-import { Playlist } from "./Playlist";
+import { Playlist } from "@/components/Playlist";
 import { useToast } from "@/hooks/use-toast";
 
 interface PlaylistData {
@@ -90,7 +90,12 @@ export function PlaylistManager() {
     ));
   };
 
-  const updateTrack = (playlistId: number, trackIndex: number, newName?: string, moveToPlaylistId?: number) => {
+  const updateTrack = (
+    playlistId: number,
+    trackIndex: number,
+    newName?: string,
+    moveToPlaylistId?: number
+  ): void => {
     setPlaylists(current => {
       const updated = [...current];
       const sourcePlaylist = updated.find(p => p.id === playlistId);

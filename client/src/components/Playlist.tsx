@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AudioItem } from "./AudioItem";
+import { AudioItem } from "@/components/AudioItem";
 import { Edit2, Trash2, Play, Repeat, Square, Shuffle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
@@ -62,22 +62,46 @@ export function Playlist({
     setCurrentTrackIndex(0);
     
     const playTrack = (index: number) => {
-      const trackIndex = playbackOrder[index];
-      const audio = new Audio(playlist.tracks[trackIndex].url);
-      
-      audio.onended = () => {
-        const nextIndex = (index + 1) % playbackOrder.length;
-        if (nextIndex === 0 && !isLooping) {
-          stopPlaylist();
-          return;
-        }
-        setCurrentTrackIndex(nextIndex);
-        playTrack(nextIndex);
-      };
+    if (!playlist.tracks.length || index >= playlist.tracks.length) {
+      console.error('Invalid track index or empty playlist');
+      return;
+    }
 
-      setCurrentAudio(audio);
-      audio.play().catch(console.error);
+    const trackIndex = playbackOrder[index];
+    if (trackIndex === undefined || !playlist.tracks[trackIndex]) {
+      console.error('Invalid track in playback order');
+      return;
+    }
+
+    const track = playlist.tracks[trackIndex];
+    if (!track.url) {
+      console.error('Track URL is missing');
+      return;
+    }
+
+    const audio = new Audio(track.url);
+    
+    audio.onended = () => {
+      const nextIndex = (index + 1) % playbackOrder.length;
+      if (nextIndex === 0 && !isLooping) {
+        stopPlaylist();
+        return;
+      }
+      setCurrentTrackIndex(nextIndex);
+      playTrack(nextIndex);
     };
+
+    if (currentAudio) {
+      currentAudio.pause();
+      currentAudio.currentTime = 0;
+    }
+
+    setCurrentAudio(audio);
+    audio.play().catch(error => {
+      console.error('Error playing audio:', error);
+      stopPlaylist();
+    });
+  };
     
     playTrack(0);
   };
