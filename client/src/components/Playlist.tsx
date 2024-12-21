@@ -138,26 +138,36 @@ export function Playlist({
     const newIsShuffled = !isShuffled;
     setIsShuffled(newIsShuffled);
     
+    // Always update the playback order when toggling shuffle
+    const indices = Array.from({ length: playlist.tracks.length }, (_, i) => i);
     if (newIsShuffled) {
-      // Create a new shuffled order
-      const indices = Array.from({ length: playlist.tracks.length }, (_, i) => i);
+      // Fisher-Yates shuffle
       for (let i = indices.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [indices[i], indices[j]] = [indices[j], indices[i]];
       }
-      setPlaybackOrder(indices);
     }
+    setPlaybackOrder(indices);
     
     // If currently playing, restart with new order
     if (currentAudio) {
+      const wasPlaying = !currentAudio.paused;
       const currentTime = currentAudio.currentTime;
       stopPlaylist();
-      setTimeout(() => {
-        playPlaylist();
-        if (currentAudio) {
-          currentAudio.currentTime = currentTime;
-        }
-      }, 0);
+      
+      if (wasPlaying) {
+        // Start playing from current track in new order
+        const currentTrack = playlist.tracks[currentTrackIndex];
+        const newIndex = indices.findIndex(i => playlist.tracks[i] === currentTrack);
+        setCurrentTrackIndex(newIndex >= 0 ? newIndex : 0);
+        
+        setTimeout(() => {
+          playPlaylist();
+          if (currentAudio) {
+            currentAudio.currentTime = currentTime;
+          }
+        }, 100);
+      }
     }
   };
 
@@ -229,7 +239,7 @@ export function Playlist({
             variant="outline"
             size="icon"
             onClick={handleRename}
-            className="h-8 w-8 bg-gray-800 hover:bg-gray-700 text-gray-200 border-gray-600"
+            className="h-8 w-8 bg-gray-800/80 hover:bg-gray-700/80 text-gray-200 border-gray-600"
           >
             <Edit2 className="h-4 w-4" />
           </Button>
@@ -237,7 +247,7 @@ export function Playlist({
             variant="outline"
             size="icon"
             onClick={() => onSave()}
-            className="h-8 w-8 bg-gray-800 hover:bg-gray-700 text-gray-200 border-gray-600"
+            className="h-8 w-8 bg-gray-800/80 hover:bg-gray-700/80 text-gray-200 border-gray-600"
           >
             💾
           </Button>
@@ -245,7 +255,7 @@ export function Playlist({
             variant="outline"
             size="icon"
             onClick={onDelete}
-            className="h-8 w-8 bg-gray-800 hover:bg-gray-700 text-gray-200 border-gray-600"
+            className="h-8 w-8 bg-gray-800/80 hover:bg-gray-700/80 text-gray-200 border-gray-600"
           >
             <Trash2 className="h-4 w-4" />
           </Button>

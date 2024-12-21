@@ -31,15 +31,35 @@ export function PlaylistManager() {
               playlist.tracks.map(async (track) => {
                 if (track.url.startsWith('data:')) {
                   try {
-                    const response = await fetch(track.url);
-                    if (!response.ok) throw new Error('Failed to fetch audio data');
-                    const blob = await response.blob();
+                    // Create a new blob from the data URL
+                    const base64Response = await fetch(track.url);
+                    if (!base64Response.ok) throw new Error('Failed to fetch audio data');
+                    const audioBlob = await base64Response.blob();
+                    
+                    // Verify the blob is valid audio
+                    const validationAudio = new Audio();
+                    validationAudio.src = URL.createObjectURL(audioBlob);
+                    
+                    await new Promise((resolve, reject) => {
+                      validationAudio.onloadedmetadata = resolve;
+                      validationAudio.onerror = () => reject(new Error('Invalid audio data'));
+                      
+                      // Set a timeout in case the audio never loads
+                      setTimeout(() => reject(new Error('Audio load timeout')), 5000);
+                    });
+                    
+                    // If we get here, the audio is valid
                     return {
                       ...track,
-                      url: URL.createObjectURL(blob)
+                      url: URL.createObjectURL(audioBlob)
                     };
                   } catch (error) {
                     console.error('Failed to reconstruct track:', error);
+                    toast({
+                      title: "Warning",
+                      description: `Failed to load track: ${track.name}`,
+                      variant: "destructive"
+                    });
                     return null;
                   }
                 }
@@ -47,18 +67,30 @@ export function PlaylistManager() {
               })
             );
 
+            const validTracks = reconstructedTracks.filter(Boolean);
+            if (validTracks.length < reconstructedTracks.length) {
+              toast({
+                title: "Warning",
+                description: `Some tracks in playlist "${playlist.name}" could not be loaded`,
+                variant: "destructive"
+              });
+            }
+
             return {
               ...playlist,
-              tracks: reconstructedTracks.filter(Boolean)
+              tracks: validTracks
             };
           })
         );
 
         setPlaylists(reconstructedPlaylists);
-        toast({
-          title: "Playlists loaded",
-          description: "Your saved playlists have been restored"
-        });
+        
+        if (reconstructedPlaylists.some(p => p.tracks.length > 0)) {
+          toast({
+            title: "Playlists loaded",
+            description: "Your saved playlists have been restored"
+          });
+        }
       } catch (error) {
         console.error('Failed to load playlists:', error);
         toast({
