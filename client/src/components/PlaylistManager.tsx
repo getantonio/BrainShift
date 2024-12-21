@@ -328,7 +328,12 @@ export function PlaylistManager() {
 
   const addPlaylist = () => {
     const newId = Math.max(...playlists.map(p => p.id)) + 1;
-    const newName = `Playlist ${newId}`;
+    // Find the first available number starting from 1
+    let counter = 1;
+    while (playlists.some(p => p.name === `Playlist ${counter}`)) {
+      counter++;
+    }
+    const newName = `Playlist ${counter}`;
     setPlaylists([...playlists, { id: newId, name: newName, tracks: [] }]);
     toast({
       title: "Playlist created",
@@ -412,7 +417,7 @@ export function PlaylistManager() {
   return (
     <Card className="bg-zinc-900 border-zinc-700">
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Playlists</CardTitle>
+        <CardTitle className="text-white">Playlists</CardTitle>
         <div className="flex gap-2">
           <Button
             onClick={() => savePlaylist()}
@@ -421,14 +426,64 @@ export function PlaylistManager() {
           >
             💾 Save All
           </Button>
-          <Button
-            onClick={addPlaylist}
-            variant="outline"
-            className="bg-zinc-800 hover:bg-zinc-700 text-white border-zinc-600"
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            Add New Playlist
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              onClick={() => {
+                const fileInput = document.createElement('input');
+                fileInput.type = 'file';
+                fileInput.accept = '.json';
+                fileInput.onchange = async (e) => {
+                  const file = (e.target as HTMLInputElement).files?.[0];
+                  if (file) {
+                    try {
+                      const text = await file.text();
+                      const importedPlaylists = JSON.parse(text);
+                      setPlaylists(current => [...current, ...importedPlaylists]);
+                      toast({
+                        title: "Playlists imported",
+                        description: `Successfully imported playlists from ${file.name}`
+                      });
+                    } catch (error) {
+                      toast({
+                        title: "Error",
+                        description: "Failed to import playlists",
+                        variant: "destructive"
+                      });
+                    }
+                  }
+                };
+                fileInput.click();
+              }}
+              variant="outline"
+              className="bg-zinc-800 hover:bg-zinc-700 text-white border-zinc-600"
+            >
+              📁 Import
+            </Button>
+            <Button
+              onClick={() => {
+                const playlistsJson = JSON.stringify(playlists, null, 2);
+                const blob = new Blob([playlistsJson], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'playlists.json';
+                a.click();
+                URL.revokeObjectURL(url);
+              }}
+              variant="outline"
+              className="bg-zinc-800 hover:bg-zinc-700 text-white border-zinc-600"
+            >
+              💾 Export
+            </Button>
+            <Button
+              onClick={addPlaylist}
+              variant="outline"
+              className="bg-zinc-800 hover:bg-zinc-700 text-white border-zinc-600"
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Add New Playlist
+            </Button>
+          </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
