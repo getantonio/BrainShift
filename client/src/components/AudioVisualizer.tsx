@@ -267,8 +267,9 @@ export function AudioVisualizer({
       
       // Update and draw particles
       particlesRef.current.forEach((particle, index) => {
-        // Update particle position based on audio intensity
-        particle.y += particle.speed * (1 + intensity / 128);
+        // Update particle position based on audio intensity and playback state
+        const speedMultiplier = isPlaying ? 1.5 : 1;
+        particle.y += particle.speed * (1 + intensity / 128) * speedMultiplier;
         if (particle.y > canvas.height) {
           particle.y = 0;
           particle.x = Math.random() * canvas.width;
@@ -279,9 +280,10 @@ export function AudioVisualizer({
         const alpha = 0.3 + globalPulse * 0.7;
         
         // Draw particle with glow effect
+        const particleColor = colors.primary;
         ctx.shadowBlur = 15;
-        ctx.shadowColor = colors.particle;
-        ctx.fillStyle = colors.particle;
+        ctx.shadowColor = particleColor;
+        ctx.fillStyle = particleColor;
         
         // Draw expanding circles for particles
         const size = particle.size * (1 + globalPulse * 0.5);
