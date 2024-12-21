@@ -16,34 +16,9 @@ import {
 // Predefined behavior categories
 const BEHAVIOR_CATEGORIES = [
   {
-    id: "custom",
-    label: "Custom Affirmations",
-    examples: [
-      "I'll never be successful in life",
-      "Nobody understands or supports me",
-      "I'm too broken to be fixed",
-      "Everything I try ends in failure"
-    ],
-  },
-  {
     id: "addiction",
     label: "💖 Quit Smoking and Addictions",
     examples: ["I can't quit my bad habits", "I'm powerless over my addiction", "I'll never be free"],
-  },
-  {
-    id: "aging",
-    label: "💪 Aging Better",
-    examples: ["I'm getting too old", "My best years are behind me", "I can't keep up anymore"],
-  },
-  {
-    id: "consciousness",
-    label: "🪷 Altered States of Consciousness",
-    examples: ["I can't reach deeper states", "My mind is too chaotic", "I lack spiritual connection"],
-  },
-  {
-    id: "intimacy",
-    label: "💋 Better Sex",
-    examples: ["I'm not attractive enough", "I lack confidence in intimacy", "I fear rejection"],
   },
   {
     id: "sleep",
@@ -51,29 +26,9 @@ const BEHAVIOR_CATEGORIES = [
     examples: ["I can't fall asleep", "My mind races at night", "I always wake up tired"],
   },
   {
-    id: "creativity",
-    label: "🎨 Boost Creativity",
-    examples: ["I'm not creative enough", "I feel blocked", "My ideas are boring"],
-  },
-  {
-    id: "career",
-    label: "📈 Career Growth",
-    examples: ["I'm stuck in my career", "I'm undervalued", "I lack direction"],
-  },
-  {
-    id: "coaching",
-    label: "🏆 Coaching",
-    examples: ["I can't help others", "I'm not qualified enough", "Nobody will listen to me"],
-  },
-  {
-    id: "cognition",
-    label: "🧠 Cognition",
-    examples: ["My memory is poor", "I can't think clearly", "I'm not smart enough"],
-  },
-  {
-    id: "communication",
-    label: "🎤 Communication",
-    examples: ["I struggle to express myself", "People misunderstand me", "I fear public speaking"],
+    id: "emotional",
+    label: "😇 Emotional Mastery",
+    examples: ["I can't control my emotions", "I'm too sensitive", "My feelings overwhelm me"],
   },
   {
     id: "confidence",
@@ -81,39 +36,9 @@ const BEHAVIOR_CATEGORIES = [
     examples: ["I'm not good enough", "I feel insecure", "People won't like me"],
   },
   {
-    id: "community",
-    label: "👫 Creating Community",
-    examples: ["I'm always alone", "I can't connect with others", "Nobody shares my interests"],
-  },
-  {
-    id: "eating",
-    label: "🥄 Eating Well",
-    examples: ["I can't stick to healthy eating", "I have no self-control", "I'll always struggle with food"],
-  },
-  {
-    id: "emotional",
-    label: "😇 Emotional Mastery",
-    examples: ["I can't control my emotions", "I'm too sensitive", "My feelings overwhelm me"],
-  },
-  {
-    id: "entrepreneur",
-    label: "😎 Entrepreneurial Mindset",
-    examples: ["I'm not cut out for business", "I'll never succeed", "I lack business skills"],
-  },
-  {
-    id: "relationships",
-    label: "❤️ Finding Relationships",
-    examples: ["I'll always be alone", "Nobody will love me", "I'm not worthy of love"],
-  },
-  {
-    id: "fitness",
-    label: "🏃‍♀️ Fitness",
-    examples: ["I'm too out of shape", "I'll never be fit", "Exercise is too hard"],
-  },
-  {
-    id: "flow",
-    label: "🏄 Flow",
-    examples: ["I can't focus", "I'm always distracted", "I can't get in the zone"],
+    id: "happiness",
+    label: "😀 Happiness",
+    examples: ["I'll never be truly happy", "Life is always hard", "I don't deserve joy"],
   },
   {
     id: "focus",
@@ -126,9 +51,9 @@ const BEHAVIOR_CATEGORIES = [
     examples: ["I lack discipline", "I can't stick to habits", "I always give up"],
   },
   {
-    id: "happiness",
-    label: "😀 Happiness",
-    examples: ["I'll never be truly happy", "Life is always hard", "I don't deserve joy"],
+    id: "money",
+    label: "💰 Money & Finance",
+    examples: ["I'll never be wealthy", "Money is scarce", "I'm bad with finances"],
   },
   {
     id: "healing",
@@ -136,104 +61,9 @@ const BEHAVIOR_CATEGORIES = [
     examples: ["I'll never heal", "I'm broken", "The pain will never end"],
   },
   {
-    id: "heartbreak",
-    label: "❤️‍🩹 Healing Heartbreak",
-    examples: ["I'll never love again", "The pain is too much", "I can't move on"],
-  },
-  {
-    id: "impact",
-    label: "⚡ Impact",
-    examples: ["I don't make a difference", "My work doesn't matter", "I can't change anything"],
-  },
-  {
-    id: "influence",
-    label: "🌞 Influence",
-    examples: ["Nobody listens to me", "I lack charisma", "I can't inspire others"],
-  },
-  {
-    id: "leadership",
-    label: "🧗 Leadership",
-    examples: ["I'm not a natural leader", "Nobody follows my lead", "I can't handle responsibility"],
-  },
-  {
-    id: "looks",
-    label: "😍 Look Good",
-    examples: ["I'm not attractive enough", "I'll never look good", "I hate my appearance"],
-  },
-  {
-    id: "meditation",
-    label: "🧘 Meditation",
-    examples: ["I can't quiet my mind", "Meditation is too hard", "I'm doing it wrong"],
-  },
-  {
-    id: "mindManagement",
-    label: "🧠 Mind Management",
-    examples: ["My thoughts control me", "I can't manage my mind", "I'm overwhelmed"],
-  },
-  {
-    id: "mindPower",
-    label: "✨ Mind Power",
-    examples: ["My mind is weak", "I can't control my thoughts", "I lack mental strength"],
-  },
-  {
-    id: "mindset",
-    label: "🧠 Mindset",
-    examples: ["I'm stuck in negative thinking", "I can't change my mindset", "I always expect the worst"],
-  },
-  {
-    id: "money",
-    label: "💰 Money & Finance",
-    examples: ["I'll never be wealthy", "Money is scarce", "I'm bad with finances"],
-  },
-  {
-    id: "oneness",
-    label: "🌎 Oneness",
-    examples: ["I feel disconnected", "I'm all alone", "I don't belong"],
-  },
-  {
-    id: "parenting",
-    label: "👩‍👦‍👦 Parenting",
-    examples: ["I'm a bad parent", "I'm failing my children", "I can't handle parenting"],
-  },
-  {
-    id: "passion",
-    label: "🌈 Passion",
-    examples: ["I have no passion", "Life is meaningless", "I can't find my purpose"],
-  },
-  {
-    id: "perception",
-    label: "😌 Perceptual Diversity",
-    examples: ["I'm too rigid", "I can't see other perspectives", "My way is the only way"],
-  },
-  {
-    id: "optimism",
-    label: "😊 Positive Optimism",
-    examples: ["Everything goes wrong", "Life is against me", "Nothing good ever happens"],
-  },
-  {
-    id: "problemSolving",
-    label: "💡 Problem Solving",
-    examples: ["I can't solve problems", "I'm not smart enough", "Everything is too complicated"],
-  },
-  {
-    id: "purpose",
-    label: "🧭 Purpose",
-    examples: ["I have no purpose", "My life is meaningless", "I'm just drifting"],
-  },
-  {
-    id: "quality",
-    label: "🏄‍♂️ Quality of Life",
-    examples: ["My life is a mess", "I can't enjoy anything", "Nothing ever improves"],
-  },
-  {
-    id: "resilience",
-    label: "💪 Resilience",
-    examples: ["I give up too easily", "I can't handle challenges", "I'm too weak"],
-  },
-  {
-    id: "business",
-    label: "💼 Running a Business",
-    examples: ["My business will fail", "I'm not a good entrepreneur", "I can't handle business"],
+    id: "fitness",
+    label: "🏃‍♀️ Fitness",
+    examples: ["I'm too out of shape", "I'll never be fit", "Exercise is too hard"],
   },
   {
     id: "selfLove",
@@ -241,44 +71,19 @@ const BEHAVIOR_CATEGORIES = [
     examples: ["I don't deserve love", "I hate myself", "I'm not worthy"],
   },
   {
-    id: "social",
-    label: "💞 Social Life & Relationships",
-    examples: ["I'm socially awkward", "Nobody likes me", "I can't make friends"],
-  },
-  {
-    id: "learning",
-    label: "🤓 Speed Learning",
-    examples: ["I'm a slow learner", "I can't retain information", "Learning is too hard"],
-  },
-  {
-    id: "spirituality",
-    label: "🦋 Spirituality",
-    examples: ["I lack spiritual connection", "I'm not spiritual enough", "I feel empty inside"],
-  },
-  {
     id: "relationships",
     label: "💌 Strengthening Relationships",
     examples: ["My relationships always fail", "I can't maintain connections", "I push people away"],
   },
   {
-    id: "character",
-    label: "🏅 Strength of Character",
-    examples: ["I'm weak-willed", "I lack integrity", "I can't stand up for myself"],
+    id: "resilience",
+    label: "💪 Resilience",
+    examples: ["I give up too easily", "I can't handle challenges", "I'm too weak"],
   },
   {
-    id: "teaching",
-    label: "🧑‍🏫 Teaching & Training",
-    examples: ["I'm a bad teacher", "I can't explain things", "Nobody learns from me"],
-  },
-  {
-    id: "vision",
-    label: "🔭 Vision",
-    examples: ["I lack vision", "I can't see the future", "I have no direction"],
-  },
-  {
-    id: "wellness",
-    label: "🌿 Wellness",
-    examples: ["I'll never be healthy", "My body is weak", "I can't take care of myself"],
+    id: "quality",
+    label: "🏄‍♂️ Quality of Life",
+    examples: ["My life is a mess", "I can't enjoy anything", "Nothing ever improves"],
   }
 ];
 
