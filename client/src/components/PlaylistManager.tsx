@@ -13,7 +13,7 @@ interface PlaylistData {
 
 export function PlaylistManager() {
   const [playlists, setPlaylists] = useState<PlaylistData[]>([
-    { id: 1, name: "Playlist 1", tracks: [] }
+    { id: Date.now(), name: "Playlist 1", tracks: [] }
   ]);
   const { toast } = useToast();
 
@@ -115,6 +115,11 @@ export function PlaylistManager() {
         playlistsToSave.map(async (playlist) => {
           const processedTracks = await Promise.all(
             playlist.tracks.map(async (track) => {
+              if (!track || !track.url) {
+                console.error('Invalid track data:', track);
+                return null;
+              }
+
               try {
                 if (track.url.startsWith('blob:')) {
                   const response = await fetch(track.url);
@@ -122,33 +127,44 @@ export function PlaylistManager() {
                     throw new Error('Failed to fetch audio blob');
                   }
                   const blob = await response.blob();
+                  
+                  // Verify that we have a valid audio blob
+                  if (!blob.type.startsWith('audio/')) {
+                    throw new Error('Invalid audio format');
+                  }
+
                   return await new Promise<{ name: string; url: string }>((resolve, reject) => {
                     const reader = new FileReader();
                     reader.onloadend = () => {
-                      if (reader.result) {
+                      if (typeof reader.result === 'string') {
                         resolve({
                           name: track.name,
-                          url: reader.result as string
+                          url: reader.result
                         });
                       } else {
-                        reject(new Error('Failed to read blob'));
+                        reject(new Error('Failed to read blob as DataURL'));
                       }
                     };
-                    reader.onerror = () => reject(reader.error);
+                    reader.onerror = () => reject(new Error('FileReader error: ' + reader.error?.message));
                     reader.readAsDataURL(blob);
                   });
                 }
                 return track;
               } catch (error) {
                 console.error('Error processing track:', error);
-                return track;
+                toast({
+                  title: "Warning",
+                  description: `Failed to process track: ${track.name}`,
+                  variant: "destructive"
+                });
+                return null;
               }
             })
-          );
+          ).then(tracks => tracks.filter(Boolean) as Array<{ name: string; url: string; }>);
 
           return {
             ...playlist,
-            tracks: processedTracks.filter(Boolean)
+            tracks: processedTracks
           };
         })
       );
