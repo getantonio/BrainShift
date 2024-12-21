@@ -4,37 +4,27 @@ import { Mic, Square } from "lucide-react";
 import { useState, useRef } from "react";
 import { AudioVisualizer } from "./AudioVisualizer";
 import { useToast } from "@/hooks/use-toast";
-import { useAudioContext } from "@/lib/audio-context";
 
 export function AudioRecorder() {
   const [isRecording, setIsRecording] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const audioChunks = useRef<Blob[]>([]);
-  const streamRef = useRef<MediaStream | null>(null);
-  const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
+  const [audioContext, setAudioContext] = useState<AudioContext | null>(null);
+  const [analyserNode, setAnalyserNode] = useState<AnalyserNode | null>(null);
   const { toast } = useToast();
-  const { 
-    audioContext, 
-    analyzerNode, 
-    isPlaying, 
-    startRecording: startAudioContext,
-    stopRecording: stopAudioContext 
-  } = useAudioContext();
 
   const startRecording = async () => {
     try {
-      if (!audioContext || !analyzerNode) {
-        throw new Error("Audio context not initialized");
-      }
-
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      streamRef.current = stream;
-      
-      // Create and connect the audio source
-      const source = audioContext.createMediaStreamSource(stream);
-      sourceRef.current = source;
-      source.connect(analyzerNode);
-      
+      const context = new AudioContext();
+      const source = context.createMediaStreamSource(stream);
+      const analyser = context.createAnalyser();
+      source.connect(analyser);
+      analyser.connect(context.destination);
+
+      setAudioContext(context);
+      setAnalyserNode(analyser);
+
       const recorder = new MediaRecorder(stream);
       setMediaRecorder(recorder);
 
@@ -47,7 +37,7 @@ export function AudioRecorder() {
       recorder.onstop = async () => {
         const audioBlob = new Blob(audioChunks.current, { type: 'audio/mp3' });
         const audioUrl = URL.createObjectURL(audioBlob);
-        
+
         const fileName = prompt('Enter a name for your recording:', 'New Recording');
         if (!fileName) {
           audioChunks.current = [];
@@ -58,19 +48,18 @@ export function AudioRecorder() {
         downloadLink.href = audioUrl;
         downloadLink.download = `${fileName}.mp3`;
         downloadLink.click();
-        
+
         toast({
           title: "Recording saved",
           description: `${fileName}.mp3 has been saved`
         });
-        
+
         // Cleanup
         URL.revokeObjectURL(audioUrl);
         audioChunks.current = [];
       };
 
       recorder.start();
-      startAudioContext();
       setIsRecording(true);
     } catch (error) {
       console.error('Recording error:', error);
@@ -85,22 +74,16 @@ export function AudioRecorder() {
   const stopRecording = () => {
     if (mediaRecorder && mediaRecorder.state !== 'inactive') {
       mediaRecorder.stop();
-      
-      // Cleanup media recorder and stream
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop());
-        streamRef.current = null;
+      mediaRecorder.stream.getTracks().forEach(track => track.stop());
+
+      if (audioContext) {
+        audioContext.close();
+        setAudioContext(null);
       }
-      
-      // Disconnect source if it exists
-      if (sourceRef.current) {
-        sourceRef.current.disconnect();
-        sourceRef.current = null;
-      }
-      
+
+      setAnalyserNode(null);
       setIsRecording(false);
       setMediaRecorder(null);
-      stopAudioContext();
     }
   };
 
@@ -132,11 +115,10 @@ export function AudioRecorder() {
             Stop
           </Button>
         </div>
-        
+
         <AudioVisualizer
           isRecording={isRecording}
-          isPlaying={isPlaying}
-          analyserNode={analyzerNode}
+          analyserNode={analyserNode}
         />
       </CardContent>
     </Card>
