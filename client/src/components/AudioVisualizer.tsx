@@ -47,7 +47,7 @@ export function AudioVisualizer({
   }>>([]);
 
   useEffect(() => {
-    if (!isRecording || !analyserNode || !canvasRef.current) return;
+    if ((!isRecording && !isPlaying) || !analyserNode || !canvasRef.current) return;
 
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
@@ -280,8 +280,8 @@ export function AudioVisualizer({
         
         // Draw particle with glow effect
         ctx.shadowBlur = 15;
-        ctx.shadowColor = colors.primary;
-        ctx.fillStyle = colors.primary;
+        ctx.shadowColor = colors.particle;
+        ctx.fillStyle = colors.particle;
         
         // Draw expanding circles for particles
         const size = particle.size * (1 + globalPulse * 0.5);

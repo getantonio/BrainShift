@@ -2,8 +2,6 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Play, Square, Download, Trash2, Edit2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { useAudioContext } from "@/lib/audio-context";
-
 interface AudioItemProps {
   track: {
     name: string;
@@ -18,17 +16,12 @@ export function AudioItem({ track, onRename, onDelete }: AudioItemProps) {
   const [audio] = useState(() => track?.url ? new Audio(track.url) : null);
   const [isRenaming, setIsRenaming] = useState(false);
   const [newName, setNewName] = useState(track?.name || '');
-  const { startPlayback, stopPlayback } = useAudioContext();
 
   const playAudio = () => {
     if (!audio || !track?.url) return;
-    startPlayback(audio);
     audio.play().catch(console.error);
     setIsPlaying(true);
-    audio.onended = () => {
-      setIsPlaying(false);
-      stopPlayback();
-    };
+    audio.onended = () => setIsPlaying(false);
   };
 
   const stopAudio = () => {
@@ -36,7 +29,6 @@ export function AudioItem({ track, onRename, onDelete }: AudioItemProps) {
     audio.pause();
     audio.currentTime = 0;
     setIsPlaying(false);
-    stopPlayback();
   };
 
   const handleRename = () => {
