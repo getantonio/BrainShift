@@ -210,64 +210,79 @@ async function loadModel() {
 
 async function generateSimilarPhrases(input: string, category: string): Promise<string[]> {
   try {
-    // Get base affirmations for the category
     const baseAffirmations = defaultTemplates[category as keyof typeof defaultTemplates] || defaultTemplates.confidence;
     
-    // Create variations using templates and combinations
+    // Dynamic modifiers for variation generation
+    const timeModifiers = [
+      "each day",
+      "with every breath",
+      "moment by moment",
+      "step by step",
+      "consistently",
+      "with growing confidence",
+      "with unwavering faith",
+      "naturally and easily",
+      "with gratitude",
+      "with inner peace"
+    ];
+
+    const prefixModifiers = [
+      "Every day",
+      "Each moment",
+      "Gradually",
+      "Steadily",
+      "Naturally",
+      "Confidently",
+      "Joyfully",
+      "Purposefully",
+      "Mindfully",
+      "Powerfully"
+    ];
+
     const variations: string[] = [];
-    
-    // Add some base affirmations with slight modifications
-    const modifiedBase = baseAffirmations.map(aff => {
-      const rand = Math.random();
-      if (rand < 0.3) {
-        return aff.replace(/I am|I'm/, "Every day I become");
-      } else if (rand < 0.6) {
-        return aff.replace(/I/, "Each moment I");
-      }
-      return aff;
-    });
-    
-    // Randomly select and combine affirmations
-    for (let i = 0; i < 15; i++) {
-      const randIndex = Math.floor(Math.random() * baseAffirmations.length);
-      const affirmation = baseAffirmations[randIndex];
-      
-      // Add variations
-      if (Math.random() < 0.5) {
-        variations.push(affirmation);
-      } else {
-        const timeModifiers = ["each day", "with every breath", "moment by moment", "step by step", "consistently"];
+
+    // Generate variations using different techniques
+    baseAffirmations.forEach(affirmation => {
+      // Original affirmation
+      variations.push(affirmation);
+
+      // Time modifier variation
+      if (Math.random() > 0.5) {
         const modifier = timeModifiers[Math.floor(Math.random() * timeModifiers.length)];
-        variations.push(affirmation.replace(/\.$/, ` ${modifier}.`));
+        variations.push(affirmation.replace(/\.$/, "") + ` ${modifier}.`);
       }
-    }
-    
-    // Mix original and modified affirmations
-    const allAffirmations = [...variations, ...modifiedBase];
-    
-    // Shuffle and select unique affirmations
-    const shuffled = allAffirmations
+
+      // Prefix modifier variation
+      if (Math.random() > 0.7) {
+        const prefix = prefixModifiers[Math.floor(Math.random() * prefixModifiers.length)];
+        variations.push(affirmation.replace(/^I /, `${prefix} I `));
+      }
+
+      // Combine multiple affirmations
+      if (Math.random() > 0.8) {
+        const secondAffirmation = baseAffirmations[Math.floor(Math.random() * baseAffirmations.length)];
+        if (affirmation !== secondAffirmation) {
+          variations.push(affirmation.replace(/\.$/, "") + " and " + secondAffirmation.toLowerCase().replace(/^i /, ""));
+        }
+      }
+    });
+
+    // Shuffle and get unique variations
+    const uniqueVariations = Array.from(new Set(variations))
       .sort(() => Math.random() - 0.5)
-      .filter((item, index, self) => self.indexOf(item) === index)
       .slice(0, 15);
 
-    // Clean up tensors
-    inputEmbedding.dispose();
-    affirmationEmbeddings.dispose();
-    similarities.dispose();
-
-    // If we don't have enough variations, add some base affirmations
-    while (shuffled.length < 10) {
+    // Ensure minimum number of affirmations
+    while (uniqueVariations.length < 10) {
       const randomBase = baseAffirmations[Math.floor(Math.random() * baseAffirmations.length)];
-      if (!shuffled.includes(randomBase)) {
-        shuffled.push(randomBase);
+      if (!uniqueVariations.includes(randomBase)) {
+        uniqueVariations.push(randomBase);
       }
     }
 
-    return shuffled;
+    return uniqueVariations;
   } catch (error) {
     console.error('Error generating affirmations:', error);
-    // Return default templates if both server and model generation fail
     return defaultTemplates[category as keyof typeof defaultTemplates] || defaultTemplates.confidence;
   }
 }
