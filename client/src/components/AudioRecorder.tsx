@@ -102,7 +102,7 @@ export function AudioRecorder({ currentCategory }: AudioRecorderProps) {
         <CardTitle className="text-white">Record Audio</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="flex justify-center gap-4 mb-4">
+        <div className="flex justify-center gap-3 mb-2">
           <Button
             onClick={startRecording}
             disabled={isRecording}
