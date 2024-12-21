@@ -103,7 +103,7 @@ export function AudioItem({ track, onRename, onDelete }: AudioItemProps) {
               onDelete();
             }
           }}
-          className="h-8 w-8"
+          className="h-8 w-8 bg-gray-800 hover:bg-gray-700 text-gray-200 border-gray-600"
         >
           <Trash2 className="h-4 w-4" />
         </Button>

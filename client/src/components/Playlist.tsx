@@ -107,8 +107,24 @@ export function Playlist({
   };
 
   const toggleShuffle = () => {
-    setIsShuffled(!isShuffled);
-    updatePlaybackOrder();
+    const newIsShuffled = !isShuffled;
+    setIsShuffled(newIsShuffled);
+    
+    const indices = Array.from({ length: playlist.tracks.length }, (_, i) => i);
+    if (newIsShuffled) {
+      // Fisher-Yates shuffle
+      for (let i = indices.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [indices[i], indices[j]] = [indices[j], indices[i]];
+      }
+    }
+    setPlaybackOrder(indices);
+    
+    // If currently playing, restart with new order
+    if (currentAudio) {
+      stopPlaylist();
+      setTimeout(() => playPlaylist(), 0);
+    }
   };
 
   const stopPlaylist = () => {
