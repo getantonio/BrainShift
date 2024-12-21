@@ -201,7 +201,17 @@ export function AffirmationWizard({ onAffirmationsGenerated }: AffirmationWizard
   return (
     <Card className="bg-zinc-900/50 border-zinc-700">
       <CardHeader>
-        <CardTitle className="text-white">Create Your Affirmations</CardTitle>
+        <CardTitle className="text-white">Build Affirmations</CardTitle>
+        <p className="text-sm text-zinc-400 mt-2">
+          Need inspiration? <a 
+            href="https://www.mindvalley.com/blog/positive-affirmations" 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="text-pink-400 hover:text-pink-300 underline-offset-4 hover:underline transition-colors"
+          >
+            Learn about creating powerful affirmations →
+          </a>
+        </p>
       </CardHeader>
       <CardContent>
         {step === 1 && (
