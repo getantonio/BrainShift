@@ -1,11 +1,41 @@
 import { useEffect, useRef } from 'react';
+function hexToRgb(hex: string) {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result ? {
+    r: parseInt(result[1], 16),
+    g: parseInt(result[2], 16),
+    b: parseInt(result[3], 16)
+  } : { r: 0, g: 0, b: 0 };
+}
+
+function lerp(start: number, end: number, t: number) {
+  return start * (1 - t) + end * t;
+}
+
 
 interface AudioVisualizerProps {
   isRecording: boolean;
   analyserNode: AnalyserNode | null;
+  colors?: {
+    primary: string;
+    secondary: string;
+    background: string;
+    particle: string;
+    waveform: string;
+  };
 }
 
-export function AudioVisualizer({ isRecording, analyserNode }: AudioVisualizerProps) {
+export function AudioVisualizer({ 
+  isRecording, 
+  analyserNode,
+  colors = {
+    primary: '#4ade80',
+    secondary: '#2563eb',
+    background: '#111827',
+    particle: '#ec4899',
+    waveform: '#8b5cf6'
+  }
+}: AudioVisualizerProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const particlesRef = useRef<Array<{
     x: number;
@@ -55,7 +85,11 @@ export function AudioVisualizer({ isRecording, analyserNode }: AudioVisualizerPr
       const intensity = timeData.reduce((sum, value) => sum + Math.abs(value - 128), 0) / timeData.length;
       
       // Create dynamic background
-      ctx.fillStyle = `rgba(10, 10, 15, 0.2)`;
+      const bgColor = colors.background.replace('#', '');
+      const r = parseInt(bgColor.substr(0, 2), 16);
+      const g = parseInt(bgColor.substr(2, 2), 16);
+      const b = parseInt(bgColor.substr(4, 2), 16);
+      ctx.fillStyle = `rgba(${r}, ${g}, ${b}, 0.2)`;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       // Time-based effects
@@ -77,8 +111,8 @@ export function AudioVisualizer({ isRecording, analyserNode }: AudioVisualizerPr
         
         // Draw particle with glow effect
         ctx.shadowBlur = 15;
-        ctx.shadowColor = `hsla(${hue}, 100%, 50%, ${alpha})`;
-        ctx.fillStyle = `hsla(${hue}, 100%, 50%, ${alpha})`;
+        ctx.shadowColor = colors.particle;
+        ctx.fillStyle = colors.particle;
         
         // Draw expanding circles for particles
         const size = particle.size * (1 + globalPulse * 0.5);
@@ -93,7 +127,7 @@ export function AudioVisualizer({ isRecording, analyserNode }: AudioVisualizerPr
       
       ctx.beginPath();
       ctx.lineWidth = 2;
-      ctx.strokeStyle = `hsla(${(time * 50) % 360}, 100%, 50%, 0.8)`;
+      ctx.strokeStyle = colors.waveform;
       
       for (let i = 0; i < timeData.length; i++) {
         const x = (i / timeData.length) * canvas.width;
@@ -125,7 +159,13 @@ export function AudioVisualizer({ isRecording, analyserNode }: AudioVisualizerPr
         const hue = (time * 50 + i * 4) % 360;
         const height = (freq / 256.0) * canvas.height * 0.5;
         
-        ctx.fillStyle = `hsla(${hue}, 100%, 50%, 0.5)`;
+        const t = i / 64;
+        ctx.fillStyle = `rgba(
+          ${lerp(hexToRgb(colors.primary).r, hexToRgb(colors.secondary).r, t)},
+          ${lerp(hexToRgb(colors.primary).g, hexToRgb(colors.secondary).g, t)},
+          ${lerp(hexToRgb(colors.primary).b, hexToRgb(colors.secondary).b, t)},
+          0.5
+        )`;
         ctx.fillRect(
           i * barWidth,
           canvas.height - height,
