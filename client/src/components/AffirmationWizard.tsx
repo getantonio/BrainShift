@@ -116,7 +116,12 @@ export function AffirmationWizard({ onAffirmationsGenerated }: AffirmationWizard
       "I confidently",
       "I joyfully",
       "I easily",
-      "I powerfully"
+      "I powerfully",
+      "I am ready for",
+      "I welcome",
+      "I create",
+      "I trust in my ability to",
+      "I am grateful for"
     ];
     
     const positiveThought = negativeThought
@@ -133,11 +138,29 @@ export function AffirmationWizard({ onAffirmationsGenerated }: AffirmationWizard
       .replace(/fear/g, 'embrace')
       .replace(/impossible/g, 'possible')
       .replace(/difficult/g, 'achievable')
+      .replace(/stuck/g, 'progressing')
+      .replace(/worthless/g, 'valuable')
+      .replace(/useless/g, 'capable')
+      .replace(/alone/g, 'supported')
+      .replace(/unworthy/g, 'deserving')
       .trim();
 
-    const customAffirmations = customPrefixes.map(prefix => 
-      `${prefix} ${positiveThought}`
-    );
+    // Generate variations with different sentence structures
+    const customAffirmations = [
+      ...customPrefixes.map(prefix => `${prefix} ${positiveThought}`),
+      ...baseAffirmations.map(aff => 
+        aff.replace(/\b(my|I|me)\b/g, word => 
+          Math.random() > 0.5 ? word : {my: 'our', I: 'we', me: 'us'}[word] || word
+        )
+      ),
+      // Add some randomized combinations
+      ...Array(5).fill(null).map(() => {
+        const prefix = customPrefixes[Math.floor(Math.random() * customPrefixes.length)];
+        const words = positiveThought.split(' ');
+        const randomWord = words[Math.floor(Math.random() * words.length)];
+        return `${prefix} ${randomWord} and ${positiveThought}`;
+      })
+    ];
     
     const allAffirmations = [...baseAffirmations, ...customAffirmations];
     const uniqueAffirmations = Array.from(new Set(allAffirmations));
