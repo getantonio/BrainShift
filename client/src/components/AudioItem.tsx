@@ -14,17 +14,19 @@ interface AudioItemProps {
 
 export function AudioItem({ track, onRename, onDelete }: AudioItemProps) {
   const [isPlaying, setIsPlaying] = useState(false);
-  const [audio] = useState(new Audio(track.url));
+  const [audio] = useState(() => track?.url ? new Audio(track.url) : null);
   const [isRenaming, setIsRenaming] = useState(false);
-  const [newName, setNewName] = useState(track.name);
+  const [newName, setNewName] = useState(track?.name || '');
 
   const playAudio = () => {
-    audio.play();
+    if (!audio || !track?.url) return;
+    audio.play().catch(console.error);
     setIsPlaying(true);
     audio.onended = () => setIsPlaying(false);
   };
 
   const stopAudio = () => {
+    if (!audio) return;
     audio.pause();
     audio.currentTime = 0;
     setIsPlaying(false);

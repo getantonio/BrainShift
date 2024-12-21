@@ -16,11 +16,12 @@ export function AudioVisualizer({ isRecording, analyserNode }: AudioVisualizerPr
     if (!ctx) return;
 
     const dataArray = new Uint8Array(analyserNode.frequencyBinCount);
+    let animationFrameId: number;
     
     function draw() {
-      if (!isRecording) return;
+      if (!isRecording || !analyserNode || !ctx) return;
       
-      requestAnimationFrame(draw);
+      animationFrameId = requestAnimationFrame(draw);
       analyserNode.getByteTimeDomainData(dataArray);
       
       ctx.fillStyle = '#333';
@@ -51,6 +52,12 @@ export function AudioVisualizer({ isRecording, analyserNode }: AudioVisualizerPr
     }
 
     draw();
+    
+    return () => {
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
+    };
   }, [isRecording, analyserNode]);
 
   return (
