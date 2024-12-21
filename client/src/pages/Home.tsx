@@ -37,25 +37,24 @@ export default function Home() {
             stroke="currentColor"
             strokeWidth="1.5"
           >
-            {/* Left hemisphere */}
+            {/* Left hemisphere with detailed folds */}
             <path
-              d="M12 4C8 4 5 7 5 11C5 15 8 18 12 18"
+              d="M12 4C8 4 5 7 5 11C5 15 8 18 12 18C12 18 12 16 12 15C10 15 8 13 8 11C8 9 10 7 12 7C12 6 12 4 12 4Z"
               className="text-pink-500"
               stroke="currentColor"
               strokeLinecap="round"
               strokeLinejoin="round"
             />
-            {/* Brain folds - left */}
+            {/* Brain folds - more organic curves */}
             <path
-              d="M7 8C9 9 9 13 7 14"
+              d="M7 8.5C8 9 8.5 10 8.5 11C8.5 12 8 13 7 13.5"
               className="text-pink-500"
               stroke="currentColor"
               strokeLinecap="round"
               strokeLinejoin="round"
             />
-            {/* Neural connections - left */}
             <path
-              d="M9 11C10 11 10 13 9 13"
+              d="M9 10C10 10.5 10.5 11 10 12"
               className="text-pink-500"
               stroke="currentColor"
               strokeLinecap="round"
@@ -80,25 +79,24 @@ export default function Home() {
             stroke="currentColor"
             strokeWidth="1.5"
           >
-            {/* Right hemisphere */}
+            {/* Right hemisphere with detailed folds */}
             <path
-              d="M12 4C16 4 19 7 19 11C19 15 16 18 12 18"
+              d="M12 4C16 4 19 7 19 11C19 15 16 18 12 18C12 18 12 16 12 15C14 15 16 13 16 11C16 9 14 7 12 7C12 6 12 4 12 4Z"
               className="text-pink-500"
               stroke="currentColor"
               strokeLinecap="round"
               strokeLinejoin="round"
             />
-            {/* Brain folds - right */}
+            {/* Brain folds - more organic curves */}
             <path
-              d="M17 8C15 9 15 13 17 14"
+              d="M17 8.5C16 9 15.5 10 15.5 11C15.5 12 16 13 17 13.5"
               className="text-pink-500"
               stroke="currentColor"
               strokeLinecap="round"
               strokeLinejoin="round"
             />
-            {/* Neural connections - right */}
             <path
-              d="M15 11C14 11 14 13 15 13"
+              d="M15 10C14 10.5 13.5 11 14 12"
               className="text-pink-500"
               stroke="currentColor"
               strokeLinecap="round"
