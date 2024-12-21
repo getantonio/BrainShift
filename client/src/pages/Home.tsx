@@ -1,5 +1,6 @@
 import { AudioRecorder } from "@/components/AudioRecorder";
 import { PlaylistManager } from "@/components/PlaylistManager";
+import { LoadingScreen } from "@/components/LoadingScreen";
 import { AffirmationWizard } from "@/components/AffirmationWizard";
 import { HypnosisGuide } from "@/components/HypnosisGuide";
 import { useTheme } from "@/lib/theme-context";
@@ -10,13 +11,16 @@ import { ChevronUp, ChevronDown } from "lucide-react";
 export default function Home() {
   const { colors } = useTheme();
   const [arePlaylistsCollapsed, setArePlaylistsCollapsed] = useState(false);
-
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState("Loading...");
   const [generatedAffirmations, setGeneratedAffirmations] = useState<string[]>([]);
 
   return (
-    <div 
-      className="min-h-screen" 
-      style={{ 
+    <>
+      <LoadingScreen isLoading={isLoading} message={loadingMessage} />
+      <div 
+        className="min-h-screen" 
+        style={{ 
         backgroundColor: colors?.body?.background || '#18181B',
         color: colors?.body?.text || '#FFFFFF'
       }}
@@ -141,5 +145,6 @@ export default function Home() {
         <PlaylistManager allCollapsed={arePlaylistsCollapsed} />
       </main>
     </div>
+    </>
   );
 }
