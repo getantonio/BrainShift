@@ -11,6 +11,18 @@ interface Template {
 import { generateAffirmations } from "../../../server/utils/affirmationGenerator";
 
 const defaultTemplates = {
+  "custom": [
+    "I am capable of creating positive change in my life",
+    "My intentions become my reality",
+    "I choose my path with confidence and clarity",
+    "My personal growth knows no bounds",
+    "I create my own destiny with purpose",
+    "Every day I become stronger in my journey",
+    "I embrace my unique path with courage",
+    "My determination shapes my future",
+    "I am the architect of my own success",
+    "My choices align with my highest good"
+  ],
   "addiction": [
     // Original affirmations
     "I am stronger than my cravings and choose a healthier path",

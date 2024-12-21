@@ -13,7 +13,11 @@ import {
 } from "@/components/ui/collapsible";
 import { Settings2 } from "lucide-react";
 
-export function AudioRecorder() {
+interface AudioRecorderProps {
+  currentCategory?: string;
+}
+
+export function AudioRecorder({ currentCategory = "custom" }: AudioRecorderProps) {
   const [isRecording, setIsRecording] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const audioChunks = useRef<Blob[]>([]);
@@ -50,17 +54,19 @@ export function AudioRecorder() {
           return;
         }
 
-        // Create download link
-        const downloadLink = document.createElement('a');
-        downloadLink.href = audioUrl;
-        downloadLink.download = `${fileName}.mp3`;
-        
-        // Trigger download
-        downloadLink.click();
+        // Dispatch event to add recording to playlist
+        const event = new CustomEvent('newRecording', {
+          detail: {
+            name: fileName,
+            url: audioUrl,
+            category: currentCategory
+          }
+        });
+        window.dispatchEvent(event);
         
         toast({
           title: "Recording saved",
-          description: `${fileName}.mp3 has been downloaded to your computer`
+          description: `${fileName} has been added to the ${currentCategory} playlist`
         });
         
         audioChunks.current = [];
