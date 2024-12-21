@@ -26,9 +26,14 @@ export function AudioVisualizer({
   analyserNode
 }: AudioVisualizerProps) {
   const [visualizationStyle, setVisualizationStyle] = useState<VisualizationStyle>('classic');
+  // Vibrant color palette
   const colors = {
-    primary: '#4ade80',
-    secondary: '#2563eb'
+    primary: '#00ffff', // Cyan
+    secondary: '#ff00ff', // Magenta
+    tertiary: '#ffff00', // Yellow
+    quaternary: '#ff0000', // Red
+    quinary: '#0000ff', // Blue
+    senary: '#00ff00', // Green
   };
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const particlesRef = useRef<Array<{
@@ -217,9 +222,46 @@ export function AudioVisualizer({
       ctx.fillStyle = `rgba(17, 24, 39, 0.2)`;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Time-based effects
+      // Draw animated brain elements in background
       const time = (Date.now() - startTime) * 0.001;
       const globalPulse = Math.sin(time * 2) * 0.5 + 0.5;
+      
+      // Draw neural network-like connections
+      ctx.strokeStyle = `rgba(255, 255, 255, ${0.1 + globalPulse * 0.1})`;
+      ctx.lineWidth = 1;
+      
+      const nodeCount = 5;
+      const nodes: Array<{ x: number; y: number }> = [];
+      
+      // Calculate node positions
+      for (let i = 0; i < nodeCount; i++) {
+        const angle = (i / nodeCount) * Math.PI * 2 + time * 0.2;
+        const radius = 40 + Math.sin(time * 2 + i) * 10;
+        nodes.push({
+          x: canvas.width / 2 + Math.cos(angle) * radius,
+          y: canvas.height / 2 + Math.sin(angle) * radius
+        });
+      }
+      
+      // Draw connections
+      ctx.beginPath();
+      nodes.forEach((node, i) => {
+        nodes.forEach((otherNode, j) => {
+          if (i !== j) {
+            ctx.moveTo(node.x, node.y);
+            ctx.lineTo(otherNode.x, otherNode.y);
+          }
+        });
+      });
+      ctx.stroke();
+      
+      // Draw nodes
+      nodes.forEach((node) => {
+        ctx.beginPath();
+        ctx.fillStyle = `rgba(255, 255, 255, ${0.2 + globalPulse * 0.2})`;
+        ctx.arc(node.x, node.y, 3, 0, Math.PI * 2);
+        ctx.fill();
+      });
       
       // Update and draw particles
       particlesRef.current.forEach((particle, index) => {
@@ -256,30 +298,50 @@ export function AudioVisualizer({
       ctx.shadowBlur = 20;
       ctx.shadowColor = colors.primary;
       
+      // Get color based on time
+      const colorIndex = Math.floor(time * 0.5) % 6;
+      const primaryColor = Object.values(colors)[colorIndex];
+      const secondaryColor = Object.values(colors)[(colorIndex + 1) % 6];
+      
       // Draw current visualization style
       switch (currentStyle) {
         case 'classic':
+          ctx.strokeStyle = primaryColor;
           drawClassicWaveform(ctx, timeData, intensity, time);
+          ctx.strokeStyle = secondaryColor;
+          drawClassicWaveform(ctx, timeData, intensity * 0.8, time + Math.PI);
           break;
         case 'circular':
+          ctx.strokeStyle = primaryColor;
           drawCircularWaveform(ctx, timeData, intensity, time);
+          ctx.strokeStyle = secondaryColor;
+          drawCircularWaveform(ctx, timeData, intensity * 0.8, time + Math.PI);
           break;
         case 'bars':
           drawFrequencyBars(ctx, frequencyData, time);
           break;
       }
       
-      // Additional bar visualization with color interpolation
+      // Additional bar visualization with color cycling
       const frequencyBarWidth = canvas.width / 64;
       for (let i = 0; i < 64; i++) {
         const freq = frequencyData[i];
         const height = (freq / 256.0) * canvas.height * 0.5;
         const t = i / 64;
         
+        // Cycle through colors based on position and time
+        const colorPhase = (t + time * 0.2) % 1;
+        const colorIndex1 = Math.floor(colorPhase * 6);
+        const colorIndex2 = (colorIndex1 + 1) % 6;
+        const colorT = (colorPhase * 6) % 1;
+        
+        const color1 = hexToRgb(Object.values(colors)[colorIndex1]);
+        const color2 = hexToRgb(Object.values(colors)[colorIndex2]);
+        
         ctx.fillStyle = `rgba(
-          ${lerp(hexToRgb(colors.primary).r, hexToRgb(colors.secondary).r, t)},
-          ${lerp(hexToRgb(colors.primary).g, hexToRgb(colors.secondary).g, t)},
-          ${lerp(hexToRgb(colors.primary).b, hexToRgb(colors.secondary).b, t)},
+          ${lerp(color1.r, color2.r, colorT)},
+          ${lerp(color1.g, color2.g, colorT)},
+          ${lerp(color1.b, color2.b, colorT)},
           0.5
         )`;
         ctx.fillRect(
