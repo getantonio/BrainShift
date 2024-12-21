@@ -222,9 +222,16 @@ export function AudioVisualizer({
     }
 
     function draw() {
-      if (!isRecording || !analyserNode || !ctx) return;
+      if (!ctx) return;
       
       animationFrameId = requestAnimationFrame(draw);
+      
+      // Clear canvas with semi-transparent background for trail effect
+      ctx.fillStyle = `rgba(17, 24, 39, 0.2)`;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const time = (Date.now() - startTime) * 0.001;
+      const breatheScale = Math.sin(time * 1.5) * 0.3 + 0.7; // Creates a breathing effect between 0.4 and 1.0
       
       if (isRecording || isPlaying) {
         // Get real audio data
@@ -234,12 +241,15 @@ export function AudioVisualizer({
         // Generate synthetic waveform data for idle animation
         const time = Date.now() * 0.001;
         for (let i = 0; i < timeData.length; i++) {
-          const t = i / timeData.length;
           // Create a smooth, continuous wave pattern
-          const wave = Math.sin(t * 10 + time * 2) * 0.3 + // Base wave
-                      Math.sin(t * 20 + time * 3) * 0.1 +  // Higher frequency detail
-                      Math.sin(t * 5 - time) * 0.2;        // Slower moving wave
-          timeData[i] = (wave * 30 + 128);
+          const t = i / timeData.length;
+          const breatheIntensity = breatheScale * 0.5; // Scale the breathing effect
+          const wave = 
+            Math.sin(t * 10 + time * 2) * breatheIntensity + // Base wave
+            Math.sin(t * 20 + time * 3) * breatheIntensity * 0.3 +  // Higher frequency detail
+            Math.sin(t * 5 - time) * breatheIntensity * 0.5;        // Slower moving wave
+          
+          timeData[i] = wave * 30 + 128;
           frequencyData[i] = Math.abs(wave) * 100 + 50;
         }
       }
@@ -253,8 +263,8 @@ export function AudioVisualizer({
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       // Draw animated brain elements in background
-      const time = (Date.now() - startTime) * 0.001;
-      const globalPulse = Math.sin(time * 2) * 0.5 + 0.5;
+      const time2 = (Date.now() - startTime) * 0.001;
+      const globalPulse = Math.sin(time2 * 2) * 0.5 + 0.5;
       
       // Draw neural network-like connections
       ctx.strokeStyle = `rgba(255, 255, 255, ${0.1 + globalPulse * 0.1})`;
@@ -265,8 +275,8 @@ export function AudioVisualizer({
       
       // Calculate node positions
       for (let i = 0; i < nodeCount; i++) {
-        const angle = (i / nodeCount) * Math.PI * 2 + time * 0.2;
-        const radius = 40 + Math.sin(time * 2 + i) * 10;
+        const angle = (i / nodeCount) * Math.PI * 2 + time2 * 0.2;
+        const radius = 40 + Math.sin(time2 * 2 + i) * 10;
         nodes.push({
           x: canvas.width / 2 + Math.cos(angle) * radius,
           y: canvas.height / 2 + Math.sin(angle) * radius
