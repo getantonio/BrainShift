@@ -16,13 +16,15 @@ function hexToRgb(hex: string): { r: number, g: number, b: number } {
 
 interface AudioVisualizerProps {
   isRecording: boolean;
+  isPlaying?: boolean;
   analyserNode: AnalyserNode | null;
 }
 
 type VisualizationStyle = 'classic' | 'circular' | 'bars';
 
 export function AudioVisualizer({ 
-  isRecording, 
+  isRecording,
+  isPlaying = false,
   analyserNode
 }: AudioVisualizerProps) {
   const [visualizationStyle, setVisualizationStyle] = useState<VisualizationStyle>('classic');
@@ -45,7 +47,7 @@ export function AudioVisualizer({
   }>>([]);
 
   useEffect(() => {
-    if (!isRecording || !analyserNode || !canvasRef.current) return;
+    if ((!isRecording && !isPlaying) || !analyserNode || !canvasRef.current) return;
 
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');

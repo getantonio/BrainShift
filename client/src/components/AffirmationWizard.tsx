@@ -102,9 +102,10 @@ export function AffirmationWizard({ onAffirmationsGenerated }: AffirmationWizard
   const handleNegativeThoughtSubmit = async () => {
     if (!negativeThought.trim() && step === 2) {
       toast({
-        title: "Error",
         description: "Please enter your negative thought or trigger",
         variant: "destructive",
+        duration: 3000,
+        className: "bg-zinc-800 text-white border-none",
       });
       return;
     }
