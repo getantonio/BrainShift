@@ -174,16 +174,36 @@ export function Playlist({
   const stopPlaylist = () => {
     if (currentAudio) {
       try {
+        // First pause the audio
         currentAudio.pause();
+        
+        // Remove all event listeners
+        currentAudio.onended = null;
+        currentAudio.onplay = null;
+        currentAudio.onerror = null;
+        
+        // Reset the audio state
         currentAudio.currentTime = 0;
+        
+        // Clear the source and release memory
+        const currentSrc = currentAudio.src;
         currentAudio.src = '';
-        URL.revokeObjectURL(currentAudio.src);
+        currentAudio.load(); // Force browser to release resources
+        
+        // Revoke the object URL if it exists
+        if (currentSrc.startsWith('blob:')) {
+          URL.revokeObjectURL(currentSrc);
+        }
+        
+        // Remove the element and clear the reference
         currentAudio.remove();
         setCurrentAudio(null);
       } catch (error) {
         console.error('Error stopping playlist:', error);
       }
     }
+    // Reset playback state
+    setCurrentTrackIndex(0);
   };
 
   // Clean up audio resources when component unmounts

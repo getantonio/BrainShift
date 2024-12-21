@@ -70,9 +70,9 @@ export function AudioRecorder() {
   };
 
   return (
-    <Card className="bg-gray-800/80 border-gray-700">
+    <Card className="bg-zinc-900 border-white/10">
       <CardHeader>
-        <CardTitle>Record Audio</CardTitle>
+        <CardTitle className="text-white">Record Audio</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="flex justify-center gap-4 mb-4">
@@ -81,7 +81,7 @@ export function AudioRecorder() {
             disabled={isRecording}
             variant="outline"
             size="lg"
-            className="bg-gradient-to-r from-emerald-500 to-emerald-700 text-white border-0"
+            className="bg-white text-black hover:bg-gray-200 border-0 font-semibold"
           >
             <Mic className="mr-2 h-5 w-5" />
             Record
