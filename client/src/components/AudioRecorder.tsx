@@ -44,9 +44,19 @@ export function AudioRecorder() {
         // Get available playlists
         const playlistEvent = new CustomEvent('requestPlaylists', {
           detail: { callback: (playlists: Array<{ id: number; name: string }>) => {
-            const playlistOptions = playlists.map(p => `${p.id}: ${p.name}`).join('\n');
+            // Create a mapping of index to playlist ID for easier selection
+            const playlistMapping = playlists.map((p, index) => ({
+              index: index + 1,
+              id: p.id,
+              name: p.name
+            }));
+            
+            const playlistOptions = playlistMapping
+              .map(p => `${p.index}. ${p.name}`)
+              .join('\n');
+            
             const playlistChoice = prompt(
-              `Choose a playlist to add "${fileName}" to:\n\n${playlistOptions}\n\nEnter the playlist number:`,
+              `Choose a playlist to add "${fileName}" to:\n\n${playlistOptions}\n\nEnter the number of the playlist:`,
               '1'
             );
 
@@ -58,8 +68,9 @@ export function AudioRecorder() {
               return;
             }
 
-            const selectedPlaylistId = parseInt(playlistChoice);
-            const selectedPlaylist = playlists.find(p => p.id === selectedPlaylistId);
+            const selectedIndex = parseInt(playlistChoice);
+            const selectedMapping = playlistMapping.find(p => p.index === selectedIndex);
+            const selectedPlaylist = selectedMapping ? playlists.find(p => p.id === selectedMapping.id) : undefined;
 
             if (!selectedPlaylist) {
               toast({
@@ -74,7 +85,7 @@ export function AudioRecorder() {
               detail: { 
                 name: fileName, 
                 url: audioUrl,
-                playlistId: selectedPlaylistId
+                playlistId: selectedMapping?.id
               }
             });
             window.dispatchEvent(event);
