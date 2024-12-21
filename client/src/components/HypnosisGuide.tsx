@@ -71,7 +71,19 @@ export function HypnosisGuide() {
         className="cursor-pointer flex flex-row items-center justify-between"
         onClick={() => setIsExpanded(!isExpanded)}
       >
-        <CardTitle className="text-white font-display text-2xl">Self-Hypnosis Guide</CardTitle>
+        <div>
+          <CardTitle className="text-white font-display text-2xl">Self-Hypnosis Guide</CardTitle>
+          <p className="text-sm text-zinc-400 mt-2">
+            Need inspiration? <a 
+              href="https://www.mindvalley.com/blog/positive-affirmations" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="text-[#FF1493] hover:text-[#FF69B4] underline-offset-4 hover:underline transition-colors"
+            >
+              Learn about creating powerful affirmations →
+            </a>
+          </p>
+        </div>
         <ChevronDown 
           className={`h-6 w-6 text-white hover:text-zinc-300 transition-transform duration-200 cursor-pointer ${isExpanded ? 'rotate-180' : ''}`}
           onClick={(e) => {
