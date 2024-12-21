@@ -278,17 +278,17 @@ export function AffirmationWizard({ onAffirmationsGenerated }: AffirmationWizard
                 </div>
               ))}
             </div>
-            <div className="flex gap-2">
+            <div className="flex justify-center gap-4">
               <Button
                 onClick={() => setStep(1)}
-                className="flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 text-white"
+                className="bg-zinc-800 hover:bg-zinc-700 text-white"
                 title="Back to Categories"
               >
                 <ArrowLeft className="h-4 w-4" />
               </Button>
               <Button
                 onClick={handleNegativeThoughtSubmit}
-                className="flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 text-white"
+                className="bg-zinc-800 hover:bg-zinc-700 text-white"
                 title="Regenerate Affirmations"
               >
                 <RotateCw className="h-4 w-4" />
