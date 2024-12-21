@@ -47,9 +47,7 @@ export function AudioVisualizer({
   }>>([]);
 
   useEffect(() => {
-    if (!analyserNode || !canvasRef.current) return;
-    const isActive = isRecording || isPlaying;
-    if (!isActive) return;
+    if (!isRecording || !analyserNode || !canvasRef.current) return;
 
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');

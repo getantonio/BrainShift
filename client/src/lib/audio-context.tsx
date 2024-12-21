@@ -35,8 +35,8 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     if (audioContextRef.current.state === 'suspended') {
       audioContextRef.current.resume();
     }
-
-    // Ensure analyzer is connected to destination
+    
+    // Make sure the analyzer is connected to destination
     if (analyzerRef.current && !analyzerRef.current.context) {
       analyzerRef.current.connect(audioContextRef.current.destination);
     }
