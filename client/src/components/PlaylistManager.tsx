@@ -113,54 +113,62 @@ export function PlaylistManager() {
       // Convert all blob URLs to base64 before saving
       const processedPlaylists = await Promise.all(
         playlistsToSave.map(async (playlist) => {
-          const processedTracks = await Promise.all(
-            playlist.tracks.map(async (track) => {
-              if (!track || !track.url) {
-                console.error('Invalid track data:', track);
-                return null;
-              }
+          const processedTracks = [];
+          
+          for (const track of playlist.tracks) {
+            if (!track?.url || !track?.name) {
+              console.error('Invalid track data:', track);
+              continue;
+            }
 
-              try {
-                if (track.url.startsWith('blob:')) {
+            try {
+              let finalTrack = track;
+              
+              if (track.url.startsWith('blob:')) {
+                try {
                   const response = await fetch(track.url);
-                  if (!response.ok) {
-                    throw new Error('Failed to fetch audio blob');
-                  }
-                  const blob = await response.blob();
+                  if (!response.ok) throw new Error('Failed to fetch audio blob');
                   
-                  // Verify that we have a valid audio blob
+                  const blob = await response.blob();
                   if (!blob.type.startsWith('audio/')) {
-                    throw new Error('Invalid audio format');
+                    console.warn(`Skipping invalid audio format for track: ${track.name}`);
+                    continue;
                   }
 
-                  return await new Promise<{ name: string; url: string }>((resolve, reject) => {
+                  const base64Url = await new Promise<string>((resolve, reject) => {
                     const reader = new FileReader();
                     reader.onloadend = () => {
                       if (typeof reader.result === 'string') {
-                        resolve({
-                          name: track.name,
-                          url: reader.result
-                        });
+                        resolve(reader.result);
                       } else {
                         reject(new Error('Failed to read blob as DataURL'));
                       }
                     };
-                    reader.onerror = () => reject(new Error('FileReader error: ' + reader.error?.message));
+                    reader.onerror = () => reject(reader.error);
                     reader.readAsDataURL(blob);
                   });
+
+                  finalTrack = {
+                    name: track.name,
+                    url: base64Url
+                  };
+                } catch (error) {
+                  console.error(`Failed to process blob URL for track: ${track.name}`, error);
+                  continue;
                 }
-                return track;
-              } catch (error) {
-                console.error('Error processing track:', error);
-                toast({
-                  title: "Warning",
-                  description: `Failed to process track: ${track.name}`,
-                  variant: "destructive"
-                });
-                return null;
               }
-            })
-          ).then(tracks => tracks.filter(Boolean) as Array<{ name: string; url: string; }>);
+              
+              processedTracks.push(finalTrack);
+            } catch (error) {
+              console.error('Error processing track:', error);
+              toast({
+                title: "Warning",
+                description: `Skipped track "${track.name}" due to processing error`,
+                variant: "destructive"
+              });
+              continue;
+            }
+          }
 
           return {
             ...playlist,
@@ -231,11 +239,26 @@ export function PlaylistManager() {
     };
 
     const handleNewRecording = (event: Event) => {
-    const customEvent = event as CustomEvent<{ name: string; url: string }>;
+      const customEvent = event as CustomEvent<{ 
+        name: string; 
+        url: string; 
+        playlistId: number;
+      }>;
+      
       setPlaylists(current => {
         const updated = [...current];
-        const firstPlaylist = updated[0];
-        firstPlaylist.tracks.push({
+        const targetPlaylist = updated.find(p => p.id === customEvent.detail.playlistId);
+        
+        if (!targetPlaylist) {
+          toast({
+            title: "Error",
+            description: "Selected playlist not found",
+            variant: "destructive"
+          });
+          return current;
+        }
+
+        targetPlaylist.tracks.push({
           name: customEvent.detail.name,
           url: customEvent.detail.url
         });
@@ -243,11 +266,24 @@ export function PlaylistManager() {
       });
     };
 
+    const handlePlaylistRequest = (event: Event) => {
+      const customEvent = event as CustomEvent<{
+        callback: (playlists: Array<{ id: number; name: string }>) => void;
+      }>;
+      
+      customEvent.detail.callback(
+        playlists.map(p => ({ id: p.id, name: p.name }))
+      );
+    };
+
     window.addEventListener('trackMove', handleTrackMove as EventListener);
-    window.addEventListener('newRecording' as any, handleNewRecording as any);
+    window.addEventListener('newRecording', handleNewRecording as EventListener);
+    window.addEventListener('requestPlaylists', handlePlaylistRequest as EventListener);
+    
     return () => {
       window.removeEventListener('trackMove', handleTrackMove as EventListener);
       window.removeEventListener('newRecording', handleNewRecording as EventListener);
+      window.removeEventListener('requestPlaylists', handlePlaylistRequest as EventListener);
     };
   }, []);
 
