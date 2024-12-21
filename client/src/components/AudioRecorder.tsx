@@ -100,18 +100,16 @@ export function AudioRecorder() {
             size="lg"
             className="bg-white text-black hover:bg-gray-200 border-0 font-semibold"
           >
-            <Mic className="mr-2 h-5 w-5" />
-            Record
+            <Mic className="h-6 w-6" />
           </Button>
           <Button
             onClick={stopRecording}
             disabled={!isRecording}
             variant="outline"
-            size="lg"
-            className="bg-gradient-to-r from-red-500 to-red-700 text-white border-0"
+            size="icon"
+            className="bg-gradient-to-r from-red-500 to-red-700 text-white border-0 hover:from-red-600 hover:to-red-800 transition-all duration-300"
           >
-            <Square className="mr-2 h-5 w-5" />
-            Stop
+            <Square className="h-6 w-6" />
           </Button>
         </div>
         
