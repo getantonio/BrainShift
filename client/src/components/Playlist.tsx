@@ -440,8 +440,7 @@ export function Playlist({
             disabled={playlist.tracks.length === 0}
             className="bg-gray-800 hover:bg-gray-700 text-gray-200 border-gray-600"
           >
-            <Play className="mr-2 h-4 w-4" />
-            Play All
+            <Play className="h-4 w-4" />
           </Button>
           <Button
             variant="outline"
@@ -451,8 +450,7 @@ export function Playlist({
               isLooping ? "ring-2 ring-gray-500" : ""
             }`}
           >
-            <Repeat className="mr-2 h-4 w-4" />
-            Loop
+            <Repeat className="h-4 w-4" />
           </Button>
           <Button
             variant="outline"
@@ -462,8 +460,7 @@ export function Playlist({
               isShuffled ? "ring-2 ring-gray-500" : ""
             }`}
           >
-            <Shuffle className="mr-2 h-4 w-4" />
-            Shuffle
+            <Shuffle className="h-4 w-4" />
           </Button>
           <Button
             variant="outline"
@@ -472,8 +469,7 @@ export function Playlist({
             disabled={!currentAudio}
             className="bg-gray-800 hover:bg-gray-700 text-gray-200 border-gray-600"
           >
-            <Square className="mr-2 h-4 w-4" />
-            Stop
+            <Square className="h-4 w-4" />
           </Button>
         </div>
       </CollapsibleContent>
