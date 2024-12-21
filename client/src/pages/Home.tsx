@@ -32,23 +32,56 @@ export default function Home() {
         <div className="flex items-center justify-center gap-3">
           <svg
             viewBox="0 0 24 24"
-            className="w-8 h-8 text-blue-500"
+            className="w-8 h-8 text-pink-500"
             fill="none"
             stroke="currentColor"
-            strokeWidth="2"
+            strokeWidth="1.5"
           >
+            {/* Left hemisphere */}
             <path
-              d="M12 3C7.02944 3 3 7.02944 3 12C3 16.9706 7.02944 21 12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3Z"
+              d="M12 4C8 4 5 7 5 11C5 15 8 18 12 18"
+              className="text-pink-500"
+              stroke="currentColor"
               strokeLinecap="round"
               strokeLinejoin="round"
             />
+            {/* Right hemisphere */}
             <path
-              d="M12 16C14.2091 16 16 14.2091 16 12C16 9.79086 14.2091 8 12 8C9.79086 8 8 9.79086 8 12C8 14.2091 9.79086 16 12 16Z"
+              d="M12 4C16 4 19 7 19 11C19 15 16 18 12 18"
+              className="text-pink-500"
+              stroke="currentColor"
               strokeLinecap="round"
               strokeLinejoin="round"
             />
+            {/* Brain folds - left */}
             <path
-              d="M12 12L16 8M12 12L8 16M12 12L8 8M12 12L16 16"
+              d="M7 8C9 9 9 13 7 14"
+              className="text-pink-500"
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            {/* Brain folds - right */}
+            <path
+              d="M17 8C15 9 15 13 17 14"
+              className="text-pink-500"
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            {/* Neural connections */}
+            <path
+              d="M9 11C10 11 10 13 9 13M15 11C14 11 14 13 15 13"
+              className="text-pink-500"
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            {/* Stem */}
+            <path
+              d="M12 18V20"
+              className="text-pink-500"
+              stroke="currentColor"
               strokeLinecap="round"
               strokeLinejoin="round"
             />
