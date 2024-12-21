@@ -28,17 +28,37 @@ export function AudioRecorder({ currentCategory }: AudioRecorderProps) {
 
   const startRecording = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const context = new AudioContext();
+      // Check if mediaDevices is supported
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('Audio recording is not supported in this browser');
+      }
+
+      // Request permissions with constraints suitable for mobile
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true
+        }
+      });
+
+      // Create audio context with mobile-friendly settings
+      const context = new (window.AudioContext || (window as any).webkitAudioContext)();
       const source = context.createMediaStreamSource(stream);
       const analyser = context.createAnalyser();
+      analyser.fftSize = 2048; // Ensure this is set for visualization
       source.connect(analyser);
       
       setAudioContext(context);
       setAnalyserNode(analyser);
 
+      // Use a widely supported format for mobile
+      const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+        ? 'audio/webm;codecs=opus'
+        : 'audio/mp4';
+
       const recorder = new MediaRecorder(stream, {
-        mimeType: 'audio/webm;codecs=opus',
+        mimeType,
         audioBitsPerSecond: 128000
       });
       setMediaRecorder(recorder);
@@ -157,11 +177,51 @@ export function AudioRecorder({ currentCategory }: AudioRecorderProps) {
       recorder.start();
       setIsRecording(true);
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Could not access microphone",
-        variant: "destructive"
-      });
+      console.error('Microphone access error:', error);
+      
+      // Handle specific permission errors
+      if (error instanceof DOMException) {
+        if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+          toast({
+            title: "Permission Denied",
+            description: "Please allow microphone access to record audio. You may need to update your browser settings.",
+            variant: "destructive"
+          });
+        } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
+          toast({
+            title: "No Microphone Found",
+            description: "Please ensure your device has a working microphone connected.",
+            variant: "destructive"
+          });
+        } else if (error.name === 'NotReadableError' || error.name === 'TrackStartError') {
+          toast({
+            title: "Hardware Error",
+            description: "Could not access your microphone. Please check if another application is using it.",
+            variant: "destructive"
+          });
+        } else {
+          toast({
+            title: "Error",
+            description: "Could not access microphone. Please check your browser settings.",
+            variant: "destructive"
+          });
+        }
+      } else {
+        toast({
+          title: "Error",
+          description: "An unexpected error occurred while accessing the microphone.",
+          variant: "destructive"
+        });
+      }
+      
+      // Reset states
+      setIsRecording(false);
+      setMediaRecorder(null);
+      setAnalyserNode(null);
+      if (audioContext) {
+        audioContext.close();
+        setAudioContext(null);
+      }
     }
   };
 
