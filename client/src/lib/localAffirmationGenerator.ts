@@ -7,39 +7,22 @@ interface Template {
   transformations: { [key: string]: string };
 }
 
-const templates: { [key: string]: Template[] } = {
-  smoking: [
-    {
-      prefix: "I choose",
-      suffix: "for my health and well-being",
-      transformations: {
-        "smoke": "breathe fresh air",
-        "cigarette": "deep breath",
-        "nicotine": "natural energy"
-      }
-    },
-    {
-      prefix: "Every day I become more",
-      suffix: "as I embrace a smoke-free life",
-      transformations: {
-        "addicted": "liberated",
-        "dependent": "independent",
-        "craving": "content"
-      }
-    }
-  ],
+// Import server-side affirmation templates
+import { generateAffirmations } from "../../../server/utils/affirmationGenerator";
+
+const defaultTemplates = {
   confidence: [
-    {
-      prefix: "I radiate",
-      suffix: "in every situation",
-      transformations: {
-        "shy": "confident",
-        "afraid": "courageous",
-        "nervous": "composed"
-      }
-    }
-  ],
-  // Add more categories as needed
+    "I am naturally confident in all situations",
+    "I radiate positive energy wherever I go",
+    "My authentic presence positively impacts others",
+    "I grow more confident with each passing day",
+    "People are drawn to my positive energy",
+    "I embody strength and wisdom effortlessly",
+    "My confident spirit uplifts those around me",
+    "I deserve and embrace being powerful and authentic",
+    "My confidence strengthens as I become more resilient",
+    "I fully accept and love my authentic self"
+  ]
 };
 
 let model: use.UniversalSentenceEncoder | null = null;
@@ -59,33 +42,29 @@ async function loadModel() {
 
 async function generateSimilarPhrases(input: string, category: string): Promise<string[]> {
   try {
+    // First try to generate affirmations using the server-side templates
+    const serverAffirmations = generateAffirmations(category, input);
+    
+    if (serverAffirmations && serverAffirmations.length >= 10) {
+      return serverAffirmations;
+    }
+
+    // If server generation fails or returns too few results, use local generation
     const model = await loadModel();
     const inputEmbedding = await model.embed([input]);
     
-    // Generate base affirmations using templates
-    const categoryTemplates = templates[category] || templates['confidence'];
-    let affirmations: string[] = [];
+    // Get base affirmations for the category or use default confidence templates
+    let baseAffirmations = defaultTemplates[category as keyof typeof defaultTemplates] || defaultTemplates.confidence;
     
-    // Transform negative words to positive ones
-    let transformedInput = input.toLowerCase();
-    for (const template of categoryTemplates) {
-      Object.entries(template.transformations).forEach(([negative, positive]) => {
-        transformedInput = transformedInput.replace(new RegExp(negative, 'gi'), positive);
-      });
-      
-      // Generate affirmation using the template
-      affirmations.push(`${template.prefix} ${transformedInput} ${template.suffix}`);
-    }
-
-    // Encode generated affirmations
-    const affirmationEmbeddings = await model.embed(affirmations);
+    // Generate more variations using the embeddings
+    const affirmationEmbeddings = await model.embed(baseAffirmations);
     
-    // Calculate similarities and sort by relevance
+    // Calculate semantic similarities
     const similarities = tf.matMul(affirmationEmbeddings, inputEmbedding, false, true);
     const values = await similarities.data();
     
-    // Sort affirmations by similarity scores
-    const rankedAffirmations = affirmations
+    // Sort and get the most relevant affirmations
+    const rankedAffirmations = baseAffirmations
       .map((text, i) => ({ text, score: values[i] }))
       .sort((a, b) => b.score - a.score)
       .map(item => item.text);
@@ -95,27 +74,28 @@ async function generateSimilarPhrases(input: string, category: string): Promise<
     affirmationEmbeddings.dispose();
     similarities.dispose();
 
-    return rankedAffirmations;
+    // Combine server and local affirmations, removing duplicates
+    const combinedAffirmations = Array.from(new Set([...serverAffirmations || [], ...rankedAffirmations]));
+    
+    // Ensure we return at least 10 affirmations
+    while (combinedAffirmations.length < 10) {
+      const randomBase = baseAffirmations[Math.floor(Math.random() * baseAffirmations.length)];
+      if (!combinedAffirmations.includes(randomBase)) {
+        combinedAffirmations.push(randomBase);
+      }
+    }
+
+    return combinedAffirmations;
   } catch (error) {
     console.error('Error generating affirmations:', error);
-    // Fallback to template-based generation if model fails
-    return generateFallbackAffirmations(input, category);
+    // Return default templates if both server and model generation fail
+    return defaultTemplates[category as keyof typeof defaultTemplates] || defaultTemplates.confidence;
   }
 }
 
 function generateFallbackAffirmations(input: string, category: string): string[] {
-  const categoryTemplates = templates[category] || templates['confidence'];
-  const affirmations: string[] = [];
-  
-  for (const template of categoryTemplates) {
-    let transformedInput = input.toLowerCase();
-    Object.entries(template.transformations).forEach(([negative, positive]) => {
-      transformedInput = transformedInput.replace(new RegExp(negative, 'gi'), positive);
-    });
-    affirmations.push(`${template.prefix} ${transformedInput} ${template.suffix}`);
-  }
-  
-  return affirmations;
+    const categoryTemplates = defaultTemplates[category] || defaultTemplates['confidence'];
+    return categoryTemplates;
 }
 
 export { generateSimilarPhrases, loadModel };

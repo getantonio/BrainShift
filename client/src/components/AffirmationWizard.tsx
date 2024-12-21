@@ -15,25 +15,65 @@ import {
 // Predefined behavior categories
 const BEHAVIOR_CATEGORIES = [
   {
-    id: "smoking",
-    label: "Quit Smoking",
-    examples: ["I don't care if it kills me", "Just one won't hurt"],
-  },
-  {
     id: "confidence",
     label: "Build Confidence",
-    examples: ["I'm not good enough", "People won't like me"],
+    examples: ["I'm not good enough", "I feel insecure", "People won't like me"],
   },
   {
-    id: "procrastination",
-    label: "Stop Procrastinating",
-    examples: ["I'll do it later", "I work better under pressure"],
+    id: "productivity",
+    label: "Boost Productivity",
+    examples: ["I always procrastinate", "I can't focus", "I'm too disorganized"],
   },
   {
-    id: "fitness",
-    label: "Be More Active",
-    examples: ["I'm too tired to exercise", "I don't have time for the gym"],
+    id: "health",
+    label: "Improve Health",
+    examples: ["I'm always tired", "I can't stick to healthy habits", "I feel drained"],
   },
+  {
+    id: "relationships",
+    label: "Enhance Relationships",
+    examples: ["I feel lonely", "I struggle to connect", "I fear rejection"],
+  },
+  {
+    id: "mindfulness",
+    label: "Practice Mindfulness",
+    examples: ["My mind is always racing", "I can't stay present", "I'm too stressed"],
+  },
+  {
+    id: "success",
+    label: "Achieve Success",
+    examples: ["I keep failing", "Success feels impossible", "I doubt my abilities"],
+  },
+  {
+    id: "creativity",
+    label: "Boost Creativity",
+    examples: ["I'm not creative enough", "I feel blocked", "My ideas are boring"],
+  },
+  {
+    id: "growth",
+    label: "Personal Growth",
+    examples: ["I'm stuck in life", "I fear change", "I'm not growing"],
+  },
+  {
+    id: "resilience",
+    label: "Build Resilience",
+    examples: ["I give up too easily", "I can't handle challenges", "I feel weak"],
+  },
+  {
+    id: "abundance",
+    label: "Attract Abundance",
+    examples: ["I never have enough", "Money is scarce", "I lack resources"],
+  },
+  {
+    id: "career",
+    label: "Career Growth",
+    examples: ["I'm stuck in my career", "I'm undervalued", "I lack direction"],
+  },
+  {
+    id: "custom",
+    label: "Custom Affirmations",
+    examples: ["Enter your own situation", "Describe what you want to change"],
+  }
 ];
 
 interface AffirmationWizardProps {
