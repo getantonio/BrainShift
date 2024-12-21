@@ -17,49 +17,18 @@ export function AudioItem({ track, onRename, onDelete }: AudioItemProps) {
   const [isRenaming, setIsRenaming] = useState(false);
   const [newName, setNewName] = useState(track?.name || '');
 
-  const playAudio = async () => {
-    try {
-      if (!audio || !track?.url) {
-        throw new Error('No audio source available');
-      }
-
-      // If not already loaded, load the audio
-      if (audio.src !== track.url) {
-        audio.src = track.url;
-        await new Promise((resolve, reject) => {
-          audio.oncanplaythrough = resolve;
-          audio.onerror = () => reject(new Error('Failed to load audio'));
-          setTimeout(() => reject(new Error('Audio load timeout')), 5000);
-        });
-      }
-
-      await audio.play();
-      setIsPlaying(true);
-      audio.onended = () => {
-        setIsPlaying(false);
-        audio.currentTime = 0;
-      };
-    } catch (error) {
-      console.error('Error playing audio:', error);
-      setIsPlaying(false);
-      toast({
-        title: "Error",
-        description: "Failed to play audio. Please try again.",
-        variant: "destructive"
-      });
-    }
+  const playAudio = () => {
+    if (!audio || !track?.url) return;
+    audio.play().catch(console.error);
+    setIsPlaying(true);
+    audio.onended = () => setIsPlaying(false);
   };
 
   const stopAudio = () => {
-    try {
-      if (!audio) return;
-      audio.pause();
-      audio.currentTime = 0;
-      setIsPlaying(false);
-    } catch (error) {
-      console.error('Error stopping audio:', error);
-      setIsPlaying(false);
-    }
+    if (!audio) return;
+    audio.pause();
+    audio.currentTime = 0;
+    setIsPlaying(false);
   };
 
   const handleRename = () => {
