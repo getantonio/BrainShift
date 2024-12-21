@@ -36,16 +36,55 @@ export function AudioRecorder() {
         const audioUrl = URL.createObjectURL(audioBlob);
         
         const fileName = prompt('Enter a name for your recording:', 'New Recording');
-        if (fileName) {
-          const event = new CustomEvent('newRecording', {
-            detail: { name: fileName, url: audioUrl }
-          });
-          window.dispatchEvent(event);
-          toast({
-            title: "Recording saved",
-            description: `${fileName} has been added to your library`
-          });
+        if (!fileName) {
+          audioChunks.current = [];
+          return;
         }
+
+        // Get available playlists
+        const playlistEvent = new CustomEvent('requestPlaylists', {
+          detail: { callback: (playlists: Array<{ id: number; name: string }>) => {
+            const playlistOptions = playlists.map(p => `${p.id}: ${p.name}`).join('\n');
+            const playlistChoice = prompt(
+              `Choose a playlist to add "${fileName}" to:\n\n${playlistOptions}\n\nEnter the playlist number:`,
+              '1'
+            );
+
+            if (!playlistChoice) {
+              toast({
+                title: "Cancelled",
+                description: "Recording was not saved to any playlist"
+              });
+              return;
+            }
+
+            const selectedPlaylistId = parseInt(playlistChoice);
+            const selectedPlaylist = playlists.find(p => p.id === selectedPlaylistId);
+
+            if (!selectedPlaylist) {
+              toast({
+                title: "Error",
+                description: "Invalid playlist selection",
+                variant: "destructive"
+              });
+              return;
+            }
+
+            const event = new CustomEvent('newRecording', {
+              detail: { 
+                name: fileName, 
+                url: audioUrl,
+                playlistId: selectedPlaylistId
+              }
+            });
+            window.dispatchEvent(event);
+            toast({
+              title: "Recording saved",
+              description: `${fileName} has been added to ${selectedPlaylist.name}`
+            });
+          }}
+        });
+        window.dispatchEvent(playlistEvent);
         audioChunks.current = [];
       };
 
