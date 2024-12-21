@@ -13,6 +13,9 @@ interface AudioContextState {
 
 const AudioContextState = createContext<AudioContextState | null>(null);
 
+// Keep track of connected audio elements to prevent duplicate connections
+const connectedElements = new WeakSet<HTMLAudioElement>();
+
 export function AudioProvider({ children }: { children: ReactNode }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
@@ -22,10 +25,16 @@ export function AudioProvider({ children }: { children: ReactNode }) {
 
   const setupAudioContext = () => {
     if (!audioContextRef.current) {
-      audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
+      // @ts-ignore - webkitAudioContext is not in the type definitions
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      audioContextRef.current = new AudioContextClass();
       analyzerRef.current = audioContextRef.current.createAnalyser();
       analyzerRef.current.fftSize = 2048;
       analyzerRef.current.connect(audioContextRef.current.destination);
+    }
+
+    if (audioContextRef.current.state === 'suspended') {
+      audioContextRef.current.resume();
     }
   };
 
@@ -33,21 +42,33 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     setupAudioContext();
     if (!audioContextRef.current || !analyzerRef.current) return;
 
-    // Disconnect any existing source
-    if (currentSourceRef.current) {
-      currentSourceRef.current.disconnect();
-    }
+    try {
+      // Clean up previous source if it exists
+      if (currentSourceRef.current) {
+        currentSourceRef.current.disconnect();
+        currentSourceRef.current = null;
+      }
 
-    currentSourceRef.current = audioContextRef.current.createMediaElementSource(audioElement);
-    currentSourceRef.current.connect(analyzerRef.current);
-    setIsPlaying(true);
+      // Only create a new MediaElementSource if this element hasn't been connected before
+      if (!connectedElements.has(audioElement)) {
+        currentSourceRef.current = audioContextRef.current.createMediaElementSource(audioElement);
+        connectedElements.add(audioElement);
+      }
+
+      if (currentSourceRef.current) {
+        currentSourceRef.current.connect(analyzerRef.current);
+      }
+      
+      setIsPlaying(true);
+    } catch (error) {
+      console.error('Error setting up audio playback:', error);
+    }
   };
 
   const stopPlayback = () => {
     setIsPlaying(false);
     if (currentSourceRef.current) {
       currentSourceRef.current.disconnect();
-      currentSourceRef.current = null;
     }
   };
 
@@ -62,6 +83,9 @@ export function AudioProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     return () => {
+      if (currentSourceRef.current) {
+        currentSourceRef.current.disconnect();
+      }
       if (audioContextRef.current) {
         audioContextRef.current.close();
       }
