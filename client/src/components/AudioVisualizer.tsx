@@ -1,4 +1,18 @@
 import { useEffect, useRef } from 'react';
+// Utility functions for color manipulation
+function lerp(start: number, end: number, t: number): number {
+  return start * (1 - t) + end * t;
+}
+
+function hexToRgb(hex: string): { r: number, g: number, b: number } {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result ? {
+    r: parseInt(result[1], 16),
+    g: parseInt(result[2], 16),
+    b: parseInt(result[3], 16)
+  } : { r: 0, g: 0, b: 0 };
+}
+
 
 interface AudioVisualizerProps {
   isRecording: boolean;
