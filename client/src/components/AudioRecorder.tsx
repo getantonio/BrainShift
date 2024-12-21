@@ -1,37 +1,25 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Mic, Square } from "lucide-react";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { AudioVisualizer } from "./AudioVisualizer";
 import { useToast } from "@/hooks/use-toast";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { 
-  Collapsible,
-  CollapsibleTrigger,
-  CollapsibleContent,
-} from "@/components/ui/collapsible";
-import { Settings2 } from "lucide-react";
+import { useAudioContext } from "@/lib/audio-context";
 
 export function AudioRecorder() {
   const [isRecording, setIsRecording] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const audioChunks = useRef<Blob[]>([]);
   const { toast } = useToast();
-  const [audioContext, setAudioContext] = useState<AudioContext | null>(null);
-  const [analyserNode, setAnalyserNode] = useState<AnalyserNode | null>(null);
-  
+  const { audioContext, analyzerNode, isPlaying, startRecording: startAudioContext } = useAudioContext();
 
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const context = new AudioContext();
-      const source = context.createMediaStreamSource(stream);
-      const analyser = context.createAnalyser();
-      source.connect(analyser);
-      
-      setAudioContext(context);
-      setAnalyserNode(analyser);
+      if (!audioContext) return;
+
+      const source = audioContext.createMediaStreamSource(stream);
+      source.connect(analyzerNode!);
 
       const recorder = new MediaRecorder(stream);
       setMediaRecorder(recorder);
@@ -54,21 +42,21 @@ export function AudioRecorder() {
         const downloadLink = document.createElement('a');
         downloadLink.href = audioUrl;
         downloadLink.download = `${fileName}.mp3`;
-        
-        // Trigger download
         downloadLink.click();
         
         toast({
           title: "Recording saved",
-          description: `${fileName}.mp3 has been downloaded to your computer`
+          description: `${fileName}.mp3 has been saved`
         });
         
         audioChunks.current = [];
       };
 
       recorder.start();
+      startAudioContext();
       setIsRecording(true);
     } catch (error) {
+      console.error('Recording error:', error);
       toast({
         title: "Error",
         description: "Could not access microphone",
@@ -117,7 +105,8 @@ export function AudioRecorder() {
         
         <AudioVisualizer
           isRecording={isRecording}
-          analyserNode={analyserNode}
+          isPlaying={isPlaying}
+          analyserNode={analyzerNode}
         />
       </CardContent>
     </Card>
