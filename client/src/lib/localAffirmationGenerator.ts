@@ -45,7 +45,9 @@ async function generateSimilarPhrases(input: string, category: string): Promise<
     // First try to generate affirmations using the server-side templates
     const serverAffirmations = generateAffirmations(category, input);
     
-    if (serverAffirmations && serverAffirmations.length >= 10) {
+    // For custom category or if server affirmations are sufficient
+    if ((category !== 'custom' && serverAffirmations && serverAffirmations.length >= 10) || 
+        (category === 'custom' && serverAffirmations && serverAffirmations.length > 0)) {
       return serverAffirmations;
     }
 
