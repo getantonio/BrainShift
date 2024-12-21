@@ -45,35 +45,68 @@ export function AudioRecorder({ currentCategory }: AudioRecorderProps) {
       };
 
       recorder.onstop = async () => {
-        const audioBlob = new Blob(audioChunks.current, { type: 'audio/mp3' });
-        const audioUrl = URL.createObjectURL(audioBlob);
-        
-        const fileName = prompt('Enter a name for your recording:', 'New Recording');
-        if (!fileName) {
-          audioChunks.current = [];
-          return;
-        }
+        try {
+          const audioBlob = new Blob(audioChunks.current, { type: 'audio/mp3' });
+          
+          // Convert blob to base64
+          const base64Data = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+              if (typeof reader.result === 'string') {
+                resolve(reader.result);
+              } else {
+                reject(new Error('Failed to convert audio to base64'));
+              }
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(audioBlob);
+          });
 
-        // Dispatch event to add recording to playlist
-        const event = new CustomEvent('newRecording', {
-          detail: {
-            name: fileName,
-            url: audioUrl,
-            category: currentCategory || 'custom'
+          // Verify the audio can be played
+          const verificationAudio = new Audio(base64Data);
+          await new Promise((resolve, reject) => {
+            verificationAudio.oncanplaythrough = resolve;
+            verificationAudio.onerror = () => reject(new Error('Invalid audio data'));
+            setTimeout(() => reject(new Error('Audio load timeout')), 5000);
+          });
+          
+          const fileName = prompt('Enter a name for your recording:', 'New Recording');
+          if (!fileName) {
+            audioChunks.current = [];
+            return;
           }
-        });
-        console.log('Dispatching recording event:', { 
-          name: fileName, 
-          category: currentCategory || 'custom' 
-        });
-        window.dispatchEvent(event);
-        
-        toast({
-          title: "Recording saved",
-          description: `${fileName} has been added to the ${currentCategory} playlist`
-        });
-        
-        audioChunks.current = [];
+
+          // Use the base64 data as the URL
+          const event = new CustomEvent('newRecording', {
+            detail: {
+              name: fileName,
+              url: base64Data,
+              category: currentCategory || 'custom'
+            }
+          });
+
+          console.log('Dispatching recording event:', { 
+            name: fileName, 
+            category: currentCategory || 'custom',
+            dataLength: base64Data.length
+          });
+
+          window.dispatchEvent(event);
+          
+          toast({
+            title: "Recording saved",
+            description: `${fileName} has been added to the ${currentCategory} playlist`
+          });
+        } catch (error) {
+          console.error('Error saving recording:', error);
+          toast({
+            title: "Error",
+            description: "Failed to save recording. Please try again.",
+            variant: "destructive"
+          });
+        } finally {
+          audioChunks.current = [];
+        }
       };
 
       recorder.start();
