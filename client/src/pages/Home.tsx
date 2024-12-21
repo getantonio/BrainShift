@@ -1,6 +1,7 @@
 import { AudioRecorder } from "@/components/AudioRecorder";
 import { PlaylistManager } from "@/components/PlaylistManager";
 import { AffirmationWizard } from "@/components/AffirmationWizard";
+import { HypnosisGuide } from "@/components/HypnosisGuide";
 import { useTheme } from "@/lib/theme-context";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -36,6 +37,7 @@ export default function Home() {
       <main className="container mx-auto px-4 py-8 flex flex-col gap-6">
         <AffirmationWizard onAffirmationsGenerated={setGeneratedAffirmations} />
         <AudioRecorder />
+        <HypnosisGuide />
         <div className="flex justify-end gap-4">
           <Button
             variant="outline"

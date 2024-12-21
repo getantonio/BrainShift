@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus } from "lucide-react";
+import { Plus, Save, Upload, Download, FileAudio } from "lucide-react";
 import { Playlist } from "@/components/Playlist";
 import { useToast } from "@/hooks/use-toast";
 
@@ -428,7 +428,7 @@ export function PlaylistManager({ allCollapsed = false }: PlaylistManagerProps) 
             variant="outline"
             className="bg-zinc-800 hover:bg-zinc-700 text-white border-zinc-600"
           >
-            💾 Save All
+            <Save className="h-4 w-4" />
           </Button>
           <div className="flex gap-2">
             <Button
@@ -487,7 +487,7 @@ export function PlaylistManager({ allCollapsed = false }: PlaylistManagerProps) 
               variant="outline"
               className="bg-zinc-800 hover:bg-zinc-700 text-white border-zinc-600"
             >
-              📁 Import
+              <Upload className="h-4 w-4" />
             </Button>
             <Button
               onClick={() => {
@@ -503,15 +503,14 @@ export function PlaylistManager({ allCollapsed = false }: PlaylistManagerProps) 
               variant="outline"
               className="bg-zinc-800 hover:bg-zinc-700 text-white border-zinc-600"
             >
-              💾 Export
+              <Download className="h-4 w-4" />
             </Button>
             <Button
               onClick={addPlaylist}
               variant="outline"
               className="bg-zinc-800 hover:bg-zinc-700 text-white border-zinc-600"
             >
-              <Plus className="mr-2 h-4 w-4" />
-              Add New Playlist
+              <Plus className="h-4 w-4" />
             </Button>
           </div>
         </div>
@@ -547,8 +546,7 @@ export function PlaylistManager({ allCollapsed = false }: PlaylistManagerProps) 
                   asChild
                 >
                   <span>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Add Audio Files
+                    <FileAudio className="h-4 w-4" />
                   </span>
                 </Button>
               </label>
