@@ -37,7 +37,7 @@ export default function Home() {
         <div className="flex items-center justify-center gap-3">
           <span className="text-5xl opacity-75 transform scale-x-[-1]">🧠</span>
           <h1 className="font-extrabold tracking-wider">
-            Brain Shift Studio
+            BrainShift Studio
           </h1>
           <span className="text-5xl opacity-75">🧠</span>
         </div>
