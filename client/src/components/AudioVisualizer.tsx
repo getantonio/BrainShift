@@ -7,6 +7,13 @@ interface AudioVisualizerProps {
 
 export function AudioVisualizer({ isRecording, analyserNode }: AudioVisualizerProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const particlesRef = useRef<Array<{
+    x: number;
+    y: number;
+    speed: number;
+    size: number;
+    hue: number;
+  }>>([]);
 
   useEffect(() => {
     if (!isRecording || !analyserNode || !canvasRef.current) return;
@@ -15,74 +22,117 @@ export function AudioVisualizer({ isRecording, analyserNode }: AudioVisualizerPr
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const dataArray = new Uint8Array(analyserNode.frequencyBinCount);
+    // Initialize frequency data arrays
+    const frequencyData = new Uint8Array(analyserNode.frequencyBinCount);
+    const timeData = new Uint8Array(analyserNode.frequencyBinCount);
     let animationFrameId: number;
-    
+    let startTime = Date.now();
+
+    // Initialize particles if empty
+    if (particlesRef.current.length === 0) {
+      for (let i = 0; i < 50; i++) {
+        particlesRef.current.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          speed: 0.5 + Math.random() * 2,
+          size: 2 + Math.random() * 3,
+          hue: Math.random() * 360
+        });
+      }
+    }
+
     function draw() {
       if (!isRecording || !analyserNode || !ctx) return;
       
       animationFrameId = requestAnimationFrame(draw);
-      analyserNode.getByteTimeDomainData(dataArray);
       
-      // Create gradient background
-      const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-      gradient.addColorStop(0, '#1a1a1a');
-      gradient.addColorStop(1, '#0a0a0a');
-      ctx.fillStyle = gradient;
+      // Get both frequency and time domain data
+      analyserNode.getByteFrequencyData(frequencyData);
+      analyserNode.getByteTimeDomainData(timeData);
+      
+      // Calculate average frequency and intensity
+      const avgFrequency = frequencyData.reduce((sum, value) => sum + value, 0) / frequencyData.length;
+      const intensity = timeData.reduce((sum, value) => sum + Math.abs(value - 128), 0) / timeData.length;
+      
+      // Create dynamic background
+      ctx.fillStyle = `rgba(10, 10, 15, 0.2)`;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
-      
-      // Calculate pulse effect for dynamic visualization
-      const time = Date.now() * 0.001;
-      const pulse = Math.sin(time * 2) * 0.5 + 0.5;
-      const baseWidth = 2;
-      ctx.lineWidth = baseWidth + pulse;
 
-      // Create dynamic color based on audio intensity
-      const intensity = dataArray.reduce((sum, value) => sum + Math.abs(value - 128), 0) / dataArray.length;
-      const hue = (200 + intensity) % 360; // Blue to purple range
-      ctx.strokeStyle = `hsla(${hue}, 100%, 50%, ${0.7 + pulse * 0.3})`;
+      // Time-based effects
+      const time = (Date.now() - startTime) * 0.001;
+      const globalPulse = Math.sin(time * 2) * 0.5 + 0.5;
+      
+      // Update and draw particles
+      particlesRef.current.forEach((particle, index) => {
+        // Update particle position based on audio intensity
+        particle.y += particle.speed * (1 + intensity / 128);
+        if (particle.y > canvas.height) {
+          particle.y = 0;
+          particle.x = Math.random() * canvas.width;
+        }
+        
+        // Create dynamic particle color based on frequency and time
+        const hue = (particle.hue + avgFrequency / 2) % 360;
+        const alpha = 0.3 + globalPulse * 0.7;
+        
+        // Draw particle with glow effect
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = `hsla(${hue}, 100%, 50%, ${alpha})`;
+        ctx.fillStyle = `hsla(${hue}, 100%, 50%, ${alpha})`;
+        
+        // Draw expanding circles for particles
+        const size = particle.size * (1 + globalPulse * 0.5);
+        ctx.beginPath();
+        ctx.arc(particle.x, particle.y, size, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      // Draw main waveform
+      const centerY = canvas.height / 2;
+      const amplitude = (50 + intensity) * (1 + globalPulse * 0.3);
       
       ctx.beginPath();
-      const sliceWidth = canvas.width / dataArray.length;
-      let x = 0;
-
-      // Draw with mirror effect and enhanced smoothing
-      let lastY = canvas.height / 2;
-      for (let i = 0; i < dataArray.length; i++) {
-        const raw = dataArray[i] / 128.0;
-        // Enhanced smoothing with dynamic factor
-        const smoothingFactor = 0.8 + pulse * 0.1;
-        const v = raw * (1 - smoothingFactor) + lastY * smoothingFactor;
-        const y = v * (canvas.height / 2);
-
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = `hsla(${(time * 50) % 360}, 100%, 50%, 0.8)`;
+      
+      for (let i = 0; i < timeData.length; i++) {
+        const x = (i / timeData.length) * canvas.width;
+        const normalized = (timeData[i] / 128.0) - 1;
+        const y = centerY + normalized * amplitude;
+        
         if (i === 0) {
           ctx.moveTo(x, y);
         } else {
-          // Enhanced curve smoothing
-          const prevX = x - sliceWidth;
-          const midX = prevX + sliceWidth / 2;
-          const cpX1 = prevX + sliceWidth * 0.25;
-          const cpX2 = prevX + sliceWidth * 0.75;
-          
-          ctx.bezierCurveTo(
-            cpX1, lastY,
-            cpX2, y,
-            midX, y
-          );
+          // Smooth curve
+          const prevX = ((i - 1) / timeData.length) * canvas.width;
+          const prevY = centerY + ((timeData[i - 1] / 128.0) - 1) * amplitude;
+          const cpX = (prevX + x) / 2;
+          ctx.quadraticCurveTo(cpX, prevY, x, y);
         }
-
-        // Draw mirrored effect with glow
-        ctx.shadowBlur = 10;
-        ctx.shadowColor = ctx.strokeStyle;
-        ctx.moveTo(x, canvas.height - y);
-        ctx.lineTo(x, y);
-        
-        lastY = y;
-        x += sliceWidth;
       }
-
-      ctx.lineTo(canvas.width, canvas.height / 2);
+      
+      // Add glow effect to waveform
+      ctx.shadowBlur = 20;
+      ctx.shadowColor = ctx.strokeStyle;
       ctx.stroke();
+
+      // Draw frequency bars
+      const barWidth = canvas.width / 64;
+      ctx.lineWidth = 1;
+      
+      for (let i = 0; i < 64; i++) {
+        const freq = frequencyData[i];
+        const hue = (time * 50 + i * 4) % 360;
+        const height = (freq / 256.0) * canvas.height * 0.5;
+        
+        ctx.fillStyle = `hsla(${hue}, 100%, 50%, 0.5)`;
+        ctx.fillRect(
+          i * barWidth,
+          canvas.height - height,
+          barWidth - 1,
+          height
+        );
+      }
     }
 
     draw();
