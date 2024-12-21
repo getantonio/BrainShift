@@ -28,10 +28,7 @@ export function AudioVisualizer({
   const [visualizationStyle, setVisualizationStyle] = useState<VisualizationStyle>('classic');
   const colors = {
     primary: '#4ade80',
-    secondary: '#2563eb',
-    background: '#111827',
-    particle: '#ec4899',
-    waveform: '#8b5cf6'
+    secondary: '#2563eb'
   };
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const particlesRef = useRef<Array<{
