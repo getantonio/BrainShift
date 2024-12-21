@@ -546,7 +546,8 @@ export function PlaylistManager({ allCollapsed = false }: PlaylistManagerProps) 
                   asChild
                 >
                   <span>
-                    <FileAudio className="h-4 w-4" />
+                    <FileAudio className="h-4 w-4 mr-2" />
+                    Add Audio Files
                   </span>
                 </Button>
               </label>
