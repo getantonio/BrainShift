@@ -114,60 +114,99 @@ export function PlaylistManager() {
       const processedPlaylists = await Promise.all(
         playlistsToSave.map(async (playlist) => {
           const processedTracks = [];
+          let skippedTracks = 0;
           
           for (const track of playlist.tracks) {
             if (!track?.url || !track?.name) {
               console.error('Invalid track data:', track);
+              skippedTracks++;
               continue;
             }
 
             try {
-              let finalTrack = track;
-              
+              // If the track URL is already a data URL, verify it and use it directly
+              if (track.url.startsWith('data:audio/')) {
+                processedTracks.push(track);
+                continue;
+              }
+
+              // For blob URLs, try to convert them to data URLs
               if (track.url.startsWith('blob:')) {
                 try {
-                  const response = await fetch(track.url);
-                  if (!response.ok) throw new Error('Failed to fetch audio blob');
-                  
-                  const blob = await response.blob();
-                  if (!blob.type.startsWith('audio/')) {
-                    console.warn(`Skipping invalid audio format for track: ${track.name}`);
-                    continue;
+                  // Add timeout to fetch operation
+                  const controller = new AbortController();
+                  const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+                  const response = await fetch(track.url, { signal: controller.signal });
+                  clearTimeout(timeoutId);
+
+                  if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
                   }
 
-                  const base64Url = await new Promise<string>((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.onloadend = () => {
-                      if (typeof reader.result === 'string') {
-                        resolve(reader.result);
-                      } else {
-                        reject(new Error('Failed to read blob as DataURL'));
-                      }
-                    };
-                    reader.onerror = () => reject(reader.error);
-                    reader.readAsDataURL(blob);
-                  });
+                  const blob = await response.blob();
+                  
+                  // Verify blob is audio
+                  if (!blob.type.startsWith('audio/')) {
+                    throw new Error('Invalid audio format');
+                  }
 
-                  finalTrack = {
-                    name: track.name,
-                    url: base64Url
-                  };
+                  // Create a temporary audio element to verify the blob
+                  const audio = new Audio();
+                  const objectUrl = URL.createObjectURL(blob);
+                  
+                  try {
+                    await new Promise((resolve, reject) => {
+                      audio.onloadedmetadata = resolve;
+                      audio.onerror = () => reject(new Error('Invalid audio data'));
+                      audio.src = objectUrl;
+                      
+                      // Set a timeout for audio validation
+                      setTimeout(() => reject(new Error('Audio validation timeout')), 3000);
+                    });
+
+                    const base64Url = await new Promise<string>((resolve, reject) => {
+                      const reader = new FileReader();
+                      reader.onloadend = () => {
+                        if (typeof reader.result === 'string') {
+                          resolve(reader.result);
+                        } else {
+                          reject(new Error('Failed to read blob as DataURL'));
+                        }
+                      };
+                      reader.onerror = () => reject(reader.error);
+                      reader.readAsDataURL(blob);
+                    });
+
+                    processedTracks.push({
+                      name: track.name,
+                      url: base64Url
+                    });
+                  } finally {
+                    URL.revokeObjectURL(objectUrl);
+                  }
                 } catch (error) {
                   console.error(`Failed to process blob URL for track: ${track.name}`, error);
+                  skippedTracks++;
                   continue;
                 }
+              } else {
+                // For other URL types (e.g., remote URLs), store as is
+                processedTracks.push(track);
               }
-              
-              processedTracks.push(finalTrack);
             } catch (error) {
               console.error('Error processing track:', error);
-              toast({
-                title: "Warning",
-                description: `Skipped track "${track.name}" due to processing error`,
-                variant: "destructive"
-              });
+              skippedTracks++;
               continue;
             }
+          }
+
+          if (skippedTracks > 0) {
+            toast({
+              title: "Warning",
+              description: `${skippedTracks} track(s) could not be saved in playlist "${playlist.name}"`,
+              variant: "destructive"
+            });
           }
 
           return {
