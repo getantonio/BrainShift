@@ -7,6 +7,7 @@ type AffirmationTemplate = {
 
 const affirmationTemplates: { [key: string]: AffirmationTemplate } = {
   smoking: {
+    category: 'smoking',
     templates: [
       "I choose {{positive}} choices for my health",
       "Every day I become more {{positive}}",
@@ -41,6 +42,7 @@ const affirmationTemplates: { [key: string]: AffirmationTemplate } = {
     }
   },
   confidence: {
+    category: 'confidence',
     templates: [
       "I am naturally {{positive}} in all situations",
       "I radiate {{positive}} energy to others",
@@ -74,6 +76,7 @@ const affirmationTemplates: { [key: string]: AffirmationTemplate } = {
     }
   },
   procrastination: {
+    category: 'procrastination',
     templates: [
       "I take {{positive}} action immediately",
       "I am becoming more {{positive}} each day",
@@ -107,6 +110,7 @@ const affirmationTemplates: { [key: string]: AffirmationTemplate } = {
     }
   },
   fitness: {
+    category: 'fitness',
     templates: [
       "I am naturally {{positive}} and {{positive}}",
       "My body grows {{positive}} each day",
@@ -167,7 +171,8 @@ function generateAffirmations(category: string, negativeThought: string): string
   const specificAffirmation = `I am ${template.positiveWords[0]} and ${template.positiveWords[1]} as ${positiveThought}`;
   affirmations.push(specificAffirmation);
 
-  return [...new Set(affirmations)]; // Remove any duplicates
+  // Remove duplicates while maintaining array type
+  return Array.from(new Set(affirmations));
 }
 
 export { generateAffirmations };

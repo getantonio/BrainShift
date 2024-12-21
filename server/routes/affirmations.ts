@@ -12,7 +12,10 @@ router.post('/generate-affirmations', async (req, res) => {
     }
 
     try {
+      console.log('Generating affirmations for category:', category);
+      console.log('Negative thought:', negativeThought);
       const affirmations = generateAffirmations(category, negativeThought);
+      console.log('Generated affirmations:', affirmations);
       return res.json({ affirmations });
     } catch (error: any) {
       console.error('Error generating affirmations:', error);
