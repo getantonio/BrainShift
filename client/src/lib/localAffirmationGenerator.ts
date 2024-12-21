@@ -11,7 +11,7 @@ interface Template {
 import { generateAffirmations } from "../../../server/utils/affirmationGenerator";
 
 const defaultTemplates = {
-  "quit_smoking_addictions": [
+  "addiction": [
     "I am stronger than my cravings and choose a healthier path",
     "I release the hold addiction has over me",
     "Every step I take brings me closer to freedom and wellness",
@@ -23,7 +23,7 @@ const defaultTemplates = {
     "I take pride in every small victory on my journey",
     "My commitment to healing inspires me daily"
   ],
-  "better_sleep": [
+  "sleep": [
     "I release the stress of the day and welcome restful sleep",
     "My mind and body relax completely as I prepare for sleep",
     "I deserve deep, restorative sleep every night",
