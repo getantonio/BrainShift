@@ -79,25 +79,40 @@ export function PlaylistManager() {
         playlistsToSave.map(async (playlist) => {
           const processedTracks = await Promise.all(
             playlist.tracks.map(async (track) => {
-              if (track.url.startsWith('blob:')) {
-                const response = await fetch(track.url);
-                const blob = await response.blob();
-                return new Promise<{ name: string; url: string }>((resolve) => {
-                  const reader = new FileReader();
-                  reader.onloadend = () => resolve({
-                    name: track.name,
-                    url: reader.result as string
+              try {
+                if (track.url.startsWith('blob:')) {
+                  const response = await fetch(track.url);
+                  if (!response.ok) {
+                    throw new Error('Failed to fetch audio blob');
+                  }
+                  const blob = await response.blob();
+                  return await new Promise<{ name: string; url: string }>((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                      if (reader.result) {
+                        resolve({
+                          name: track.name,
+                          url: reader.result as string
+                        });
+                      } else {
+                        reject(new Error('Failed to read blob'));
+                      }
+                    };
+                    reader.onerror = () => reject(reader.error);
+                    reader.readAsDataURL(blob);
                   });
-                  reader.readAsDataURL(blob);
-                });
+                }
+                return track;
+              } catch (error) {
+                console.error('Error processing track:', error);
+                return track;
               }
-              return track;
             })
           );
 
           return {
             ...playlist,
-            tracks: processedTracks
+            tracks: processedTracks.filter(Boolean)
           };
         })
       );
