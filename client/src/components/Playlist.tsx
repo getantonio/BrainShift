@@ -2,8 +2,14 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AudioItem } from "@/components/AudioItem";
-import { Edit2, Trash2, Play, Repeat, Square, Shuffle } from "lucide-react";
+import { Edit2, Trash2, Play, Repeat, Square, Shuffle, ChevronDown, Download, Upload } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { useToast } from "@/hooks/use-toast";
 
 interface PlaylistProps {
   playlist: {
@@ -219,9 +225,66 @@ export function Playlist({
     setIsLooping(!isLooping);
   };
 
+  const { toast } = useToast();
+
+  const exportPlaylist = () => {
+    const playlistData = JSON.stringify({ ...playlist }, null, 2);
+    const blob = new Blob([playlistData], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${playlist.name}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast({
+      title: "Playlist exported",
+      description: `${playlist.name} has been exported successfully`
+    });
+  };
+
+  const importPlaylist = () => {
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = '.json';
+    fileInput.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) {
+        try {
+          const text = await file.text();
+          const importedPlaylist = JSON.parse(text);
+          if (!importedPlaylist.tracks || !Array.isArray(importedPlaylist.tracks)) {
+            throw new Error('Invalid playlist format');
+          }
+          // Update current playlist with imported data
+          onRename(importedPlaylist.name);
+          importedPlaylist.tracks.forEach((track: any) => {
+            if (track.name && track.url) {
+              playlist.tracks.push(track);
+            }
+          });
+          toast({
+            title: "Playlist imported",
+            description: `Successfully imported tracks to ${playlist.name}`
+          });
+        } catch (error) {
+          toast({
+            title: "Error",
+            description: "Failed to import playlist",
+            variant: "destructive"
+          });
+        }
+      }
+    };
+    fileInput.click();
+  };
+
+  const [isOpen, setIsOpen] = useState(true);
+
   return (
-    <Card 
-      className="bg-gray-700/50 border-gray-600"
+    <Collapsible 
+      open={isOpen}
+      onOpenChange={setIsOpen}
+      className="bg-gray-700/50 border border-gray-600 rounded-lg"
       onDragOver={(e) => {
         e.preventDefault();
         e.currentTarget.style.borderColor = 'rgb(255, 255, 255, 0.5)';
@@ -251,22 +314,53 @@ export function Playlist({
         }
       }}
     >
-      <CardHeader className="flex flex-row items-center justify-between">
-        {isEditing ? (
-          <Input
-            value={newName}
-            onChange={(e) => setNewName(e.target.value)}
-            className="max-w-[200px]"
-            autoFocus
-          />
-        ) : (
-          <CardTitle className="text-xl">{playlist.name}</CardTitle>
-        )}
+      <div className="p-4 flex flex-row items-center justify-between">
+        <CollapsibleTrigger asChild>
+          <div className="flex items-center gap-2 cursor-pointer">
+            <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isOpen ? '' : '-rotate-90'}`} />
+            {isEditing ? (
+              <Input
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                className="max-w-[200px]"
+                autoFocus
+                onClick={(e) => e.stopPropagation()}
+              />
+            ) : (
+              <CardTitle className="text-xl text-white">{playlist.name}</CardTitle>
+            )}
+          </div>
+        </CollapsibleTrigger>
         <div className="flex gap-2">
           <Button
             variant="outline"
             size="icon"
-            onClick={handleRename}
+            onClick={(e) => {
+              e.stopPropagation();
+              importPlaylist();
+            }}
+            className="h-8 w-8 bg-gray-800/80 hover:bg-gray-700/80 text-gray-200 border-gray-600"
+          >
+            <Upload className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={(e) => {
+              e.stopPropagation();
+              exportPlaylist();
+            }}
+            className="h-8 w-8 bg-gray-800/80 hover:bg-gray-700/80 text-gray-200 border-gray-600"
+          >
+            <Download className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleRename();
+            }}
             className="h-8 w-8 bg-gray-800/80 hover:bg-gray-700/80 text-gray-200 border-gray-600"
           >
             <Edit2 className="h-4 w-4" />
@@ -274,7 +368,10 @@ export function Playlist({
           <Button
             variant="outline"
             size="icon"
-            onClick={() => onSave()}
+            onClick={(e) => {
+              e.stopPropagation();
+              onSave();
+            }}
             className="h-8 w-8 bg-gray-800/80 hover:bg-gray-700/80 text-gray-200 border-gray-600"
           >
             💾
@@ -282,15 +379,18 @@ export function Playlist({
           <Button
             variant="outline"
             size="icon"
-            onClick={onDelete}
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete();
+            }}
             className="h-8 w-8 bg-gray-800/80 hover:bg-gray-700/80 text-gray-200 border-gray-600"
           >
             <Trash2 className="h-4 w-4" />
           </Button>
         </div>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-2">
+      </div>
+      <CollapsibleContent>
+        <div className="p-4 space-y-2">
           {playlist.tracks.map((track, index) => (
             <div key={index} className="relative group">
               <AudioItem
@@ -368,7 +468,7 @@ export function Playlist({
             Stop
           </Button>
         </div>
-      </CardContent>
-    </Card>
+      </CollapsibleContent>
+    </Collapsible>
   );
 }
