@@ -37,29 +37,74 @@ export function AudioRecorder({ currentCategory }: AudioRecorderProps) {
       setAudioContext(context);
       setAnalyserNode(analyser);
 
-      const recorder = new MediaRecorder(stream);
+      const recorder = new MediaRecorder(stream, {
+        mimeType: 'audio/webm;codecs=opus',
+        audioBitsPerSecond: 128000
+      });
       setMediaRecorder(recorder);
 
       recorder.ondataavailable = (e) => {
-        audioChunks.current.push(e.data);
+        if (e.data.size > 0) {
+          audioChunks.current.push(e.data);
+        }
       };
+
+      // Request data every 1 second for better memory management
+      recorder.start(1000);
+      setIsRecording(true);
 
       recorder.onstop = async () => {
         try {
-          const audioBlob = new Blob(audioChunks.current, { type: 'audio/mp3' });
+          if (audioChunks.current.length === 0) {
+            throw new Error('No audio data recorded');
+          }
+
+          // Create blob with explicit MIME type
+          const audioBlob = new Blob(audioChunks.current, { 
+            type: 'audio/webm;codecs=opus'
+          });
+
+          console.log('Audio blob created:', {
+            size: audioBlob.size,
+            type: audioBlob.type
+          });
           
-          // Convert blob to base64
+          // Convert blob to base64 with proper error handling
           const base64Data = await new Promise<string>((resolve, reject) => {
+            console.log('Starting blob to base64 conversion');
             const reader = new FileReader();
             reader.onloadend = () => {
-              if (typeof reader.result === 'string') {
-                resolve(reader.result);
-              } else {
-                reject(new Error('Failed to convert audio to base64'));
+              try {
+                if (typeof reader.result === 'string') {
+                  console.log('Successfully converted blob to base64');
+                  resolve(reader.result);
+                } else {
+                  throw new Error('FileReader result is not a string');
+                }
+              } catch (error) {
+                console.error('Error in FileReader onloadend:', error);
+                reject(error);
               }
             };
-            reader.onerror = reject;
-            reader.readAsDataURL(audioBlob);
+            
+            reader.onerror = (error) => {
+              console.error('FileReader error:', error);
+              reject(new Error('Failed to read audio data'));
+            };
+            
+            reader.onprogress = (event) => {
+              if (event.lengthComputable) {
+                console.log(`Reading blob: ${Math.round((event.loaded / event.total) * 100)}%`);
+              }
+            };
+            
+            try {
+              reader.readAsDataURL(audioBlob);
+              console.log('Started reading blob as DataURL');
+            } catch (error) {
+              console.error('Error starting blob read:', error);
+              reject(error);
+            }
           });
 
           // Verify the audio can be played
