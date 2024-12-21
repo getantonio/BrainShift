@@ -95,7 +95,7 @@ export function AffirmationWizard({ onAffirmationsGenerated }: AffirmationWizard
   };
 
   const handleNegativeThoughtSubmit = async () => {
-    if (!negativeThought.trim()) {
+    if (!negativeThought.trim() && step === 2) {
       toast({
         title: "Error",
         description: "Please enter your negative thought or trigger",
@@ -106,8 +106,6 @@ export function AffirmationWizard({ onAffirmationsGenerated }: AffirmationWizard
 
     setIsGenerating(true);
     try {
-      setIsGenerating(true);
-      
       const { generateSimilarPhrases } = await import('@/lib/localAffirmationGenerator');
       const affirmations = await generateSimilarPhrases(negativeThought, selectedCategory);
       
@@ -115,12 +113,18 @@ export function AffirmationWizard({ onAffirmationsGenerated }: AffirmationWizard
         throw new Error("Failed to generate affirmations");
       }
 
-      setGeneratedAffirmations(affirmations);
+      // Filter to ensure all affirmations start with "I"
+      const processedAffirmations = affirmations
+        .filter(a => a.startsWith('I '))
+        .slice(0, 15); // Limit to 15 affirmations for better readability
+
+      setGeneratedAffirmations(processedAffirmations);
+      onAffirmationsGenerated(processedAffirmations);
       setStep(3);
       
       toast({
         title: "Success",
-        description: "Affirmations generated successfully using local AI model",
+        description: "Affirmations generated successfully",
       });
     } catch (error: any) {
       console.error('Affirmation generation error:', error);
@@ -192,53 +196,34 @@ export function AffirmationWizard({ onAffirmationsGenerated }: AffirmationWizard
         {step === 3 && (
           <div className="space-y-4">
             <Label className="text-white">
-              Select at least 3 affirmations to record (Selected: {selectedAffirmations.length})
+              Your Personalized Affirmations
             </Label>
             <div className="space-y-2 max-h-[300px] overflow-y-auto">
               {generatedAffirmations.map((affirmation, index) => (
                 <div
                   key={index}
-                  className="flex items-center space-x-2 p-2 rounded bg-zinc-800/50 border border-zinc-700"
+                  className="p-3 rounded bg-zinc-800/50 border border-zinc-700"
                 >
-                  <input
-                    type="checkbox"
-                    id={`affirmation-${index}`}
-                    checked={selectedAffirmations.includes(affirmation)}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setSelectedAffirmations([...selectedAffirmations, affirmation]);
-                      } else {
-                        setSelectedAffirmations(selectedAffirmations.filter(a => a !== affirmation));
-                      }
-                    }}
-                    className="rounded border-zinc-600"
-                  />
-                  <label
-                    htmlFor={`affirmation-${index}`}
-                    className="text-white flex-1 cursor-pointer"
-                  >
+                  <p className="text-white">
                     {affirmation}
-                  </label>
+                  </p>
                 </div>
               ))}
             </div>
-            <Button
-              onClick={() => {
-                if (selectedAffirmations.length < 3) {
-                  toast({
-                    title: "Error",
-                    description: "Please select at least 3 affirmations",
-                    variant: "destructive"
-                  });
-                  return;
-                }
-                onAffirmationsGenerated(selectedAffirmations);
-              }}
-              disabled={selectedAffirmations.length < 3}
-              className="w-full bg-zinc-800 hover:bg-zinc-700 text-white"
-            >
-              Continue with Selected Affirmations
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                onClick={() => setStep(1)}
+                className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-white"
+              >
+                Back to Categories
+              </Button>
+              <Button
+                onClick={handleNegativeThoughtSubmit}
+                className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-white"
+              >
+                Regenerate Affirmations
+              </Button>
+            </div>
           </div>
         )}
       </CardContent>
