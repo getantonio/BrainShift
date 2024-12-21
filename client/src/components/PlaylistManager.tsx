@@ -24,20 +24,20 @@ export function PlaylistManager() {
       
       setPlaylists(current => {
         const updated = [...current];
-        // Remove from source playlist
-        const sourcePlaylist = updated.find(p => 
+        
+        // Find and remove from source playlist
+        const sourcePlaylistIndex = updated.findIndex(p => 
           p.tracks.some(t => t.url === track.url && t.name === track.name)
         );
-        if (sourcePlaylist) {
-          sourcePlaylist.tracks = sourcePlaylist.tracks.filter(
-            t => t.url !== track.url || t.name !== track.name
+        
+        if (sourcePlaylistIndex !== -1) {
+          const trackIndex = updated[sourcePlaylistIndex].tracks.findIndex(
+            t => t.url === track.url && t.name === track.name
           );
+          if (trackIndex !== -1) {
+            updated[sourcePlaylistIndex].tracks.splice(trackIndex, 1);
+          }
         }
-    window.addEventListener('trackMove', handleTrackMove as EventListener);
-    return () => {
-      window.removeEventListener('trackMove', handleTrackMove as EventListener);
-      window.removeEventListener('newRecording', handleNewRecording as EventListener);
-    };
         
         // Add to target playlist
         const targetPlaylist = updated.find(p => p.id === targetPlaylistId);
@@ -62,8 +62,12 @@ export function PlaylistManager() {
       });
     };
 
+    window.addEventListener('trackMove', handleTrackMove as EventListener);
     window.addEventListener('newRecording' as any, handleNewRecording as any);
-    return () => window.removeEventListener('newRecording' as any, handleNewRecording as any);
+    return () => {
+      window.removeEventListener('trackMove', handleTrackMove as EventListener);
+      window.removeEventListener('newRecording', handleNewRecording as EventListener);
+    };
   }, []);
 
   const addPlaylist = () => {

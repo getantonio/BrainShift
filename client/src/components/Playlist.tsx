@@ -59,24 +59,27 @@ export function Playlist({
     if (playlist.tracks.length === 0) return;
     
     updatePlaybackOrder();
-    const audio = new Audio(playlist.tracks[playbackOrder[0]].url);
-    setCurrentAudio(audio);
     setCurrentTrackIndex(0);
     
-    audio.onended = () => {
-      const nextIndex = (currentTrackIndex + 1) % playbackOrder.length;
-      if (nextIndex === 0 && !isLooping) {
-        stopPlaylist();
-        return;
-      }
-      setCurrentTrackIndex(nextIndex);
-      const nextTrackIndex = playbackOrder[nextIndex];
-      const nextAudio = new Audio(playlist.tracks[nextTrackIndex].url);
-      setCurrentAudio(nextAudio);
-      nextAudio.play();
+    const playTrack = (index: number) => {
+      const trackIndex = playbackOrder[index];
+      const audio = new Audio(playlist.tracks[trackIndex].url);
+      
+      audio.onended = () => {
+        const nextIndex = (index + 1) % playbackOrder.length;
+        if (nextIndex === 0 && !isLooping) {
+          stopPlaylist();
+          return;
+        }
+        setCurrentTrackIndex(nextIndex);
+        playTrack(nextIndex);
+      };
+
+      setCurrentAudio(audio);
+      audio.play().catch(console.error);
     };
     
-    audio.play();
+    playTrack(0);
   };
 
   const toggleShuffle = () => {

@@ -67,7 +67,7 @@ export function AudioItem({ track, onRename, onDelete }: AudioItemProps) {
           variant="outline"
           size="icon"
           onClick={isPlaying ? stopAudio : playAudio}
-          className="h-8 w-8"
+          className="h-8 w-8 bg-gray-800 hover:bg-gray-700 text-gray-200 border-gray-600"
         >
           {isPlaying ? <Square className="h-4 w-4" /> : <Play className="h-4 w-4" />}
         </Button>
@@ -75,7 +75,7 @@ export function AudioItem({ track, onRename, onDelete }: AudioItemProps) {
           variant="outline"
           size="icon"
           onClick={handleRename}
-          className="h-8 w-8"
+          className="h-8 w-8 bg-gray-800 hover:bg-gray-700 text-gray-200 border-gray-600"
         >
           <Edit2 className="h-4 w-4" />
         </Button>
@@ -87,7 +87,7 @@ export function AudioItem({ track, onRename, onDelete }: AudioItemProps) {
           <Button
             variant="outline"
             size="icon"
-            className="h-8 w-8"
+            className="h-8 w-8 bg-gray-800 hover:bg-gray-700 text-gray-200 border-gray-600"
           >
             <Download className="h-4 w-4" />
           </Button>
