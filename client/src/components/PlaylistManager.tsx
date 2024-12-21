@@ -18,6 +18,37 @@ export function PlaylistManager() {
   const { toast } = useToast();
 
   useEffect(() => {
+    const handleTrackMove = (event: Event) => {
+      const customEvent = event as CustomEvent<{ track: { name: string; url: string }, targetPlaylistId: number }>;
+      const { track, targetPlaylistId } = customEvent.detail;
+      
+      setPlaylists(current => {
+        const updated = [...current];
+        // Remove from source playlist
+        const sourcePlaylist = updated.find(p => 
+          p.tracks.some(t => t.url === track.url && t.name === track.name)
+        );
+        if (sourcePlaylist) {
+          sourcePlaylist.tracks = sourcePlaylist.tracks.filter(
+            t => t.url !== track.url || t.name !== track.name
+          );
+        }
+    window.addEventListener('trackMove', handleTrackMove as EventListener);
+    return () => {
+      window.removeEventListener('trackMove', handleTrackMove as EventListener);
+      window.removeEventListener('newRecording', handleNewRecording as EventListener);
+    };
+        
+        // Add to target playlist
+        const targetPlaylist = updated.find(p => p.id === targetPlaylistId);
+        if (targetPlaylist) {
+          targetPlaylist.tracks.push(track);
+        }
+        
+        return updated;
+      });
+    };
+
     const handleNewRecording = (event: Event) => {
     const customEvent = event as CustomEvent<{ name: string; url: string }>;
       setPlaylists(current => {
