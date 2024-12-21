@@ -24,25 +24,46 @@ export function AudioVisualizer({ isRecording, analyserNode }: AudioVisualizerPr
       animationFrameId = requestAnimationFrame(draw);
       analyserNode.getByteTimeDomainData(dataArray);
       
-      ctx.fillStyle = '#333';
+      // Create gradient background
+      const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      gradient.addColorStop(0, '#111');
+      gradient.addColorStop(1, '#000');
+      ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = '#10b981';
+      // Calculate pulse effect
+      const pulse = Math.sin(Date.now() * 0.005) * 0.5 + 0.5;
+      const baseWidth = 2;
+      ctx.lineWidth = baseWidth + pulse;
+      
+      // Use high contrast white with pulse-based opacity
+      ctx.strokeStyle = `rgba(255, 255, 255, ${0.6 + pulse * 0.4})`;
       ctx.beginPath();
 
       const sliceWidth = canvas.width / dataArray.length;
       let x = 0;
 
+      // Draw with mirror effect and smoothing
+      let lastY = canvas.height / 2;
       for (let i = 0; i < dataArray.length; i++) {
-        const v = dataArray[i] / 128.0;
+        const raw = dataArray[i] / 128.0;
+        // Smooth the value
+        const v = raw * 0.7 + lastY * 0.3;
         const y = v * (canvas.height / 2);
+        lastY = y;
 
         if (i === 0) {
           ctx.moveTo(x, y);
         } else {
-          ctx.lineTo(x, y);
+          // Use quadratic curves for smoother lines
+          const prevX = x - sliceWidth;
+          const midX = prevX + sliceWidth / 2;
+          ctx.quadraticCurveTo(prevX, lastY, midX, y);
         }
+
+        // Draw mirrored effect
+        ctx.moveTo(x, canvas.height - y);
+        ctx.lineTo(x, y);
 
         x += sliceWidth;
       }
