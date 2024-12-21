@@ -30,11 +30,15 @@ export function AudioProvider({ children }: { children: ReactNode }) {
       audioContextRef.current = new AudioContextClass();
       analyzerRef.current = audioContextRef.current.createAnalyser();
       analyzerRef.current.fftSize = 2048;
-      analyzerRef.current.connect(audioContextRef.current.destination);
     }
 
     if (audioContextRef.current.state === 'suspended') {
       audioContextRef.current.resume();
+    }
+
+    // Ensure analyzer is connected to destination
+    if (analyzerRef.current && !analyzerRef.current.context) {
+      analyzerRef.current.connect(audioContextRef.current.destination);
     }
   };
 
