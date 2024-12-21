@@ -45,6 +45,8 @@ export function AffirmationWizard({ onAffirmationsGenerated }: AffirmationWizard
   const [selectedCategory, setSelectedCategory] = useState("");
   const [negativeThought, setNegativeThought] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
+  const [generatedAffirmations, setGeneratedAffirmations] = useState<string[]>([]);
+  const [selectedAffirmations, setSelectedAffirmations] = useState<string[]>([]);
   const { toast } = useToast();
 
   const handleCategorySelect = (value: string) => {
@@ -73,7 +75,7 @@ export function AffirmationWizard({ onAffirmationsGenerated }: AffirmationWizard
         throw new Error("Failed to generate affirmations");
       }
 
-      onAffirmationsGenerated(affirmations);
+      setGeneratedAffirmations(affirmations);
       setStep(3);
       
       toast({
@@ -143,6 +145,59 @@ export function AffirmationWizard({ onAffirmationsGenerated }: AffirmationWizard
               className="w-full bg-zinc-800 hover:bg-zinc-700 text-white"
             >
               {isGenerating ? "Generating Affirmations..." : "Generate Affirmations"}
+            </Button>
+          </div>
+        )}
+
+        {step === 3 && (
+          <div className="space-y-4">
+            <Label className="text-white">
+              Select at least 3 affirmations to record (Selected: {selectedAffirmations.length})
+            </Label>
+            <div className="space-y-2 max-h-[300px] overflow-y-auto">
+              {generatedAffirmations.map((affirmation, index) => (
+                <div
+                  key={index}
+                  className="flex items-center space-x-2 p-2 rounded bg-zinc-800/50 border border-zinc-700"
+                >
+                  <input
+                    type="checkbox"
+                    id={`affirmation-${index}`}
+                    checked={selectedAffirmations.includes(affirmation)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedAffirmations([...selectedAffirmations, affirmation]);
+                      } else {
+                        setSelectedAffirmations(selectedAffirmations.filter(a => a !== affirmation));
+                      }
+                    }}
+                    className="rounded border-zinc-600"
+                  />
+                  <label
+                    htmlFor={`affirmation-${index}`}
+                    className="text-white flex-1 cursor-pointer"
+                  >
+                    {affirmation}
+                  </label>
+                </div>
+              ))}
+            </div>
+            <Button
+              onClick={() => {
+                if (selectedAffirmations.length < 3) {
+                  toast({
+                    title: "Error",
+                    description: "Please select at least 3 affirmations",
+                    variant: "destructive"
+                  });
+                  return;
+                }
+                onAffirmationsGenerated(selectedAffirmations);
+              }}
+              disabled={selectedAffirmations.length < 3}
+              className="w-full bg-zinc-800 hover:bg-zinc-700 text-white"
+            >
+              Continue with Selected Affirmations
             </Button>
           </div>
         )}
