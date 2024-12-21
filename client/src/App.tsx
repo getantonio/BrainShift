@@ -1,11 +1,14 @@
 import { Switch, Route } from "wouter";
 import Home from "./pages/Home";
+import { ThemeProvider } from "./lib/theme-context";
 
 function App() {
   return (
-    <Switch>
-      <Route path="/" component={Home} />
-    </Switch>
+    <ThemeProvider>
+      <Switch>
+        <Route path="/" component={Home} />
+      </Switch>
+    </ThemeProvider>
   );
 }
 

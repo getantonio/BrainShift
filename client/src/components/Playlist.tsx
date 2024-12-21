@@ -224,22 +224,30 @@ export function Playlist({
       className="bg-gray-700/50 border-gray-600"
       onDragOver={(e) => {
         e.preventDefault();
-        e.currentTarget.style.borderColor = 'rgb(75, 85, 99)';
+        e.currentTarget.style.borderColor = 'rgb(255, 255, 255, 0.5)';
       }}
       onDragLeave={(e) => {
-        e.currentTarget.style.borderColor = 'rgb(75, 85, 99, 0.5)';
+        e.currentTarget.style.borderColor = 'transparent';
       }}
       onDrop={(e) => {
         e.preventDefault();
-        e.currentTarget.style.borderColor = 'rgb(75, 85, 99, 0.5)';
+        e.currentTarget.style.borderColor = 'transparent';
         try {
           const trackData = JSON.parse(e.dataTransfer.getData('text/plain'));
+          if (!trackData.name || !trackData.url) {
+            throw new Error('Invalid track data');
+          }
           const event = new CustomEvent('trackMove', {
             detail: { track: trackData, targetPlaylistId: playlist.id }
           });
           window.dispatchEvent(event);
         } catch (err) {
           console.error('Failed to parse dragged track data:', err);
+          toast({
+            title: "Error",
+            description: "Failed to move track",
+            variant: "destructive"
+          });
         }
       }}
     >

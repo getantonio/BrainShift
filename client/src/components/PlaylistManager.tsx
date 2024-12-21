@@ -262,7 +262,20 @@ export function PlaylistManager() {
   };
 
   const deletePlaylist = (id: number) => {
-    setPlaylists(playlists.filter(p => p.id !== id));
+    // Don't delete if it's the last playlist
+    if (playlists.length <= 1) {
+      toast({
+        title: "Cannot delete",
+        description: "At least one playlist must remain",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setPlaylists(currentPlaylists => {
+      // Create a new array to avoid state mutation
+      return currentPlaylists.filter(p => p.id !== id);
+    });
   };
 
   const renamePlaylist = (id: number, newName: string) => {
