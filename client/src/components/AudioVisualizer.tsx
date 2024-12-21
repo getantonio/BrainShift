@@ -30,12 +30,12 @@ export function AudioVisualizer({
   const [visualizationStyle, setVisualizationStyle] = useState<VisualizationStyle>('classic');
   // Vibrant color palette
   const colors = {
-    primary: '#00ffff', // Cyan
-    secondary: '#ff00ff', // Magenta
-    tertiary: '#ffff00', // Yellow
-    quaternary: '#ff0000', // Red
-    quinary: '#0000ff', // Blue
-    senary: '#00ff00', // Green
+    primary: '#00ffff', // Vibrant Cyan
+    secondary: '#ff00ff', // Vibrant Magenta
+    tertiary: '#ffff00', // Vibrant Yellow
+    quaternary: '#ff0000', // Vibrant Red
+    quinary: '#0000ff', // Vibrant Blue
+    senary: '#00ff00', // Vibrant Green
   };
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const particlesRef = useRef<Array<{
@@ -239,15 +239,15 @@ export function AudioVisualizer({
         currentAnalyser.getByteTimeDomainData(timeData);
       } else {
         // Generate synthetic waveform data for idle animation
-        const time = Date.now() * 0.001;
+        const time = Date.now() * 0.0005; // Slowed down overall animation by 50%
         for (let i = 0; i < timeData.length; i++) {
           // Create a smooth, continuous wave pattern
           const t = i / timeData.length;
-          const breatheIntensity = breatheScale * 0.5; // Scale the breathing effect
+          const breatheIntensity = breatheScale * 0.625; // Increased intensity by 25%
           const wave = 
             Math.sin(t * 10 + time * 2) * breatheIntensity + // Base wave
-            Math.sin(t * 20 + time * 3) * breatheIntensity * 0.3 +  // Higher frequency detail
-            Math.sin(t * 5 - time) * breatheIntensity * 0.5;        // Slower moving wave
+            Math.sin(t * 20 + time * 3) * breatheIntensity * 0.375 +  // Higher frequency detail with more intensity
+            Math.sin(t * 5 - time) * breatheIntensity * 0.625;        // Slower moving wave with more intensity
           
           timeData[i] = wave * 30 + 128;
           frequencyData[i] = Math.abs(wave) * 100 + 50;
@@ -341,7 +341,7 @@ export function AudioVisualizer({
       ctx.shadowColor = colors.primary;
       
       // Get color based on time
-      const colorIndex = Math.floor(time * 0.5) % 6;
+      const colorIndex = Math.floor(time * 0.25) % 6; // Slowed down color cycling by 50%
       const primaryColor = Object.values(colors)[colorIndex];
       const secondaryColor = Object.values(colors)[(colorIndex + 1) % 6];
       
