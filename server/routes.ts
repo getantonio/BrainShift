@@ -1,9 +1,10 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import affirmationsRouter from "./routes/affirmations";
 
 export function registerRoutes(app: Express): Server {
-  // put application routes here
-  // prefix all routes with /api
+  // Register the affirmations routes
+  app.use('/api', affirmationsRouter);
 
   const httpServer = createServer(app);
 
