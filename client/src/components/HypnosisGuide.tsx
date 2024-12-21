@@ -66,7 +66,7 @@ export function HypnosisGuide() {
   ];
 
   return (
-    <Card className="bg-zinc-900/50 border-zinc-700 mt-8">
+    <Card className="bg-zinc-900/50 border-zinc-700 mt-4">
       <CardHeader 
         className="cursor-pointer flex flex-row items-center justify-between"
         onClick={() => setIsExpanded(!isExpanded)}
