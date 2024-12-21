@@ -12,6 +12,7 @@ import { generateAffirmations } from "../../../server/utils/affirmationGenerator
 
 const defaultTemplates = {
   "addiction": [
+    // Original affirmations
     "I am stronger than my cravings and choose a healthier path",
     "I release the hold addiction has over me",
     "Every step I take brings me closer to freedom and wellness",
@@ -21,7 +22,18 @@ const defaultTemplates = {
     "I choose progress over perfection every day",
     "I am worthy of a life free from addiction",
     "I take pride in every small victory on my journey",
-    "My commitment to healing inspires me daily"
+    "My commitment to healing inspires me daily",
+    // Additional affirmations
+    "I release the urge to rely on unhealthy habits",
+    "My determination to heal grows stronger each day",
+    "I fill my life with activities that support my well-being",
+    "I choose freedom over addiction with every decision I make",
+    "My mind and body are aligned in the pursuit of health",
+    "I trust the process of change and embrace it fully",
+    "My inner strength is greater than any external temptation",
+    "I am proud of the person I am becoming",
+    "I am surrounded by support and love on my journey to recovery",
+    "I replace old habits with positive, uplifting ones"
   ],
   "sleep": [
     "I release the stress of the day and welcome restful sleep",
@@ -198,56 +210,61 @@ async function loadModel() {
 
 async function generateSimilarPhrases(input: string, category: string): Promise<string[]> {
   try {
-    // First try to generate affirmations using the server-side templates
-    const serverAffirmations = generateAffirmations(category, input);
+    // Get base affirmations for the category
+    const baseAffirmations = defaultTemplates[category as keyof typeof defaultTemplates] || defaultTemplates.confidence;
     
-    // For custom category or if server affirmations are sufficient
-    if ((category !== 'custom' && serverAffirmations && serverAffirmations.length >= 10) || 
-        (category === 'custom' && serverAffirmations && serverAffirmations.length > 0)) {
-      return serverAffirmations;
-    }
-
-    // If server generation fails or returns too few results, use local generation
-    const model = await loadModel();
-    const inputEmbedding = await model.embed([input]);
+    // Create variations using templates and combinations
+    const variations: string[] = [];
     
-    // Get base affirmations for the category or use default confidence templates
-    let baseAffirmations = defaultTemplates[category as keyof typeof defaultTemplates] || defaultTemplates.confidence;
-    
-    // Generate more variations using the embeddings
-    const affirmationEmbeddings = await model.embed(baseAffirmations);
-    
-    // Calculate semantic similarities
-    const similarities = tf.tidy(() => {
-      // Ensure proper tensor ranks and shapes
-      const reshapedInput = inputEmbedding.reshape([1, -1]);
-      return tf.matMul(affirmationEmbeddings, reshapedInput, false, true);
+    // Add some base affirmations with slight modifications
+    const modifiedBase = baseAffirmations.map(aff => {
+      const rand = Math.random();
+      if (rand < 0.3) {
+        return aff.replace(/I am|I'm/, "Every day I become");
+      } else if (rand < 0.6) {
+        return aff.replace(/I/, "Each moment I");
+      }
+      return aff;
     });
-    const values = await similarities.data();
     
-    // Sort and get the most relevant affirmations
-    const rankedAffirmations = baseAffirmations
-      .map((text, i) => ({ text, score: values[i] }))
-      .sort((a, b) => b.score - a.score)
-      .map(item => item.text);
+    // Randomly select and combine affirmations
+    for (let i = 0; i < 15; i++) {
+      const randIndex = Math.floor(Math.random() * baseAffirmations.length);
+      const affirmation = baseAffirmations[randIndex];
+      
+      // Add variations
+      if (Math.random() < 0.5) {
+        variations.push(affirmation);
+      } else {
+        const timeModifiers = ["each day", "with every breath", "moment by moment", "step by step", "consistently"];
+        const modifier = timeModifiers[Math.floor(Math.random() * timeModifiers.length)];
+        variations.push(affirmation.replace(/\.$/, ` ${modifier}.`));
+      }
+    }
+    
+    // Mix original and modified affirmations
+    const allAffirmations = [...variations, ...modifiedBase];
+    
+    // Shuffle and select unique affirmations
+    const shuffled = allAffirmations
+      .sort(() => Math.random() - 0.5)
+      .filter((item, index, self) => self.indexOf(item) === index)
+      .slice(0, 15);
 
     // Clean up tensors
     inputEmbedding.dispose();
     affirmationEmbeddings.dispose();
     similarities.dispose();
 
-    // Combine server and local affirmations, removing duplicates
-    const combinedAffirmations = Array.from(new Set([...serverAffirmations || [], ...rankedAffirmations]));
-    
-    // Ensure we return at least 10 affirmations
-    while (combinedAffirmations.length < 10) {
+    // If we don't have enough variations, add some base affirmations
+    while (shuffled.length < 10) {
       const randomBase = baseAffirmations[Math.floor(Math.random() * baseAffirmations.length)];
-      if (!combinedAffirmations.includes(randomBase)) {
-        combinedAffirmations.push(randomBase);
+      if (!shuffled.includes(randomBase)) {
+        shuffled.push(randomBase);
       }
     }
 
-    return combinedAffirmations;
+    return shuffled;
   } catch (error) {
     console.error('Error generating affirmations:', error);
     // Return default templates if both server and model generation fail
