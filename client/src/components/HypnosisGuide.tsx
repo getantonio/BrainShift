@@ -14,9 +14,19 @@ export function HypnosisGuide() {
   
   const techniques = [
     {
+      title: "Understanding Self-Hypnosis",
+      icon: <Brain className="h-5 w-5" />,
+      content: "Self-hypnosis is a scientifically-proven technique that works by accessing your subconscious mind through deep relaxation and focused attention. When in this receptive state, your mind becomes more open to positive suggestions and behavioral changes. The practice helps reprogram negative thought patterns by bypassing the conscious mind's critical barriers."
+    },
+    {
+      title: "The Power of Your Own Voice",
+      icon: <Lightbulb className="h-5 w-5" />,
+      content: "Your own voice has a unique psychological impact because it carries personal emotional resonance and bypasses natural resistance to external suggestions. When you record and listen to your own affirmations, your brain processes them differently than external voices, creating stronger neural pathways for positive change."
+    },
+    {
       title: "Set Your Intention",
       icon: <Target className="h-5 w-5" />,
-      content: "Decide what you want to achieve: more motivation, increased confidence, or a specific goal. The clearer your intention, the more effective the session."
+      content: "Decide what you want to achieve: more motivation, increased confidence, or a specific goal. The clearer your intention, the more effective the session. Your subconscious mind responds best to specific, positive, and present-tense statements."
     },
     {
       title: "Choose a Quiet Environment",
@@ -42,6 +52,16 @@ export function HypnosisGuide() {
       title: "Building a Practice",
       icon: <Timer className="h-5 w-5" />,
       content: "Start with 5-10 minute sessions and gradually increase duration. Practice daily for best results. Begin each day with a short session to set a positive tone. Combine self-hypnosis with small, achievable steps toward your goals to build momentum and confidence."
+    },
+    {
+      title: "Subliminal Enhancement",
+      icon: <VolumeX className="h-5 w-5" />,
+      content: "For enhanced effectiveness, play your recorded affirmations at a very low volume in the background during periods of rest or sleep. This technique leverages your brain's ability to process information even when not consciously aware of it. The subtle exposure to your own voice speaking positive affirmations helps reinforce the desired changes in your subconscious mind. Keep the volume just barely audible for optimal subliminal effect."
+    },
+    {
+      title: "The Science Behind Self-Hypnosis",
+      icon: <Brain className="h-5 w-5" />,
+      content: "Research shows that self-hypnosis can create lasting changes in neural pathways through neuroplasticity - your brain's ability to form new connections. Regular practice helps rewire negative thought patterns by strengthening positive neural connections while weakening negative ones. This process is enhanced when using your own voice, as it activates both auditory processing and self-recognition areas of the brain simultaneously. The combination of relaxation and focused attention increases theta brainwaves, associated with enhanced learning and memory consolidation."
     }
   ];
 
