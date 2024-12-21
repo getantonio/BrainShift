@@ -13,27 +13,27 @@ import { generateAffirmations } from "../../../server/utils/affirmationGenerator
 const defaultTemplates = {
   "quit_smoking_addictions": [
     "I am stronger than my cravings and choose a healthier path",
-    "I release the hold addiction has over me with unwavering determination",
-    "Every breath I take is a step towards freedom and wellness",
-    "My body and mind are healing and becoming stronger each day",
-    "I choose health, vitality, and freedom over temporary satisfaction",
-    "My commitment to recovery grows stronger with each passing moment",
-    "I am proud of my journey and celebrate each smoke-free day",
-    "I deserve a life of clarity, energy, and vibrant health",
-    "My willpower is unshakeable, and I overcome all challenges",
-    "I am becoming my healthiest, strongest self every day"
+    "I release the hold addiction has over me",
+    "Every step I take brings me closer to freedom and wellness",
+    "I trust my inner strength to guide me toward recovery",
+    "I deserve a life of clarity, joy, and health",
+    "I forgive myself for past mistakes and focus on my growth",
+    "I choose progress over perfection every day",
+    "I am worthy of a life free from addiction",
+    "I take pride in every small victory on my journey",
+    "My commitment to healing inspires me daily"
   ],
   "better_sleep": [
-    "I welcome deep, restful sleep that rejuvenates my entire being",
-    "My mind and body naturally transition into peaceful slumber",
-    "I release all tension and drift effortlessly into restorative sleep",
-    "Each night brings me profound rest and healing",
-    "I trust in my body's natural ability to find perfect sleep",
-    "My sleep is sacred, and I honor it completely",
-    "I am safe, calm, and ready for deep, refreshing sleep",
-    "My dreams are peaceful, and my rest is complete",
-    "I wake feeling energized, refreshed, and ready for the day",
-    "My bedroom is my sanctuary of perfect peace and rest"
+    "I release the stress of the day and welcome restful sleep",
+    "My mind and body relax completely as I prepare for sleep",
+    "I deserve deep, restorative sleep every night",
+    "I let go of all worries and surrender to peaceful dreams",
+    "Each night, my sleep renews and energizes me",
+    "I create a calm, comfortable space for sleep",
+    "I fall asleep easily and wake up refreshed",
+    "My body knows how to rest and heal as I sleep",
+    "I trust the process of relaxation to bring me peace",
+    "Sleep is my sanctuary, and I honor it fully"
   ],
   "emotional_mastery": [
     "I am the master of my emotions and navigate them with wisdom",
