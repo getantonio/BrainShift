@@ -14,11 +14,16 @@ export function drawWaveform(
   const dataArray = new Uint8Array(analyser.frequencyBinCount);
   analyser.getByteTimeDomainData(dataArray);
 
-  ctx.fillStyle = '#333';
+  // Create gradient background
+  const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+  gradient.addColorStop(0, '#111');
+  gradient.addColorStop(1, '#000');
+  ctx.fillStyle = gradient;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+  // Set line style for waveform
   ctx.lineWidth = 2;
-  ctx.strokeStyle = '#10b981';
+  ctx.strokeStyle = '#ffffff';
   ctx.beginPath();
 
   const sliceWidth = canvas.width / dataArray.length;

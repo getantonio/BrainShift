@@ -2,8 +2,6 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Play, Square, Download, Trash2, Edit2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { WaveformPreview } from "./WaveformPreview";
-
 interface AudioItemProps {
   track: {
     name: string;
@@ -44,76 +42,71 @@ export function AudioItem({ track, onRename, onDelete }: AudioItemProps) {
 
   return (
     <div 
-      className="flex flex-col gap-2 p-2 rounded-lg bg-gray-800"
+      className="flex items-center justify-between p-2 rounded-lg bg-gray-800"
       draggable
       onDragStart={(e) => {
         e.dataTransfer.setData('text/plain', JSON.stringify(track));
       }}
     >
-      <div className="flex items-center justify-between">
-        {isRenaming ? (
-          <Input
-            value={newName}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewName(e.target.value)}
-            className="max-w-[200px]"
-            autoFocus
-            onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-              if (e.key === 'Enter') {
-                handleRename();
-              }
-            }}
-          />
-        ) : (
-          <span className="text-sm font-medium">{track.name}</span>
-        )}
-        <div className="flex gap-2">
+      {isRenaming ? (
+        <Input
+          value={newName}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewName(e.target.value)}
+          className="max-w-[200px]"
+          autoFocus
+          onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+            if (e.key === 'Enter') {
+              handleRename();
+            }
+          }}
+        />
+      ) : (
+        <span className="text-sm font-medium">{track.name}</span>
+      )}
+      <div className="flex gap-2">
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={isPlaying ? stopAudio : playAudio}
+          className="h-8 w-8 bg-gray-800 hover:bg-gray-700 text-gray-200 border-gray-600"
+        >
+          {isPlaying ? <Square className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+        </Button>
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={handleRename}
+          className="h-8 w-8 bg-gray-800 hover:bg-gray-700 text-gray-200 border-gray-600"
+        >
+          <Edit2 className="h-4 w-4" />
+        </Button>
+        <a
+          href={track.url}
+          download={`${track.name}.mp3`}
+          className="inline-flex"
+        >
           <Button
             variant="outline"
             size="icon"
-            onClick={handleRename}
             className="h-8 w-8 bg-gray-800 hover:bg-gray-700 text-gray-200 border-gray-600"
           >
-            <Edit2 className="h-4 w-4" />
+            <Download className="h-4 w-4" />
           </Button>
-          <a
-            href={track.url}
-            download={`${track.name}.mp3`}
-            className="inline-flex"
-          >
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-8 w-8 bg-gray-800 hover:bg-gray-700 text-gray-200 border-gray-600"
-            >
-              <Download className="h-4 w-4" />
-            </Button>
-          </a>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => {
-              stopAudio();
-              if (onDelete) {
-                onDelete();
-              }
-            }}
-            className="h-8 w-8 bg-gray-800 hover:bg-gray-700 text-gray-200 border-gray-600"
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
-      <WaveformPreview
-        audioUrl={track.url}
-        isPlaying={isPlaying}
-        onPlayPause={(playing) => {
-          if (playing) {
-            playAudio();
-          } else {
+        </a>
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={() => {
             stopAudio();
-          }
-        }}
-      />
+            if (onDelete) {
+              onDelete();
+            }
+          }}
+          className="h-8 w-8 bg-gray-800 hover:bg-gray-700 text-gray-200 border-gray-600"
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      </div>
     </div>
   );
 }

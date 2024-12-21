@@ -41,61 +41,19 @@ export function AudioRecorder() {
           return;
         }
 
-        // Get available playlists
-        const playlistEvent = new CustomEvent('requestPlaylists', {
-          detail: { callback: (playlists: Array<{ id: number; name: string }>) => {
-            // Create a mapping of index to playlist ID for easier selection
-            const playlistMapping = playlists.map((p, index) => ({
-              index: index + 1,
-              id: p.id,
-              name: p.name
-            }));
-            
-            const playlistOptions = playlistMapping
-              .map(p => `${p.index}. ${p.name}`)
-              .join('\n');
-            
-            const playlistChoice = prompt(
-              `Choose a playlist to add "${fileName}" to:\n\n${playlistOptions}\n\nEnter the number of the playlist:`,
-              '1'
-            );
-
-            if (!playlistChoice) {
-              toast({
-                title: "Cancelled",
-                description: "Recording was not saved to any playlist"
-              });
-              return;
-            }
-
-            const selectedIndex = parseInt(playlistChoice);
-            const selectedMapping = playlistMapping.find(p => p.index === selectedIndex);
-            const selectedPlaylist = selectedMapping ? playlists.find(p => p.id === selectedMapping.id) : undefined;
-
-            if (!selectedPlaylist) {
-              toast({
-                title: "Error",
-                description: "Invalid playlist selection",
-                variant: "destructive"
-              });
-              return;
-            }
-
-            const event = new CustomEvent('newRecording', {
-              detail: { 
-                name: fileName, 
-                url: audioUrl,
-                playlistId: selectedMapping?.id
-              }
-            });
-            window.dispatchEvent(event);
-            toast({
-              title: "Recording saved",
-              description: `${fileName} has been added to ${selectedPlaylist.name}`
-            });
-          }}
+        // Create download link
+        const downloadLink = document.createElement('a');
+        downloadLink.href = audioUrl;
+        downloadLink.download = `${fileName}.mp3`;
+        
+        // Trigger download
+        downloadLink.click();
+        
+        toast({
+          title: "Recording saved",
+          description: `${fileName}.mp3 has been downloaded to your computer`
         });
-        window.dispatchEvent(playlistEvent);
+        
         audioChunks.current = [];
       };
 
