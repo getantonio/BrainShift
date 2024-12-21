@@ -10,22 +10,38 @@ export function AudioRecorder() {
   const [isRecording, setIsRecording] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const audioChunks = useRef<Blob[]>([]);
+  const streamRef = useRef<MediaStream | null>(null);
+  const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
   const { toast } = useToast();
-  const { audioContext, analyzerNode, isPlaying, startRecording: startAudioContext } = useAudioContext();
+  const { 
+    audioContext, 
+    analyzerNode, 
+    isPlaying, 
+    startRecording: startAudioContext,
+    stopRecording: stopAudioContext 
+  } = useAudioContext();
 
   const startRecording = async () => {
     try {
+      if (!audioContext || !analyzerNode) {
+        throw new Error("Audio context not initialized");
+      }
+
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      if (!audioContext) return;
-
+      streamRef.current = stream;
+      
+      // Create and connect the audio source
       const source = audioContext.createMediaStreamSource(stream);
-      source.connect(analyzerNode!);
-
+      sourceRef.current = source;
+      source.connect(analyzerNode);
+      
       const recorder = new MediaRecorder(stream);
       setMediaRecorder(recorder);
 
       recorder.ondataavailable = (e) => {
-        audioChunks.current.push(e.data);
+        if (e.data.size > 0) {
+          audioChunks.current.push(e.data);
+        }
       };
 
       recorder.onstop = async () => {
@@ -38,7 +54,6 @@ export function AudioRecorder() {
           return;
         }
 
-        // Create download link
         const downloadLink = document.createElement('a');
         downloadLink.href = audioUrl;
         downloadLink.download = `${fileName}.mp3`;
@@ -49,6 +64,8 @@ export function AudioRecorder() {
           description: `${fileName}.mp3 has been saved`
         });
         
+        // Cleanup
+        URL.revokeObjectURL(audioUrl);
         audioChunks.current = [];
       };
 
@@ -68,9 +85,22 @@ export function AudioRecorder() {
   const stopRecording = () => {
     if (mediaRecorder && mediaRecorder.state !== 'inactive') {
       mediaRecorder.stop();
-      mediaRecorder.stream.getTracks().forEach(track => track.stop());
+      
+      // Cleanup media recorder and stream
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current = null;
+      }
+      
+      // Disconnect source if it exists
+      if (sourceRef.current) {
+        sourceRef.current.disconnect();
+        sourceRef.current = null;
+      }
+      
       setIsRecording(false);
       setMediaRecorder(null);
+      stopAudioContext();
     }
   };
 
