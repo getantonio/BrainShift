@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/accordion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Brain, Lightbulb, Timer, VolumeX, Leaf, Target } from "lucide-react";
+import { Brain, Lightbulb, Timer, VolumeX, Leaf, Target, ChevronDown } from "lucide-react";
 
 export function HypnosisGuide() {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -72,17 +72,13 @@ export function HypnosisGuide() {
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <CardTitle className="text-white font-display text-2xl">Self-Hypnosis Guide</CardTitle>
-        <Button 
-          variant="ghost" 
-          size="sm"
+        <ChevronDown 
+          className={`h-6 w-6 text-white hover:text-zinc-300 transition-transform duration-200 cursor-pointer ${isExpanded ? 'rotate-180' : ''}`}
           onClick={(e) => {
             e.stopPropagation();
             setIsExpanded(!isExpanded);
           }}
-          className="text-white hover:text-zinc-300"
-        >
-          {isExpanded ? "Hide Guide" : "Show Guide"}
-        </Button>
+        />
       </CardHeader>
       {isExpanded && (
         <CardContent>
