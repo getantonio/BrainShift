@@ -410,9 +410,9 @@ export function AudioVisualizer({
   return (
     <canvas
       ref={canvasRef}
-      className="w-full h-[150px] rounded-lg bg-gray-900"
+      className="w-full h-[75px] rounded-lg bg-gray-900"
       width={800}
-      height={150}
+      height={75}
     />
   );
 }
