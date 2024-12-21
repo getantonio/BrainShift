@@ -61,7 +61,7 @@ export function AudioItem({ track, onRename, onDelete }: AudioItemProps) {
           }}
         />
       ) : (
-        <span className="text-sm font-medium">{track.name}</span>
+        <span className="text-sm font-medium text-gray-300">{track.name}</span>
       )}
       <div className="flex gap-2">
         <Button

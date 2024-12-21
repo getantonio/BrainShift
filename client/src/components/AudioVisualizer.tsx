@@ -24,20 +24,13 @@ export function AudioVisualizer({ isRecording, analyserNode }: AudioVisualizerPr
       animationFrameId = requestAnimationFrame(draw);
       analyserNode.getByteTimeDomainData(dataArray);
       
-      // Create gradient background
-      const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-      gradient.addColorStop(0, '#111');
-      gradient.addColorStop(1, '#000');
-      ctx.fillStyle = gradient;
+      // Clear the canvas with a dark background
+      ctx.fillStyle = '#1a1a1a';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       
-      // Calculate pulse effect
-      const pulse = Math.sin(Date.now() * 0.005) * 0.5 + 0.5;
-      const baseWidth = 2;
-      ctx.lineWidth = baseWidth + pulse;
-      
-      // Use high contrast white with pulse-based opacity
-      ctx.strokeStyle = `rgba(255, 255, 255, ${0.6 + pulse * 0.4})`;
+      // Set up the line style for better visibility
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = '#4ade80'; // Bright green color
       ctx.beginPath();
 
       const sliceWidth = canvas.width / dataArray.length;
