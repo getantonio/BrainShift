@@ -24,40 +24,60 @@ export function AudioVisualizer({ isRecording, analyserNode }: AudioVisualizerPr
       animationFrameId = requestAnimationFrame(draw);
       analyserNode.getByteTimeDomainData(dataArray);
       
-      // Clear the canvas with a dark background
-      ctx.fillStyle = '#1a1a1a';
+      // Create gradient background
+      const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      gradient.addColorStop(0, '#1a1a1a');
+      gradient.addColorStop(1, '#0a0a0a');
+      ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       
-      // Set up the line style for better visibility
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = '#4ade80'; // Bright green color
-      ctx.beginPath();
+      // Calculate pulse effect for dynamic visualization
+      const time = Date.now() * 0.001;
+      const pulse = Math.sin(time * 2) * 0.5 + 0.5;
+      const baseWidth = 2;
+      ctx.lineWidth = baseWidth + pulse;
 
+      // Create dynamic color based on audio intensity
+      const intensity = dataArray.reduce((sum, value) => sum + Math.abs(value - 128), 0) / dataArray.length;
+      const hue = (200 + intensity) % 360; // Blue to purple range
+      ctx.strokeStyle = `hsla(${hue}, 100%, 50%, ${0.7 + pulse * 0.3})`;
+      
+      ctx.beginPath();
       const sliceWidth = canvas.width / dataArray.length;
       let x = 0;
 
-      // Draw with mirror effect and smoothing
+      // Draw with mirror effect and enhanced smoothing
       let lastY = canvas.height / 2;
       for (let i = 0; i < dataArray.length; i++) {
         const raw = dataArray[i] / 128.0;
-        // Smooth the value
-        const v = raw * 0.7 + lastY * 0.3;
+        // Enhanced smoothing with dynamic factor
+        const smoothingFactor = 0.8 + pulse * 0.1;
+        const v = raw * (1 - smoothingFactor) + lastY * smoothingFactor;
         const y = v * (canvas.height / 2);
-        lastY = y;
 
         if (i === 0) {
           ctx.moveTo(x, y);
         } else {
-          // Use quadratic curves for smoother lines
+          // Enhanced curve smoothing
           const prevX = x - sliceWidth;
           const midX = prevX + sliceWidth / 2;
-          ctx.quadraticCurveTo(prevX, lastY, midX, y);
+          const cpX1 = prevX + sliceWidth * 0.25;
+          const cpX2 = prevX + sliceWidth * 0.75;
+          
+          ctx.bezierCurveTo(
+            cpX1, lastY,
+            cpX2, y,
+            midX, y
+          );
         }
 
-        // Draw mirrored effect
+        // Draw mirrored effect with glow
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = ctx.strokeStyle;
         ctx.moveTo(x, canvas.height - y);
         ctx.lineTo(x, y);
-
+        
+        lastY = y;
         x += sliceWidth;
       }
 
