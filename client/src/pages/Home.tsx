@@ -11,6 +11,7 @@ import { ChevronUp, ChevronDown } from "lucide-react";
 export default function Home() {
   const { colors } = useTheme();
   const [arePlaylistsCollapsed, setArePlaylistsCollapsed] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState("custom");
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState("Loading...");
   const [generatedAffirmations, setGeneratedAffirmations] = useState<string[]>([]);
@@ -43,8 +44,11 @@ export default function Home() {
       </header>
       
       <main className="container mx-auto px-4 py-8 flex flex-col gap-6">
-        <AffirmationWizard onAffirmationsGenerated={setGeneratedAffirmations} />
-        <AudioRecorder />
+        <AffirmationWizard 
+          onAffirmationsGenerated={setGeneratedAffirmations} 
+          onCategorySelect={(category) => setSelectedCategory(category)}
+        />
+        <AudioRecorder currentCategory={selectedCategory} />
         <HypnosisGuide />
         <div className="flex justify-end gap-4">
           <Button

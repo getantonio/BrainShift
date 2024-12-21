@@ -285,26 +285,34 @@ export function PlaylistManager({ allCollapsed = false }: PlaylistManagerProps) 
       const customEvent = event as CustomEvent<{ 
         name: string; 
         url: string; 
-        playlistId: number;
+        category: string;
       }>;
       
       setPlaylists(current => {
         const updated = [...current];
-        const targetPlaylist = updated.find(p => p.id === customEvent.detail.playlistId);
+        let targetPlaylist = updated.find(p => p.name.toLowerCase() === customEvent.detail.category.toLowerCase());
         
+        // If playlist doesn't exist, create it
         if (!targetPlaylist) {
-          toast({
-            title: "Error",
-            description: "Selected playlist not found",
-            variant: "destructive"
-          });
-          return current;
+          const newId = Math.max(...updated.map(p => p.id)) + 1;
+          targetPlaylist = {
+            id: newId,
+            name: customEvent.detail.category,
+            tracks: []
+          };
+          updated.push(targetPlaylist);
         }
 
         targetPlaylist.tracks.push({
           name: customEvent.detail.name,
           url: customEvent.detail.url
         });
+
+        toast({
+          title: "Recording added",
+          description: `Added to ${targetPlaylist.name} playlist`
+        });
+
         return updated;
       });
     };
