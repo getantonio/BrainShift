@@ -45,14 +45,6 @@ export default function Home() {
               strokeLinecap="round"
               strokeLinejoin="round"
             />
-            {/* Right hemisphere */}
-            <path
-              d="M12 4C16 4 19 7 19 11C19 15 16 18 12 18"
-              className="text-pink-500"
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
             {/* Brain folds - left */}
             <path
               d="M7 8C9 9 9 13 7 14"
@@ -61,17 +53,9 @@ export default function Home() {
               strokeLinecap="round"
               strokeLinejoin="round"
             />
-            {/* Brain folds - right */}
+            {/* Neural connections - left */}
             <path
-              d="M17 8C15 9 15 13 17 14"
-              className="text-pink-500"
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            {/* Neural connections */}
-            <path
-              d="M9 11C10 11 10 13 9 13M15 11C14 11 14 13 15 13"
+              d="M9 11C10 11 10 13 9 13"
               className="text-pink-500"
               stroke="currentColor"
               strokeLinecap="round"
@@ -89,6 +73,46 @@ export default function Home() {
           <h1 className="font-extrabold tracking-wider">
             Brain Shift Studio
           </h1>
+          <svg
+            viewBox="0 0 24 24"
+            className="w-8 h-8 text-pink-500"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+          >
+            {/* Right hemisphere */}
+            <path
+              d="M12 4C16 4 19 7 19 11C19 15 16 18 12 18"
+              className="text-pink-500"
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            {/* Brain folds - right */}
+            <path
+              d="M17 8C15 9 15 13 17 14"
+              className="text-pink-500"
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            {/* Neural connections - right */}
+            <path
+              d="M15 11C14 11 14 13 15 13"
+              className="text-pink-500"
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            {/* Stem */}
+            <path
+              d="M12 18V20"
+              className="text-pink-500"
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
         </div>
       </header>
       
