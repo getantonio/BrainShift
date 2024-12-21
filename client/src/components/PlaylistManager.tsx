@@ -17,6 +17,45 @@ export function PlaylistManager() {
   ]);
   const { toast } = useToast();
 
+  // Load playlists from localStorage on component mount
+  useEffect(() => {
+    const savedPlaylists = localStorage.getItem('audioPlaylists');
+    if (savedPlaylists) {
+      try {
+        const parsed = JSON.parse(savedPlaylists);
+        setPlaylists(parsed);
+        toast({
+          title: "Playlists loaded",
+          description: "Your saved playlists have been restored"
+        });
+      } catch (error) {
+        console.error('Failed to load playlists:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load saved playlists",
+          variant: "destructive"
+        });
+      }
+    }
+  }, []);
+
+  const savePlaylists = () => {
+    try {
+      localStorage.setItem('audioPlaylists', JSON.stringify(playlists));
+      toast({
+        title: "Playlists saved",
+        description: "Your playlists have been saved successfully"
+      });
+    } catch (error) {
+      console.error('Failed to save playlists:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save playlists",
+        variant: "destructive"
+      });
+    }
+  };
+
   useEffect(() => {
     const handleTrackMove = (event: Event) => {
       const customEvent = event as CustomEvent<{ track: { name: string; url: string }, targetPlaylistId: number }>;
@@ -145,14 +184,23 @@ export function PlaylistManager() {
     <Card className="bg-gray-800/80 border-gray-700">
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Playlists</CardTitle>
-        <Button
-          onClick={addPlaylist}
-          variant="outline"
-          className="bg-gradient-to-r from-emerald-500 to-emerald-700 text-white border-0"
-        >
-          <Plus className="mr-2 h-4 w-4" />
-          Add New Playlist
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            onClick={savePlaylists}
+            variant="outline"
+            className="bg-gray-800 hover:bg-gray-700 text-gray-200 border-gray-600"
+          >
+            💾 Save All
+          </Button>
+          <Button
+            onClick={addPlaylist}
+            variant="outline"
+            className="bg-gradient-to-r from-emerald-500 to-emerald-700 text-white border-0"
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Add New Playlist
+          </Button>
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
         {playlists.map(playlist => (
@@ -179,7 +227,7 @@ export function PlaylistManager() {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="cursor-pointer"
+                  className="cursor-pointer bg-gray-800 hover:bg-gray-700 text-gray-200 border-gray-600"
                   asChild
                 >
                   <span>
