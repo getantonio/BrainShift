@@ -262,19 +262,18 @@ export function PlaylistManager() {
   };
 
   const deletePlaylist = (id: number) => {
-    // Don't delete if it's the last playlist
-    if (playlists.length <= 1) {
-      toast({
-        title: "Cannot delete",
-        description: "At least one playlist must remain",
-        variant: "destructive"
-      });
-      return;
-    }
-    
     setPlaylists(currentPlaylists => {
-      // Create a new array to avoid state mutation
-      return currentPlaylists.filter(p => p.id !== id);
+      if (currentPlaylists.length <= 1) {
+        toast({
+          title: "Cannot delete",
+          description: "At least one playlist must remain",
+          variant: "destructive"
+        });
+        return currentPlaylists;
+      }
+
+      // Create a shallow copy for immutability
+      return currentPlaylists.filter(playlist => playlist.id !== id);
     });
   };
 
@@ -336,21 +335,21 @@ export function PlaylistManager() {
   };
 
   return (
-    <Card className="bg-gray-800/80 border-gray-700">
+    <Card className="bg-zinc-900 border-zinc-700">
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Playlists</CardTitle>
         <div className="flex gap-2">
           <Button
             onClick={() => savePlaylist()}
             variant="outline"
-            className="bg-gray-800 hover:bg-gray-700 text-gray-200 border-gray-600"
+            className="bg-zinc-800 hover:bg-zinc-700 text-white border-zinc-600"
           >
             💾 Save All
           </Button>
           <Button
             onClick={addPlaylist}
             variant="outline"
-            className="bg-gradient-to-r from-emerald-500 to-emerald-700 text-white border-0"
+            className="bg-zinc-800 hover:bg-zinc-700 text-white border-zinc-600"
           >
             <Plus className="mr-2 h-4 w-4" />
             Add New Playlist
