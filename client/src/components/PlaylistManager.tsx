@@ -432,24 +432,50 @@ export function PlaylistManager() {
                 const fileInput = document.createElement('input');
                 fileInput.type = 'file';
                 fileInput.accept = '.json';
+                fileInput.multiple = true;
                 fileInput.onchange = async (e) => {
-                  const file = (e.target as HTMLInputElement).files?.[0];
-                  if (file) {
+                  const files = (e.target as HTMLInputElement).files;
+                  if (!files?.length) return;
+
+                  let importedCount = 0;
+                  let errorCount = 0;
+
+                  for (const file of Array.from(files)) {
                     try {
                       const text = await file.text();
-                      const importedPlaylists = JSON.parse(text);
-                      setPlaylists(current => [...current, ...importedPlaylists]);
-                      toast({
-                        title: "Playlists imported",
-                        description: `Successfully imported playlists from ${file.name}`
-                      });
+                      const importedData = JSON.parse(text);
+                      
+                      // Handle both single playlist and multiple playlist files
+                      if (Array.isArray(importedData)) {
+                        // Multiple playlists
+                        setPlaylists(current => [...current, ...importedData]);
+                        importedCount += importedData.length;
+                      } else if (importedData.name && Array.isArray(importedData.tracks)) {
+                        // Single playlist
+                        setPlaylists(current => [...current, importedData]);
+                        importedCount += 1;
+                      } else {
+                        throw new Error('Invalid playlist format');
+                      }
                     } catch (error) {
-                      toast({
-                        title: "Error",
-                        description: "Failed to import playlists",
-                        variant: "destructive"
-                      });
+                      console.error(`Failed to import ${file.name}:`, error);
+                      errorCount++;
                     }
+                  }
+
+                  if (importedCount > 0) {
+                    toast({
+                      title: "Playlists imported",
+                      description: `Successfully imported ${importedCount} playlist${importedCount !== 1 ? 's' : ''}`
+                    });
+                  }
+                  
+                  if (errorCount > 0) {
+                    toast({
+                      title: "Import errors",
+                      description: `Failed to import ${errorCount} file${errorCount !== 1 ? 's' : ''}`,
+                      variant: "destructive"
+                    });
                   }
                 };
                 fileInput.click();
