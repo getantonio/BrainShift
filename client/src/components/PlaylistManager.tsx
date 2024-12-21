@@ -288,6 +288,8 @@ export function PlaylistManager({ allCollapsed = false }: PlaylistManagerProps) 
         category: string;
       }>;
       
+      console.log('Received recording event:', customEvent.detail);
+      
       setPlaylists(current => {
         const updated = [...current];
         let targetPlaylist = updated.find(p => p.name.toLowerCase() === customEvent.detail.category.toLowerCase());

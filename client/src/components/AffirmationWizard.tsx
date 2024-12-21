@@ -97,7 +97,7 @@ interface AffirmationWizardProps {
   onCategorySelect?: (category: string) => void;
 }
 
-export function AffirmationWizard({ onAffirmationsGenerated }: AffirmationWizardProps) {
+export function AffirmationWizard({ onAffirmationsGenerated, onCategorySelect }: AffirmationWizardProps) {
   const [step, setStep] = useState(1);
   const [selectedCategory, setSelectedCategory] = useState("");
   const [negativeThought, setNegativeThought] = useState("");
