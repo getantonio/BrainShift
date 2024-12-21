@@ -14,10 +14,10 @@ import {
 import { Settings2 } from "lucide-react";
 
 interface AudioRecorderProps {
-  currentCategory?: string;
+  currentCategory: string;
 }
 
-export function AudioRecorder({ currentCategory = "custom" }: AudioRecorderProps) {
+export function AudioRecorder({ currentCategory }: AudioRecorderProps) {
   const [isRecording, setIsRecording] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const audioChunks = useRef<Blob[]>([]);
@@ -59,8 +59,12 @@ export function AudioRecorder({ currentCategory = "custom" }: AudioRecorderProps
           detail: {
             name: fileName,
             url: audioUrl,
-            category: currentCategory
+            category: currentCategory || 'custom'
           }
+        });
+        console.log('Dispatching recording event:', { 
+          name: fileName, 
+          category: currentCategory || 'custom' 
         });
         window.dispatchEvent(event);
         
