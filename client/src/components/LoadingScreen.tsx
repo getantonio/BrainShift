@@ -9,12 +9,12 @@ interface LoadingScreenProps {
 export function LoadingScreen({ isLoading, message = "Loading..." }: LoadingScreenProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const colors = {
-    primary: '#00ffff', // Cyan
-    secondary: '#ff00ff', // Magenta
-    tertiary: '#ffff00', // Yellow
-    quaternary: '#ff0000', // Red
-    quinary: '#0000ff', // Blue
-    senary: '#00ff00', // Green
+    primary: '#ec4899', // Pink-500
+    secondary: '#f472b6', // Pink-400
+    tertiary: '#f9a8d4', // Pink-300
+    quaternary: '#fbcfe8', // Pink-200
+    quinary: '#e11d48', // Rose-600
+    senary: '#be185d', // Pink-700
   };
 
   useEffect(() => {
