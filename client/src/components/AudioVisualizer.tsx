@@ -233,7 +233,7 @@ export function AudioVisualizer({
       const time = (Date.now() - startTime) * 0.001;
       const breatheScale = Math.sin(time * 1.5) * 0.3 + 0.7; // Creates a breathing effect between 0.4 and 1.0
       
-      if ((isRecording || isPlaying) && currentAnalyser) {
+      if (isRecording || isPlaying) {
         // Get real audio data
         currentAnalyser.getByteFrequencyData(frequencyData);
         currentAnalyser.getByteTimeDomainData(timeData);
@@ -410,9 +410,9 @@ export function AudioVisualizer({
   return (
     <canvas
       ref={canvasRef}
-      className="w-3/4 mx-auto h-[50px] rounded-lg bg-gray-900"
-      width={450}
-      height={50}
+      className="w-3/4 mx-auto h-[75px] rounded-lg bg-gray-900"
+      width={600}
+      height={75}
     />
   );
 }
