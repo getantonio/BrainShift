@@ -81,28 +81,45 @@ export function Playlist({
       return;
     }
 
-    const audio = new Audio(track.url);
-    
-    audio.onended = () => {
-      const nextIndex = (index + 1) % playlist.tracks.length;
-      if (nextIndex === 0 && !isLooping) {
+    try {
+      const audio = new Audio();
+      
+      audio.onerror = (e) => {
+        console.error('Audio error:', e);
         stopPlaylist();
-        return;
+      };
+      
+      audio.onended = () => {
+        const nextIndex = (index + 1) % playlist.tracks.length;
+        if (nextIndex === 0 && !isLooping) {
+          stopPlaylist();
+          return;
+        }
+        setCurrentTrackIndex(nextIndex);
+        playTrack(nextIndex);
+      };
+
+      if (currentAudio) {
+        currentAudio.pause();
+        currentAudio.currentTime = 0;
+        currentAudio.src = '';
+        currentAudio.remove();
       }
-      setCurrentTrackIndex(nextIndex);
-      playTrack(nextIndex);
-    };
 
-    if (currentAudio) {
-      currentAudio.pause();
-      currentAudio.currentTime = 0;
-    }
-
-    setCurrentAudio(audio);
-    audio.play().catch(error => {
-      console.error('Error playing audio:', error);
+      audio.src = track.url;
+      setCurrentAudio(audio);
+      
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(error => {
+          console.error('Error playing audio:', error);
+          stopPlaylist();
+        });
+      }
+    } catch (error) {
+      console.error('Error setting up audio:', error);
       stopPlaylist();
-    });
+    }
   };
     
     playTrack(0);
