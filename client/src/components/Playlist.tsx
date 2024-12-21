@@ -23,6 +23,7 @@ interface PlaylistProps {
   onTrackUpdate: (trackIndex: number, newName?: string, moveToPlaylistId?: number) => void;
   onTrackDelete: (trackIndex: number) => void;
   onSave: () => void;
+  allCollapsed?: boolean;
 }
 
 export function Playlist({ 
@@ -32,7 +33,8 @@ export function Playlist({
   onRename, 
   onTrackUpdate, 
   onTrackDelete,
-  onSave
+  onSave,
+  allCollapsed
 }: PlaylistProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [newName, setNewName] = useState(playlist.name);
@@ -279,6 +281,12 @@ export function Playlist({
   };
 
   const [isOpen, setIsOpen] = useState(true);
+  
+  useEffect(() => {
+    if (allCollapsed !== undefined) {
+      setIsOpen(!allCollapsed);
+    }
+  }, [allCollapsed]);
 
   return (
     <Collapsible 
