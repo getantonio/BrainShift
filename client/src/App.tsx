@@ -4,21 +4,10 @@ import { AlertCircle } from "lucide-react";
 import Home from "./pages/Home";
 import { ThemeProvider } from "./lib/theme-context";
 import { LoadingScreen } from "@/components/LoadingScreen";
-import { AudioProvider } from "./lib/audio-context";
-import { Notification } from "./components/ui/notification";
 import { useState, useEffect } from "react";
 
 function App() {
   const [isLoading, setIsLoading] = useState(true);
-  const [notification, setNotification] = useState<{
-    message: string;
-    type: "success" | "error" | "info";
-    isVisible: boolean;
-  }>({
-    message: "",
-    type: "info",
-    isVisible: false,
-  });
 
   useEffect(() => {
     // Simulate initial loading
@@ -29,24 +18,13 @@ function App() {
     return () => clearTimeout(timer);
   }, []);
 
-  // Global notification handler
-  const showNotification = (message: string, type: "success" | "error" | "info" = "info") => {
-    setNotification({ message, type, isVisible: true });
-    setTimeout(() => {
-      setNotification(prev => ({ ...prev, isVisible: false }));
-    }, 3000);
-  };
-
   return (
     <ThemeProvider>
-      <AudioProvider>
-        <LoadingScreen isLoading={isLoading} message="Initializing Brain Wave Studio..." />
-        <Notification {...notification} onClose={() => setNotification(prev => ({ ...prev, isVisible: false }))} />
-        <Switch>
-          <Route path="/" component={Home} />
-          <Route component={NotFound} />
-        </Switch>
-      </AudioProvider>
+      <LoadingScreen isLoading={isLoading} message="Initializing Brain Wave Studio..." />
+      <Switch>
+        <Route path="/" component={Home} />
+        <Route component={NotFound} />
+      </Switch>
     </ThemeProvider>
   );
 }

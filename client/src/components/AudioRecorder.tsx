@@ -1,17 +1,26 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Mic, Square } from "lucide-react";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { AudioVisualizer } from "./AudioVisualizer";
 import { useToast } from "@/hooks/use-toast";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { 
+  Collapsible,
+  CollapsibleTrigger,
+  CollapsibleContent,
+} from "@/components/ui/collapsible";
+import { Settings2 } from "lucide-react";
 
 export function AudioRecorder() {
   const [isRecording, setIsRecording] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const audioChunks = useRef<Blob[]>([]);
+  const { toast } = useToast();
   const [audioContext, setAudioContext] = useState<AudioContext | null>(null);
   const [analyserNode, setAnalyserNode] = useState<AnalyserNode | null>(null);
-  const { toast } = useToast();
+  
 
   const startRecording = async () => {
     try {
@@ -20,8 +29,7 @@ export function AudioRecorder() {
       const source = context.createMediaStreamSource(stream);
       const analyser = context.createAnalyser();
       source.connect(analyser);
-      analyser.connect(context.destination);
-
+      
       setAudioContext(context);
       setAnalyserNode(analyser);
 
@@ -29,40 +37,38 @@ export function AudioRecorder() {
       setMediaRecorder(recorder);
 
       recorder.ondataavailable = (e) => {
-        if (e.data.size > 0) {
-          audioChunks.current.push(e.data);
-        }
+        audioChunks.current.push(e.data);
       };
 
       recorder.onstop = async () => {
         const audioBlob = new Blob(audioChunks.current, { type: 'audio/mp3' });
         const audioUrl = URL.createObjectURL(audioBlob);
-
+        
         const fileName = prompt('Enter a name for your recording:', 'New Recording');
         if (!fileName) {
           audioChunks.current = [];
           return;
         }
 
+        // Create download link
         const downloadLink = document.createElement('a');
         downloadLink.href = audioUrl;
         downloadLink.download = `${fileName}.mp3`;
+        
+        // Trigger download
         downloadLink.click();
-
+        
         toast({
           title: "Recording saved",
-          description: `${fileName}.mp3 has been saved`
+          description: `${fileName}.mp3 has been downloaded to your computer`
         });
-
-        // Cleanup
-        URL.revokeObjectURL(audioUrl);
+        
         audioChunks.current = [];
       };
 
       recorder.start();
       setIsRecording(true);
     } catch (error) {
-      console.error('Recording error:', error);
       toast({
         title: "Error",
         description: "Could not access microphone",
@@ -75,13 +81,6 @@ export function AudioRecorder() {
     if (mediaRecorder && mediaRecorder.state !== 'inactive') {
       mediaRecorder.stop();
       mediaRecorder.stream.getTracks().forEach(track => track.stop());
-
-      if (audioContext) {
-        audioContext.close();
-        setAudioContext(null);
-      }
-
-      setAnalyserNode(null);
       setIsRecording(false);
       setMediaRecorder(null);
     }
@@ -115,7 +114,7 @@ export function AudioRecorder() {
             Stop
           </Button>
         </div>
-
+        
         <AudioVisualizer
           isRecording={isRecording}
           analyserNode={analyserNode}
