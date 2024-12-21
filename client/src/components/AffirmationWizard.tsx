@@ -152,7 +152,8 @@ export function AffirmationWizard({ onAffirmationsGenerated }: AffirmationWizard
           `${prefix} ${positiveThought}`
         );
         
-        affirmations = [...new Set([...affirmations, ...customAffirmations])];
+        const uniqueAffirmations = new Set([...affirmations, ...customAffirmations]);
+        affirmations = Array.from(uniqueAffirmations);
       }
 
       // Filter to ensure all affirmations start with "I"
