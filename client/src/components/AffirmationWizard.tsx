@@ -64,29 +64,22 @@ export function AffirmationWizard({ onAffirmationsGenerated }: AffirmationWizard
 
     setIsGenerating(true);
     try {
-      const response = await fetch("/api/generate-affirmations", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          category: selectedCategory,
-          negativeThought,
-        }),
-      });
-
-      const data = await response.json();
+      setIsGenerating(true);
       
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to generate affirmations");
+      const { generateSimilarPhrases } = await import('@/lib/localAffirmationGenerator');
+      const affirmations = await generateSimilarPhrases(negativeThought, selectedCategory);
+      
+      if (!affirmations || affirmations.length === 0) {
+        throw new Error("Failed to generate affirmations");
       }
 
-      if (!data.affirmations || !Array.isArray(data.affirmations)) {
-        throw new Error("Invalid response format from server");
-      }
-
-      onAffirmationsGenerated(data.affirmations);
+      onAffirmationsGenerated(affirmations);
       setStep(3);
+      
+      toast({
+        title: "Success",
+        description: "Affirmations generated successfully using local AI model",
+      });
     } catch (error: any) {
       console.error('Affirmation generation error:', error);
       toast({
