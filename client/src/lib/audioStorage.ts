@@ -98,37 +98,75 @@ class AudioStorageService {
   }
 
   async saveRecording(name: string, audioBlob: Blob, category: string): Promise<void> {
-    if (!this.db) await this.initialize();
+    try {
+      if (!this.db) await this.initialize();
 
-    const record: AudioRecord = {
-      name,
-      audioData: audioBlob,
-      category,
-      timestamp: Date.now(),
-    };
+      // Create a copy of the Blob to ensure it's stored properly
+      const audioData = await audioBlob.slice(0, audioBlob.size, audioBlob.type);
 
-    // Save the recording
-    await this.db!.add(RECORDINGS_STORE, record);
+      const record: AudioRecord = {
+        name,
+        audioData,
+        category,
+        timestamp: Date.now(),
+      };
 
-    // Ensure the playlist exists
-    const tx = this.db!.transaction(PLAYLISTS_STORE, 'readwrite');
-    const playlists = await tx.store.getAll();
-    
-    if (!playlists.some(p => p.name === category)) {
-      await tx.store.add({
-        id: Date.now(),
-        name: category,
-        order: playlists.length
-      });
+      // Use a single transaction for both operations
+      const tx = this.db!.transaction([RECORDINGS_STORE, PLAYLISTS_STORE], 'readwrite');
+      
+      try {
+        // Save the recording
+        await tx.objectStore(RECORDINGS_STORE).add(record);
+
+        // Ensure the playlist exists
+        const playlists = await tx.objectStore(PLAYLISTS_STORE).getAll();
+        if (!playlists.some(p => p.name === category)) {
+          await tx.objectStore(PLAYLISTS_STORE).add({
+            id: Date.now(),
+            name: category,
+            order: playlists.length
+          });
+        }
+
+        // Wait for the transaction to complete
+        await tx.done;
+      } catch (error) {
+        console.error('Transaction failed:', error);
+        throw new Error(`Failed to save recording: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Failed to save recording:', error);
+      throw new Error(`Failed to save recording: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
   async getRecordingsByCategory(category: string): Promise<AudioRecord[]> {
-    if (!this.db) await this.initialize();
+    try {
+      if (!this.db) await this.initialize();
 
-    const tx = this.db!.transaction(RECORDINGS_STORE, 'readonly');
-    const index = tx.store.index('category');
-    return await index.getAll(category);
+      const tx = this.db!.transaction(RECORDINGS_STORE, 'readonly');
+      const index = tx.store.index('category');
+      const recordings = await index.getAll(category);
+
+      // Verify each recording's data integrity
+      const validRecordings = recordings.filter(recording => {
+        try {
+          return recording && recording.audioData instanceof Blob;
+        } catch (error) {
+          console.error(`Invalid recording data for ${recording?.name}:`, error);
+          return false;
+        }
+      });
+
+      if (validRecordings.length < recordings.length) {
+        console.warn(`Found ${recordings.length - validRecordings.length} invalid recordings in category ${category}`);
+      }
+
+      return validRecordings;
+    } catch (error) {
+      console.error(`Failed to get recordings for category ${category}:`, error);
+      throw new Error(`Failed to load recordings: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
   async getAllCategories(): Promise<string[]> {
