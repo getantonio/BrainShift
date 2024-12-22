@@ -208,43 +208,45 @@ export function PlaylistManager({ allCollapsed = false }: PlaylistManagerProps) 
       });
     };
 
-    const handleNewRecording = (event: Event) => {
-      const customEvent = event as CustomEvent<{ 
-        name: string; 
-        url: string; 
-        category: string;
-      }>;
-      
-      console.log('Received recording event:', customEvent.detail);
-      
-      setPlaylists(current => {
-        const updated = [...current];
-        let targetPlaylist = updated.find(p => p.name.toLowerCase() === customEvent.detail.category.toLowerCase());
+    const handleNewRecording = async (event: Event) => {
+        const customEvent = event as CustomEvent<{ 
+          name: string; 
+          url: string; 
+          category: string;
+        }>;
+
+        // Force save after new recording for iOS
+        await audioStorage.initialize();
+        console.log('Received recording event:', customEvent.detail);
         
-        // If playlist doesn't exist, create it
-        if (!targetPlaylist) {
-          const newId = Math.max(...updated.map(p => p.id)) + 1;
-          targetPlaylist = {
-            id: newId,
-            name: customEvent.detail.category,
-            tracks: []
-          };
-          updated.push(targetPlaylist);
-        }
+        setPlaylists(current => {
+          const updated = [...current];
+          let targetPlaylist = updated.find(p => p.name.toLowerCase() === customEvent.detail.category.toLowerCase());
+          
+          // If playlist doesn't exist, create it
+          if (!targetPlaylist) {
+            const newId = Math.max(...updated.map(p => p.id)) + 1;
+            targetPlaylist = {
+              id: newId,
+              name: customEvent.detail.category,
+              tracks: []
+            };
+            updated.push(targetPlaylist);
+          }
 
-        targetPlaylist.tracks.push({
-          name: customEvent.detail.name,
-          url: customEvent.detail.url
+          targetPlaylist.tracks.push({
+            name: customEvent.detail.name,
+            url: customEvent.detail.url
+          });
+
+          toast({
+            title: "Recording added",
+            description: `Added to ${targetPlaylist.name} playlist`
+          });
+
+          return updated;
         });
-
-        toast({
-          title: "Recording added",
-          description: `Added to ${targetPlaylist.name} playlist`
-        });
-
-        return updated;
-      });
-    };
+      };
 
     const handlePlaylistRequest = (event: Event) => {
       const customEvent = event as CustomEvent<{
