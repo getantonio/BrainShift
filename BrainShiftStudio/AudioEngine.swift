@@ -89,28 +89,45 @@ class AudioEngine: ObservableObject {
     
     func playAudio(url: URL) {
         do {
-            // Ensure audio session is active
+            // Ensure we have a valid file URL
+            let audioFileURL: URL
+            if url.isFileURL {
+                audioFileURL = url
+            } else if let urlString = url.absoluteString.removingPercentEncoding,
+                      let fileURL = URL(string: urlString) {
+                audioFileURL = fileURL
+            } else {
+                throw NSError(domain: "AudioEngine", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid audio URL"])
+            }
+            
+            // Ensure audio session is properly configured
+            try audioSession.setActive(false)
+            try audioSession.setCategory(.playback, mode: .default)
             try audioSession.setActive(true)
             
-            // Create and configure audio player
-            let player = try AVAudioPlayer(contentsOf: url)
+            // Create and configure audio player with the validated URL
+            let player = try AVAudioPlayer(contentsOf: audioFileURL)
             player.delegate = self
             player.prepareToPlay()
+            player.volume = 1.0
             
             // Store references
             audioPlayer = player
-            currentAudioURL = url
+            currentAudioURL = audioFileURL
             
-            // Start playback
+            // Start playback with enhanced error handling
             if player.play() {
                 isPlaying = true
                 duration = player.duration
                 startUpdatingCurrentTime()
+                print("Audio playback started successfully")
             } else {
-                print("Failed to start audio playback")
+                throw NSError(domain: "AudioEngine", code: -2, userInfo: [NSLocalizedDescriptionKey: "Failed to start audio playback"])
             }
         } catch {
-            print("Could not play audio: \(error.localizedDescription)")
+            print("Audio playback error: \(error.localizedDescription)")
+            isPlaying = false
+            audioPlayer = nil
         }
     }
     

@@ -58,33 +58,44 @@ class CoreDataManager {
     }
     
     func updatePlaylist(_ playlist: Playlist, newName: String) throws {
-        let context = persistentContainer.viewContext
+        // Create a background context for the update
+        let backgroundContext = persistentContainer.newBackgroundContext()
+        backgroundContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
         
-        context.performAndWait {
-            // Create a temporary ID to identify this playlist
-            let playlistID = playlist.id
+        return try backgroundContext.performAndWait {
+            // Fetch the playlist in the background context
+            guard let playlistID = playlist.id,
+                  let playlistInContext = try? backgroundContext.existingObject(with: playlist.objectID) as? Playlist else {
+                throw NSError(domain: "CoreDataManager",
+                            code: -1,
+                            userInfo: [NSLocalizedDescriptionKey: "Could not locate playlist"])
+            }
             
-            // Update the playlist
-            playlist.name = newName
+            // Update the playlist in the background context
+            playlistInContext.name = newName
             
-            // Save changes
+            // Save the background context
             do {
-                try context.save()
+                try backgroundContext.save()
                 
-                // Verify the save was successful
-                if let updatedPlaylist = try? fetchPlaylist(byID: playlistID) {
-                    guard updatedPlaylist.name == newName else {
-                        // If verification fails, throw an error
-                        context.rollback()
-                        throw NSError(domain: "CoreDataManager",
-                                    code: -1,
-                                    userInfo: [NSLocalizedDescriptionKey: "Failed to verify playlist update"])
-                    }
+                // Refresh the view context
+                viewContext.performAndWait {
+                    viewContext.refreshAllObjects()
                 }
+                
+                // Verify the update
+                guard let verifiedPlaylist = try? fetchPlaylist(byID: playlistID),
+                      verifiedPlaylist.name == newName else {
+                    throw NSError(domain: "CoreDataManager",
+                                code: -2,
+                                userInfo: [NSLocalizedDescriptionKey: "Failed to verify playlist update"])
+                }
+                
+                print("Playlist successfully updated to: \(newName)")
+                
             } catch {
-                // If save fails, roll back and throw the error
-                context.rollback()
-                print("Error updating playlist: \(error.localizedDescription)")
+                backgroundContext.rollback()
+                print("Failed to update playlist: \(error.localizedDescription)")
                 throw error
             }
         }
