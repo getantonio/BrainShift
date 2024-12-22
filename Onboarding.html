@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Onboarding</title>
+  <style>
+    body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
+    .container { max-width: 500px; margin: auto; }
+    .btn { background-color: #4CAF50; color: white; padding: 10px 20px; border: none; cursor: pointer; }
+    .btn:disabled { background-color: #ccc; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Welcome to [App Name]</h1>
+    <p>Your partner in overcoming negative self-talk and building positive habits.</p>
+    <p>Here's how it works:</p>
+    <ol>
+      <li>Identify your challenges.</li>
+      <li>Record your voice.</li>
+      <li>Transform your thoughts with affirmations.</li>
+    </ol>
+    <label>
+      <input type="checkbox" id="consentCheckbox"> I agree to the terms and conditions.
+    </label>
+    <br><br>
+    <button class="btn" id="nextButton" disabled>Next</button>
+  </div>
+
+  <script>
+    const checkbox = document.getElementById('consentCheckbox');
+    const nextButton = document.getElementById('nextButton');
+    
+    checkbox.addEventListener('change', () => {
+      nextButton.disabled = !checkbox.checked;
+    });
+
+    nextButton.addEventListener('click', () => {
+      window.location.href = 'questionnaire.html'; // Link to the next page
+    });
+  </script>
+</body>
+</html>
