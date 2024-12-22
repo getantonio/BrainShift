@@ -20,13 +20,37 @@ export function AudioItem({ track, onRename, onDelete }: AudioItemProps) {
   const [newName, setNewName] = useState(track?.name || '');
 
   useEffect(() => {
+    let audioContext: AudioContext | null = null;
+    
     if (track?.url) {
-      const newAudio = new Audio(track.url);
+      const newAudio = new Audio();
       newAudio.preload = "auto";
+      newAudio.src = track.url;
+      
+      const initAudio = () => {
+        if (!audioContext) {
+          audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+          const source = audioContext.createMediaElementSource(newAudio);
+          source.connect(audioContext.destination);
+        }
+        if (audioContext.state === 'suspended') {
+          audioContext.resume();
+        }
+      };
+
+      newAudio.addEventListener('play', initAudio);
+      document.addEventListener('touchstart', initAudio, { once: true });
+      
       setAudio(newAudio);
+      
       return () => {
         newAudio.pause();
         newAudio.src = "";
+        document.removeEventListener('touchstart', initAudio);
+        newAudio.removeEventListener('play', initAudio);
+        if (audioContext) {
+          audioContext.close();
+        }
       };
     }
   }, [track?.url]);
@@ -35,18 +59,21 @@ export function AudioItem({ track, onRename, onDelete }: AudioItemProps) {
     if (!audio || !track?.url) return;
     try {
       if (audio.paused) {
-        await audio.play();
-        setIsPlaying(true);
-        audio.onended = () => {
-          setIsPlaying(false);
-          audio.currentTime = 0;
-        };
+        const playPromise = audio.play();
+        if (playPromise !== undefined) {
+          await playPromise;
+          setIsPlaying(true);
+          audio.onended = () => {
+            setIsPlaying(false);
+            audio.currentTime = 0;
+          };
+        }
       }
     } catch (error) {
       console.error('Playback error:', error);
       toast({
         title: "Error",
-        description: "Failed to play audio",
+        description: "Failed to play audio. Please try tapping the screen first.",
         variant: "destructive"
       });
     }

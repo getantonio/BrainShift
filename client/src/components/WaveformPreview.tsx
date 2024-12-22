@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { audioCompatibility } from '@/lib/audioCompatibility';
 import { Button } from "@/components/ui/button";
 import { Play, Pause } from "lucide-react";
 
@@ -27,95 +28,27 @@ export function WaveformPreview({
   const [isDragging, setIsDragging] = useState(false);
 
   useEffect(() => {
+    const audioId = `waveform-${Date.now()}`;
     let isSetup = false;
-    let audioCtx: AudioContext | null = null;
 
     const setupAudio = async () => {
       try {
         if (isSetup || !audioUrl) return;
         
-        // Create audio element first
-        const audio = new Audio();
-        
-        // Set up error handling before setting source
-        audio.onerror = (e) => {
-          console.error('Audio error:', e);
-        };
-
-        // Handle different URL types
-        if (audioUrl.startsWith('data:')) {
-          // For base64 data URLs, ensure proper format
-          const audioFormat = audioUrl.match(/data:(audio\/[^;]+);base64,/)?.[1] || 'audio/wav';
-          const base64Data = audioUrl.split(',')[1];
-          const binaryData = atob(base64Data);
-          const arrayBuffer = new ArrayBuffer(binaryData.length);
-          const uint8Array = new Uint8Array(arrayBuffer);
-          
-          for (let i = 0; i < binaryData.length; i++) {
-            uint8Array[i] = binaryData.charCodeAt(i);
-          }
-          
-          const blob = new Blob([arrayBuffer], { type: audioFormat });
-          audio.src = URL.createObjectURL(blob);
-        } else {
-          audio.src = audioUrl;
-        }
-
-        // Wait for audio to be loaded
-        await new Promise<void>((resolve, reject) => {
-          const timeout = setTimeout(() => {
-            reject(new Error('Audio loading timeout'));
-          }, 10000);
-
-          audio.oncanplaythrough = () => {
-            clearTimeout(timeout);
-            resolve();
-          };
-
-          audio.load();
-        });
-
+        const audio = await audioCompatibility.createAudioElement(audioUrl, audioId);
         audioRef.current = audio;
-
-        // Initialize AudioContext on first user interaction for iOS
-        const initializeAudioContext = () => {
-          if (!audioCtx) {
-            audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
-            const source = audioCtx.createMediaElementSource(audio);
-            const analyserNode = audioCtx.createAnalyser();
-            analyserNode.fftSize = 2048;
-            
-            source.connect(analyserNode);
-            analyserNode.connect(audioCtx.destination);
-            
-            setAnalyser(analyserNode);
-            document.removeEventListener('touchstart', initializeAudioContext);
-          }
-        };
-
-        // Add listener for iOS
-        document.addEventListener('touchstart', initializeAudioContext);
+        setAnalyser(audioCompatibility.getAnalyser(audioId));
         
         isSetup = true;
       } catch (error) {
         console.error('Error in setupAudio:', error);
-        throw error;
       }
     };
     
-    setupAudio().catch(error => {
-      console.error('Error playing audio:', error);
-    });
+    setupAudio();
     
     return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        URL.revokeObjectURL(audioRef.current.src);
-        audioRef.current.src = '';
-      }
-      if (audioCtx) {
-        audioCtx.close();
-      }
+      audioCompatibility.cleanup(audioId);
     };
   }, [audioUrl]);
   useEffect(() => {
