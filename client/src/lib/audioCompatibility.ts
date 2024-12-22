@@ -11,6 +11,7 @@ class AudioCompatibilityLayer {
   private audioContext: AudioContext | null = null;
   private audioSources: Map<string, MediaElementAudioSourceNode> = new Map();
   private analyzers: Map<string, AnalyserNode> = new Map();
+  private blobUrls: Map<string, string> = new Map();
   private initialized = false;
   private autoResume: boolean;
   private preferredFormat: string;
@@ -90,47 +91,25 @@ class AudioCompatibilityLayer {
     const audio = new Audio();
     
     try {
+      // Clean up any existing blob URL for this ID
+      if (this.blobUrls.has(id)) {
+        URL.revokeObjectURL(this.blobUrls.get(id)!);
+        this.blobUrls.delete(id);
+      }
+
       // Set up audio element for iOS
       if (this.isiOS) {
         audio.preload = 'auto';
         audio.autoplay = false;
-        // iOS requires these attributes
         audio.setAttribute('webkit-playsinline', 'true');
         audio.setAttribute('playsinline', 'true');
-        
-        // Unlock audio on first touch
-        await new Promise((resolve) => {
-          const unlockAudio = async () => {
-            try {
-              await this.ensureAudioContext();
-              await audio.play();
-              audio.pause();
-              audio.currentTime = 0;
-              document.removeEventListener('touchstart', unlockAudio);
-              resolve(true);
-            } catch (error) {
-              console.error('Error unlocking audio:', error);
-              resolve(false);
-            }
-          };
-          
-          if (document.visibilityState === 'visible') {
-            document.addEventListener('touchstart', unlockAudio, { once: true });
-          } else {
-            document.addEventListener('visibilitychange', function onVisibilityChange() {
-              if (document.visibilityState === 'visible') {
-                document.removeEventListener('visibilitychange', onVisibilityChange);
-                document.addEventListener('touchstart', unlockAudio, { once: true });
-              }
-            });
-          }
-        });
+        audio.setAttribute('x-webkit-airplay', 'allow');
       }
 
+      // Convert data URL to blob URL or use direct URL
       if (url.startsWith('data:')) {
-        // Always convert to WAV for iOS compatibility
-        const audioFormat = 'audio/wav';
-        const base64Data = url.split(',')[1];
+        const [header, base64Data] = url.split(',');
+        const contentType = header.match(/:(.*?);/)?.[1] || 'audio/wav';
         const binaryData = atob(base64Data);
         const arrayBuffer = new ArrayBuffer(binaryData.length);
         const uint8Array = new Uint8Array(arrayBuffer);
@@ -139,17 +118,38 @@ class AudioCompatibilityLayer {
           uint8Array[i] = binaryData.charCodeAt(i);
         }
         
-        // Create blob with WAV format
-        const blob = new Blob([arrayBuffer], { type: audioFormat });
+        const blob = new Blob([arrayBuffer], { type: contentType });
         const blobUrl = URL.createObjectURL(blob);
-        
-        // Cache the blob URL for cleanup
-        this._blobUrls = this._blobUrls || new Map();
-        this._blobUrls.set(id, blobUrl);
-        
+        this.blobUrls.set(id, blobUrl);
         audio.src = blobUrl;
       } else {
         audio.src = url;
+      }
+
+      // iOS requires user interaction to start audio context
+      if (this.isiOS) {
+        const unlockiOSAudio = async () => {
+          try {
+            const context = await this.ensureAudioContext();
+            await context.resume();
+            
+            const emptyBuffer = context.createBuffer(1, 1, 22050);
+            const source = context.createBufferSource();
+            source.buffer = emptyBuffer;
+            source.connect(context.destination);
+            source.start(0);
+            source.stop(0.001);
+
+            // Try to play and immediately pause
+            await audio.play();
+            audio.pause();
+            audio.currentTime = 0;
+          } catch (error) {
+            console.error('Error unlocking iOS audio:', error);
+          }
+        };
+
+        document.addEventListener('touchstart', unlockiOSAudio, { once: true });
       }
 
       // Wait for audio to be loaded with timeout
