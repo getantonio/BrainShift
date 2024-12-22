@@ -78,35 +78,28 @@ export function PlaylistManager({ allCollapsed = false }: PlaylistManagerProps) 
 
   const savePlaylist = async (playlistId?: number) => {
     try {
-      // Get current playlist names to maintain only active playlists
-      const activePlaylistNames = new Set(playlists.map(p => p.name));
+      // Keep existing playlists structure
+      const updatedPlaylists = [...playlists];
       
-      // Get all categories from storage
-      const categories = await audioStorage.getAllCategories();
-      const playlistsByCategory: { [key: string]: AudioRecord[] } = {};
-      
-      // Only load categories that correspond to active playlists
-      for (const category of categories) {
-        if (activePlaylistNames.has(category)) {
-          playlistsByCategory[category] = await audioStorage.getRecordingsByCategory(category);
+      // Get recordings for each playlist
+      for (const playlist of updatedPlaylists) {
+        try {
+          const recordings = await audioStorage.getRecordingsByCategory(playlist.name);
+          if (recordings && recordings.length > 0) {
+            // Only update tracks if there are recordings
+            playlist.tracks = await Promise.all(
+              recordings.map(async recording => ({
+                name: recording.name,
+                url: await audioStorage.getRecordingUrl(recording)
+              }))
+            );
+          }
+        } catch (error) {
+          console.error(`Failed to load recordings for playlist ${playlist.name}:`, error);
+          // Don't update tracks if there's an error loading recordings
+          continue;
         }
       }
-
-      // Update playlists while preserving existing IDs
-      const updatedPlaylists = await Promise.all(
-        Object.entries(playlistsByCategory).map(async ([category, recordings]) => {
-          // Find existing playlist to preserve its ID
-          const existingPlaylist = playlists.find(p => p.name === category);
-          return {
-            id: existingPlaylist?.id || Date.now() + Math.random(),
-            name: category,
-            tracks: await Promise.all(recordings.map(async recording => ({
-              name: recording.name,
-              url: await audioStorage.getRecordingUrl(recording)
-            })))
-          };
-        })
-      );
 
       setPlaylists(updatedPlaylists);
 
