@@ -25,45 +25,55 @@ export function PlaylistManager({ allCollapsed = false }: PlaylistManagerProps) 
 
   // Load playlists from IndexedDB on component mount
   useEffect(() => {
-    const loadRecordings = async () => {
+    const loadPlaylists = async () => {
       try {
-        const categories = await audioStorage.getAllCategories();
-        const playlistsByCategory: { [key: string]: AudioRecord[] } = {};
+        // Load saved playlist metadata
+        let savedPlaylists = await audioStorage.getPlaylists();
         
-        for (const category of categories) {
-          playlistsByCategory[category] = await audioStorage.getRecordingsByCategory(category);
+        // If no playlists exist, create a default one
+        if (savedPlaylists.length === 0) {
+          savedPlaylists = [{
+            id: Date.now(),
+            name: "My Playlist",
+            order: 0
+          }];
+          await audioStorage.savePlaylists(savedPlaylists);
         }
 
+        // Load recordings for each playlist
         const loadedPlaylists = await Promise.all(
-            Object.entries(playlistsByCategory).map(async ([category, recordings]) => ({
-              id: Date.now() + Math.random(),
-              name: category,
+          savedPlaylists.map(async (playlist) => {
+            const recordings = await audioStorage.getRecordingsByCategory(playlist.name);
+            return {
+              id: playlist.id,
+              name: playlist.name,
               tracks: await Promise.all(recordings.map(async recording => ({
                 name: recording.name,
                 url: await audioStorage.getRecordingUrl(recording)
               })))
-            }))
-          );
+            };
+          })
+        );
 
         setPlaylists(loadedPlaylists);
         
         if (loadedPlaylists.some(p => p.tracks.length > 0)) {
           toast({
-            title: "Recordings loaded",
-            description: "Your recordings have been organized into playlists"
+            title: "Playlists loaded",
+            description: "Your playlists and recordings have been loaded"
           });
         }
       } catch (error) {
-        console.error('Failed to load recordings:', error);
+        console.error('Failed to load playlists:', error);
         toast({
           title: "Error",
-          description: "Failed to load your recordings",
+          description: "Failed to load your playlists",
           variant: "destructive"
         });
       }
     };
 
-    loadRecordings();
+    loadPlaylists();
 
     // Listen for updates to recordings
     const handleRecordingsUpdate = () => {
@@ -78,15 +88,22 @@ export function PlaylistManager({ allCollapsed = false }: PlaylistManagerProps) 
 
   const savePlaylist = async (playlistId?: number) => {
     try {
-      // Keep existing playlists structure
+      // Save playlist metadata
+      const playlistMetadata = playlists.map((playlist, index) => ({
+        id: playlist.id,
+        name: playlist.name,
+        order: index
+      }));
+      
+      await audioStorage.savePlaylists(playlistMetadata);
+
+      // Update playlist contents
       const updatedPlaylists = [...playlists];
       
-      // Get recordings for each playlist
       for (const playlist of updatedPlaylists) {
         try {
           const recordings = await audioStorage.getRecordingsByCategory(playlist.name);
           if (recordings && recordings.length > 0) {
-            // Only update tracks if there are recordings
             playlist.tracks = await Promise.all(
               recordings.map(async recording => ({
                 name: recording.name,
@@ -96,7 +113,6 @@ export function PlaylistManager({ allCollapsed = false }: PlaylistManagerProps) 
           }
         } catch (error) {
           console.error(`Failed to load recordings for playlist ${playlist.name}:`, error);
-          // Don't update tracks if there's an error loading recordings
           continue;
         }
       }
