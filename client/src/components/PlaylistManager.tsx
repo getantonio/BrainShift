@@ -223,7 +223,7 @@ export function PlaylistManager({ allCollapsed = false }: PlaylistManagerProps) 
     });
   };
 
-  const deletePlaylist = (id: number) => {
+  const deletePlaylist = async (id: number) => {
     setPlaylists(currentPlaylists => {
       if (currentPlaylists.length <= 1) {
         toast({
@@ -234,7 +234,19 @@ export function PlaylistManager({ allCollapsed = false }: PlaylistManagerProps) 
         return currentPlaylists;
       }
 
-      // Create a shallow copy for immutability
+      const playlistToDelete = currentPlaylists.find(p => p.id === id);
+      if (playlistToDelete) {
+        // Delete all recordings in this category from storage
+        audioStorage.deleteCategory(playlistToDelete.name).catch(error => {
+          console.error('Failed to delete playlist recordings:', error);
+          toast({
+            title: "Error",
+            description: "Failed to delete playlist recordings",
+            variant: "destructive"
+          });
+        });
+      }
+
       return currentPlaylists.filter(playlist => playlist.id !== id);
     });
   };
