@@ -244,50 +244,31 @@ class AudioStorageService {
     await this.db!.delete(RECORDINGS_STORE, id);
   }
 
-  async getRecordingUrl(recording: AudioRecord): Promise<string> {
-    try {
-      if (typeof recording.audioData === 'string') {
-        // If already a data URL, verify and return
-        if (recording.audioData.startsWith('data:')) {
-          return recording.audioData;
-        }
-        throw new Error('Invalid audio data format');
-      }
-
-      // If it's a Blob, convert to data URL
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-          if (typeof reader.result === 'string') {
-            resolve(reader.result);
-          } else {
-            reject(new Error('Failed to convert audio to URL'));
-          }
-        };
-        reader.onerror = () => reject(reader.error);
-        reader.readAsDataURL(recording.audioData as Blob);
-      });
-    } catch (error) {
-      this.log('Failed to get recording URL:', error);
-      throw error;
-    }
-  }
-
   async renamePlaylistWithFiles(oldName: string, newName: string): Promise<void> {
     if (!this.db) await this.initialize();
     
-    const tx = this.db!.transaction([RECORDINGS_STORE], 'readwrite');
-    const store = tx.objectStore(RECORDINGS_STORE);
-    const index = store.index('category');
+    const tx = this.db!.transaction([RECORDINGS_STORE, PLAYLISTS_STORE], 'readwrite');
     
     try {
-      // Get all recordings with old category name
+      // Update recordings
+      const recordingsStore = tx.objectStore(RECORDINGS_STORE);
+      const index = recordingsStore.index('category');
       const recordings = await index.getAll(oldName);
       
-      // Update category for each recording
+      // Update each recording's category
       for (const recording of recordings) {
         const updatedRecording = { ...recording, category: newName };
-        await store.put(updatedRecording);
+        await recordingsStore.put(updatedRecording);
+      }
+      
+      // Update playlist metadata
+      const playlistsStore = tx.objectStore(PLAYLISTS_STORE);
+      const playlists = await playlistsStore.getAll();
+      const playlistToUpdate = playlists.find(p => p.name === oldName);
+      
+      if (playlistToUpdate) {
+        playlistToUpdate.name = newName;
+        await playlistsStore.put(playlistToUpdate);
       }
       
       await tx.done;
