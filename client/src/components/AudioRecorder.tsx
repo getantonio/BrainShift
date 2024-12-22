@@ -46,7 +46,6 @@ export function AudioRecorder({ currentCategory }: AudioRecorderProps) {
 
       recorder.onstop = async () => {
         const audioBlob = new Blob(audioChunks.current, { type: 'audio/mp3' });
-        const audioUrl = URL.createObjectURL(audioBlob);
         
         const fileName = prompt('Enter a name for your recording:', 'New Recording');
         if (!fileName) {
@@ -54,24 +53,29 @@ export function AudioRecorder({ currentCategory }: AudioRecorderProps) {
           return;
         }
 
-        // Dispatch event to add recording to playlist
-        const event = new CustomEvent('newRecording', {
-          detail: {
-            name: fileName,
-            url: audioUrl,
-            category: currentCategory || 'custom'
-          }
-        });
-        console.log('Dispatching recording event:', { 
-          name: fileName, 
-          category: currentCategory || 'custom' 
-        });
-        window.dispatchEvent(event);
-        
-        toast({
-          title: "Recording saved",
-          description: `${fileName} has been added to the ${currentCategory} playlist`
-        });
+        try {
+          await audioStorage.saveRecording(
+            fileName,
+            audioBlob,
+            currentCategory || 'custom'
+          );
+
+          // Dispatch event to refresh playlists
+          const event = new CustomEvent('recordingsUpdated');
+          window.dispatchEvent(event);
+          
+          toast({
+            title: "Recording saved",
+            description: `${fileName} has been added to the ${currentCategory || 'custom'} playlist`
+          });
+        } catch (error) {
+          console.error('Error saving recording:', error);
+          toast({
+            title: "Error",
+            description: "Failed to save recording",
+            variant: "destructive"
+          });
+        }
         
         audioChunks.current = [];
       };
