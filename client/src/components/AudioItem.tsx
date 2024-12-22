@@ -24,7 +24,7 @@ export function AudioItem({ track, onRename, onDelete }: AudioItemProps) {
     
     if (track?.url) {
       const newAudio = new Audio();
-      newAudio.preload = "none"; // Changed to none for iOS
+      newAudio.preload = "metadata"; // Changed to metadata for better iOS handling
       newAudio.src = track.url;
       
       // For iOS, we need to initialize audio context after user interaction
@@ -41,6 +41,11 @@ export function AudioItem({ track, onRename, onDelete }: AudioItemProps) {
           }
         } catch (error) {
           console.error('Audio initialization error:', error);
+          toast({
+            title: "Error",
+            description: "Failed to initialize audio. Please check your internet connection.",
+            variant: "destructive"
+          });
         }
       };
 
@@ -58,7 +63,7 @@ export function AudioItem({ track, onRename, onDelete }: AudioItemProps) {
       return () => {
         newAudio.pause();
         newAudio.src = "";
-        document.removeEventListener('touchstart', initAudio);
+        document.removeEventListener('touchstart', touchStartHandler);
         newAudio.removeEventListener('play', initAudio);
         if (audioContext) {
           audioContext.close();
@@ -73,19 +78,27 @@ export function AudioItem({ track, onRename, onDelete }: AudioItemProps) {
       if (audio.paused) {
         const playPromise = audio.play();
         if (playPromise !== undefined) {
-          await playPromise;
-          setIsPlaying(true);
-          audio.onended = () => {
-            setIsPlaying(false);
-            audio.currentTime = 0;
-          };
+          playPromise.then(() => {
+            setIsPlaying(true);
+            audio.onended = () => {
+              setIsPlaying(false);
+              audio.currentTime = 0;
+            };
+          }).catch(error => {
+            console.error('Playback error:', error);
+            toast({
+              title: "Error",
+              description: "Failed to play audio. Please try tapping the screen first or check your internet connection.",
+              variant: "destructive"
+            });
+          });
         }
       }
     } catch (error) {
       console.error('Playback error:', error);
       toast({
         title: "Error",
-        description: "Failed to play audio. Please try tapping the screen first.",
+        description: "Failed to play audio. Please try tapping the screen first or check your internet connection.",
         variant: "destructive"
       });
     }
