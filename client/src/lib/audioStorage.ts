@@ -244,34 +244,6 @@ class AudioStorageService {
     await this.db!.delete(RECORDINGS_STORE, id);
   }
 
-  async getRecordingUrl(recording: AudioRecord): Promise<string> {
-    try {
-      if (typeof recording.audioData === 'string') {
-        // If already a data URL, verify and return
-        if (recording.audioData.startsWith('data:')) {
-          return recording.audioData;
-        }
-        throw new Error('Invalid audio data format');
-      }
-
-      // If it's a Blob, convert to data URL
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-          if (typeof reader.result === 'string') {
-            resolve(reader.result);
-          } else {
-            reject(new Error('Failed to convert audio to URL'));
-          }
-        };
-        reader.onerror = () => reject(reader.error);
-        reader.readAsDataURL(recording.audioData as Blob);
-      });
-    } catch (error) {
-      this.log('Failed to get recording URL:', error);
-      throw error;
-    }
   }
-}
 
 export const audioStorage = new AudioStorageService();

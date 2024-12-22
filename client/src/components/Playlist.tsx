@@ -322,7 +322,7 @@ export function Playlist({
         }
       }}
     >
-      <div className="p-4 flex flex-row items-center justify-between">
+      <div className="p-4 space-y-4">
         <CollapsibleTrigger asChild>
           <div className="flex items-center gap-2 cursor-pointer">
             <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isOpen ? '' : '-rotate-90'}`} />
@@ -339,66 +339,9 @@ export function Playlist({
             )}
           </div>
         </CollapsibleTrigger>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={(e) => {
-              e.stopPropagation();
-              importPlaylist();
-            }}
-            className="h-8 w-8 bg-gray-800/80 hover:bg-gray-700/80 text-gray-200 border-gray-600"
-          >
-            <Upload className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={(e) => {
-              e.stopPropagation();
-              exportPlaylist();
-            }}
-            className="h-8 w-8 bg-gray-800/80 hover:bg-gray-700/80 text-gray-200 border-gray-600"
-          >
-            <Download className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleRename();
-            }}
-            className="h-8 w-8 bg-gray-800/80 hover:bg-gray-700/80 text-gray-200 border-gray-600"
-          >
-            <Edit2 className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={(e) => {
-              e.stopPropagation();
-              onSave();
-            }}
-            className="h-8 w-8 bg-gray-800/80 hover:bg-gray-700/80 text-gray-200 border-gray-600"
-          >
-            💾
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete();
-            }}
-            className="h-8 w-8 bg-gray-800/80 hover:bg-gray-700/80 text-gray-200 border-gray-600"
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
-        </div>
       </div>
       <CollapsibleContent>
-        <div className="p-4 space-y-2">
+        <div className="p-2 space-y-1">
           {playlist.tracks.map((track, index) => (
             <div key={index} className="relative group">
               <AudioItem
@@ -432,45 +375,106 @@ export function Playlist({
             </div>
           ))}
         </div>
-        <div className="flex gap-2 mt-4">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={playPlaylist}
-            disabled={playlist.tracks.length === 0}
-            className="bg-gray-800 hover:bg-gray-700 text-gray-200 border-gray-600"
-          >
-            <Play className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={toggleLoop}
-            className={`bg-gray-800 hover:bg-gray-700 text-gray-200 border-gray-600 ${
-              isLooping ? "ring-2 ring-gray-500" : ""
-            }`}
-          >
-            <Repeat className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={toggleShuffle}
-            className={`bg-gray-800 hover:bg-gray-700 text-gray-200 border-gray-600 ${
-              isShuffled ? "ring-2 ring-gray-500" : ""
-            }`}
-          >
-            <Shuffle className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={stopPlaylist}
-            disabled={!currentAudio}
-            className="bg-gray-800 hover:bg-gray-700 text-gray-200 border-gray-600"
-          >
-            <Square className="h-4 w-4" />
-          </Button>
+        <div className="flex gap-2 mt-4 justify-between">
+          <div className="space-y-2">
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={playPlaylist}
+                disabled={playlist.tracks.length === 0}
+                className="bg-gray-800 hover:bg-gray-700 text-gray-200 border-gray-600"
+              >
+                <Play className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={toggleLoop}
+                className={`bg-gray-800 hover:bg-gray-700 text-gray-200 border-gray-600 ${
+                  isLooping ? "ring-2 ring-gray-500" : ""
+                }`}
+              >
+                <Repeat className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={toggleShuffle}
+                className={`bg-gray-800 hover:bg-gray-700 text-gray-200 border-gray-600 ${
+                  isShuffled ? "ring-2 ring-gray-500" : ""
+                }`}
+              >
+                <Shuffle className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={stopPlaylist}
+                disabled={!currentAudio}
+                className="bg-gray-800 hover:bg-gray-700 text-gray-200 border-gray-600"
+              >
+                <Square className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  importPlaylist();
+                }}
+                className="h-8 w-8 bg-gray-800/80 hover:bg-gray-700/80 text-gray-200 border-gray-600"
+              >
+                <Upload className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  exportPlaylist();
+                }}
+                className="h-8 w-8 bg-gray-800/80 hover:bg-gray-700/80 text-gray-200 border-gray-600"
+              >
+                <Download className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleRename();
+                }}
+                className="h-8 w-8 bg-gray-800/80 hover:bg-gray-700/80 text-gray-200 border-gray-600"
+              >
+                <Edit2 className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onSave();
+                }}
+                className="h-8 w-8 bg-gray-800/80 hover:bg-gray-700/80 text-gray-200 border-gray-600"
+              >
+                💾
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete();
+                }}
+                className="h-8 w-8 bg-gray-800/80 hover:bg-gray-700/80 text-gray-200 border-gray-600"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
         </div>
       </CollapsibleContent>
     </Collapsible>

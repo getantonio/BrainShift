@@ -24,22 +24,34 @@ export function AudioItem({ track, onRename, onDelete }: AudioItemProps) {
     
     if (track?.url) {
       const newAudio = new Audio();
-      newAudio.preload = "auto";
+      newAudio.preload = "none"; // Changed to none for iOS
       newAudio.src = track.url;
       
-      const initAudio = () => {
-        if (!audioContext) {
-          audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-          const source = audioContext.createMediaElementSource(newAudio);
-          source.connect(audioContext.destination);
-        }
-        if (audioContext.state === 'suspended') {
-          audioContext.resume();
+      // For iOS, we need to initialize audio context after user interaction
+      const initAudio = async () => {
+        try {
+          if (!audioContext) {
+            audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+            newAudio.src = track.url;
+            const source = audioContext.createMediaElementSource(newAudio);
+            source.connect(audioContext.destination);
+          }
+          if (audioContext.state === 'suspended') {
+            await audioContext.resume();
+          }
+        } catch (error) {
+          console.error('Audio initialization error:', error);
         }
       };
 
+      // Handle iOS touch events
+      const touchStartHandler = async () => {
+        await initAudio();
+        document.removeEventListener('touchstart', touchStartHandler);
+      };
+
+      document.addEventListener('touchstart', touchStartHandler);
       newAudio.addEventListener('play', initAudio);
-      document.addEventListener('touchstart', initAudio, { once: true });
       
       setAudio(newAudio);
       
