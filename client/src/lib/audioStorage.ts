@@ -61,7 +61,20 @@ class AudioStorageService {
       timestamp: Date.now(),
     };
 
+    // Save the recording
     await this.db!.add(RECORDINGS_STORE, record);
+
+    // Ensure the playlist exists
+    const tx = this.db!.transaction(PLAYLISTS_STORE, 'readwrite');
+    const playlists = await tx.store.getAll();
+    
+    if (!playlists.some(p => p.name === category)) {
+      await tx.store.add({
+        id: Date.now(),
+        name: category,
+        order: playlists.length
+      });
+    }
   }
 
   async getRecordingsByCategory(category: string): Promise<AudioRecord[]> {

@@ -77,7 +77,7 @@ export function PlaylistManager({ allCollapsed = false }: PlaylistManagerProps) 
 
     // Listen for updates to recordings
     const handleRecordingsUpdate = () => {
-      loadRecordings();
+      loadPlaylists();
     };
 
     window.addEventListener('recordingsUpdated', handleRecordingsUpdate);
@@ -240,31 +240,48 @@ export function PlaylistManager({ allCollapsed = false }: PlaylistManagerProps) 
   };
 
   const deletePlaylist = async (id: number) => {
-    setPlaylists(currentPlaylists => {
+    try {
+      const currentPlaylists = [...playlists];
       if (currentPlaylists.length <= 1) {
         toast({
           title: "Cannot delete",
           description: "At least one playlist must remain",
           variant: "destructive"
         });
-        return currentPlaylists;
+        return;
       }
 
       const playlistToDelete = currentPlaylists.find(p => p.id === id);
-      if (playlistToDelete) {
-        // Delete all recordings in this category from storage
-        audioStorage.deleteCategory(playlistToDelete.name).catch(error => {
-          console.error('Failed to delete playlist recordings:', error);
-          toast({
-            title: "Error",
-            description: "Failed to delete playlist recordings",
-            variant: "destructive"
-          });
-        });
-      }
+      if (!playlistToDelete) return;
 
-      return currentPlaylists.filter(playlist => playlist.id !== id);
-    });
+      // Delete all recordings in this category from storage
+      await audioStorage.deleteCategory(playlistToDelete.name);
+      
+      // Update playlists in state and storage
+      const updatedPlaylists = currentPlaylists.filter(playlist => playlist.id !== id);
+      setPlaylists(updatedPlaylists);
+      
+      // Save updated playlist metadata
+      await audioStorage.savePlaylists(
+        updatedPlaylists.map((playlist, index) => ({
+          id: playlist.id,
+          name: playlist.name,
+          order: index
+        }))
+      );
+
+      toast({
+        title: "Playlist deleted",
+        description: `${playlistToDelete.name} has been removed`
+      });
+    } catch (error) {
+      console.error('Failed to delete playlist:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete playlist",
+        variant: "destructive"
+      });
+    }
   };
 
   const renamePlaylist = (id: number, newName: string) => {
