@@ -370,18 +370,62 @@ export function PlaylistManager({ allCollapsed = false }: PlaylistManagerProps) 
     });
   };
 
-  const handleFileUpload = (playlistId: number, files: FileList) => {
+  const handleFileUpload = async (playlistId: number, files: FileList) => {
     const playlist = playlists.find(p => p.id === playlistId);
     if (!playlist) return;
 
-    Array.from(files).forEach(file => {
-      const url = URL.createObjectURL(file);
-      playlist.tracks.push({
-        name: file.name,
-        url: url
+    try {
+      // Process files sequentially for better stability
+      for (const file of Array.from(files)) {
+        try {
+          // Save the file to IndexedDB
+          await audioStorage.saveRecording(
+            file.name,
+            file,
+            playlist.name
+          );
+
+          toast({
+            title: "File added",
+            description: `${file.name} has been added to ${playlist.name}`
+          });
+        } catch (error) {
+          console.error(`Failed to save file ${file.name}:`, error);
+          toast({
+            title: "Error",
+            description: `Failed to add ${file.name}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            variant: "destructive"
+          });
+        }
+      }
+
+      // Reload playlists to refresh the view with new files
+      const recordings = await audioStorage.getRecordingsByCategory(playlist.name);
+      const tracks = await Promise.all(
+        recordings.map(async recording => ({
+          name: recording.name,
+          url: await audioStorage.getRecordingUrl(recording)
+        }))
+      );
+
+      setPlaylists(current =>
+        current.map(p =>
+          p.id === playlistId
+            ? { ...p, tracks }
+            : p
+        )
+      );
+
+      // Save playlist state
+      await savePlaylist(playlistId);
+    } catch (error) {
+      console.error('Failed to handle file upload:', error);
+      toast({
+        title: "Error",
+        description: "Failed to process uploaded files",
+        variant: "destructive"
       });
-    });
-    setPlaylists([...playlists]);
+    }
   };
 
   return (
