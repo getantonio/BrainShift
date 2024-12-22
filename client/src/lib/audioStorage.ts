@@ -50,10 +50,10 @@ class AudioStorageService {
               });
               recordingsStore.createIndex('category', 'category');
               recordingsStore.createIndex('timestamp', 'timestamp');
-            } catch (error) {
+            } catch (error: any) {
               console.error('Error creating recordings store:', error);
               // If store already exists, ignore the error
-              if (!error.message.includes('already exists')) {
+              if (!error.message?.includes('already exists')) {
                 throw error;
               }
             }
@@ -66,10 +66,10 @@ class AudioStorageService {
                 autoIncrement: true
               });
               playlistsStore.createIndex('order', 'order');
-            } catch (error) {
+            } catch (error: any) {
               console.error('Error creating playlists store:', error);
               // If store already exists, ignore the error
-              if (!error.message.includes('already exists')) {
+              if (!error.message?.includes('already exists')) {
                 throw error;
               }
             }
@@ -91,7 +91,7 @@ class AudioStorageService {
       await transaction.done;
 
       return this.db;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to initialize IndexedDB:', error);
       throw new Error(`Failed to initialize database: ${error.message}`);
     }
@@ -236,37 +236,13 @@ class AudioStorageService {
         
         reader.onerror = () => reject(new Error('Failed to read audio data'));
         reader.readAsDataURL(audioBlob);
-        };
-        
-        reader.onerror = () => {
-          console.error('FileReader error:', reader.error);
-          reject(new Error(`Failed to read audio file: ${reader.error?.message || 'Unknown error'}`));
-        };
-        
-        reader.onabort = () => {
-          reject(new Error('File reading was aborted'));
-        };
-
-        // Start reading with timeout
-        reader.readAsDataURL(recording.audioData);
-        
-        // Add timeout for iOS Safari
-        setTimeout(() => {
-          if (reader.readyState !== FileReader.DONE) {
-            reader.abort();
-            reject(new Error('File reading timed out'));
-          }
-        }, 5000); // 5 second timeout
       } catch (error) {
         console.error('Error in getRecordingUrl:', error);
         reject(error);
       }
-    }).finally(() => {
-      // Cleanup any resources if needed
     });
   }
 
-  // New playlist methods
   async savePlaylists(playlists: PlaylistMetadata[]): Promise<void> {
     if (!this.db) await this.initialize();
     
