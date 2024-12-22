@@ -1,1 +1,460 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Manager</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #121212;
+            color: #f1f1f1;
+            background-image: linear-gradient(45deg, #121212, #1f1f1f, #282828);
+            background-size: 400% 400%;
+            animation: gradientShift 10s ease infinite;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        header {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px 30px;
+            text-align: center;
+            font-size: 30px;
+            font-weight: bold;
+            border-bottom: 3px solid #444;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.7);
+            letter-spacing: 1px;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            padding: 20px;
+            align-items: center;
+        }
+
+        section {
+            width: 100%;
+            max-width: 800px;
+            background: rgba(50, 50, 50, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 6px 15px rgba(0, 0, 0, 0.6);
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        button {
+            background: linear-gradient(145deg, #444, #666);
+            color: #fff;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        button:hover {
+            background: linear-gradient(145deg, #666, #444);
+            transform: translateY(-3px);
+        }
+
+        .icon-label {
+            display: block;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        canvas {
+            width: 100%;
+            height: 150px;
+            border-radius: 10px;
+            margin-top: 15px;
+            background-color: #333;
+        }
+
+        .playlist {
+            background: rgba(70, 70, 70, 0.9);
+            border: 1px solid #444;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.6);
+        }
+
+        .playlist h2 {
+            margin: 0;
+            font-size: 22px;
+            text-decoration: underline;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .playlist ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .playlist ul li {
+            padding: 12px;
+            border-bottom: 1px solid #444;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .playlist ul li button {
+            background: linear-gradient(145deg, #555, #777);
+        }
+
+        .playlist ul li button:hover {
+            background: linear-gradient(145deg, #777, #555);
+        }
+
+        .tooltip {
+            position: absolute;
+            background-color: #333;
+            color: #fff;
+            padding: 5px;
+            border-radius: 5px;
+            font-size: 12px;
+            display: none;
+            z-index: 10;
+        }
+
+        .tooltip.show {
+            display: block;
+        }
+
+        #addPlaylist {
+            background: linear-gradient(145deg, #34d399, #10b981);
+            color: #fff;
+            padding: 15px 25px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 15px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        #addPlaylist:hover {
+            background: linear-gradient(145deg, #10b981, #34d399);
+        }
+
+    </style>
+</head>
+<body>
+    <header>Audio Sketch Studio</header>
+    <div class="container">
+        <!-- Audio Recorder -->
+        <section class="recorder">
+            <h2>Record Audio</h2>
+            <div class="controls">
+                <button id="record" data-tooltip="Record">
+                    🎙️
+                    <span class="icon-label">Record</span>
+                </button>
+                <button id="stop" disabled data-tooltip="Stop">
+                    ⏹️
+                    <span class="icon-label">Stop</span>
+                </button>
+            </div>
+            <canvas id="visualizer"></canvas>
+        </section>
+
+        <!-- Playlists Management -->
+        <section class="playlists">
+            <h2>Playlists</h2>
+            <div id="playlistsContainer"></div>
+            <button id="addPlaylist">Add New Playlist</button>
+        </section>
+    </div>
+
+    <script>
+        const recordButton = document.getElementById('record');
+        const stopButton = document.getElementById('stop');
+        const visualizer = document.getElementById('visualizer');
+        const playlistsContainer = document.getElementById('playlistsContainer');
+        const addPlaylistButton = document.getElementById('addPlaylist');
+
+        let audioContext, recorder, mediaStream, audioChunks = [], blobUrl;
+        let playlistId = 0;
+        let currentAudio = null;
+        let currentLooping = null;
+
+        // Create the default "Playlist 1"
+        document.addEventListener("DOMContentLoaded", () => {
+            addDefaultPlaylist();
+        });
+
+        // Function to create the default playlist
+        function addDefaultPlaylist() {
+            const defaultPlaylist = createPlaylist("Playlist 1");
+            playlistsContainer.appendChild(defaultPlaylist);
+        }
+
+        // Record button functionality
+        recordButton.addEventListener('click', async () => {
+            mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const source = audioContext.createMediaStreamSource(mediaStream);
+            const mediaRecorder = new MediaRecorder(mediaStream);
+
+            mediaRecorder.ondataavailable = (e) => {
+                audioChunks.push(e.data);
+            };
+
+            mediaRecorder.onstop = async () => {
+                const audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
+                const url = URL.createObjectURL(audioBlob);
+                const fileName = prompt('Enter a name for your recording:', 'New Recording');
+                
+                // Playlist selection
+                const playlists = document.querySelectorAll('.playlist h2');
+                const playlistOptions = Array.from(playlists).map(playlist => playlist.textContent.replace(' Rename', '')).join('\n');
+                const playlistName = prompt(`Which playlist should this recording be added to?\n\n${playlistOptions}`);
+
+                if (!playlistName) {
+                    alert('No playlist selected. Recording discarded.');
+                    return;
+                }
+
+                const playlistsList = document.querySelectorAll('.playlist');
+                for (const playlist of playlistsList) {
+                    if (playlist.querySelector('h2').textContent.replace(' Rename', '') === playlistName) {
+                        const newItem = createAudioItem(fileName, url);
+                        playlist.querySelector('ul').appendChild(newItem);
+                        break;
+                    }
+                }
+                audioChunks = [];
+            };
+
+            recorder = mediaRecorder;
+            recorder.start();
+
+            const analyser = audioContext.createAnalyser();
+            source.connect(analyser);
+
+            const canvasCtx = visualizer.getContext('2d');
+            const dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+            function draw() {
+                requestAnimationFrame(draw);
+                analyser.getByteTimeDomainData(dataArray);
+                canvasCtx.fillStyle = '#555';
+                canvasCtx.fillRect(0, 0, visualizer.width, visualizer.height);
+                canvasCtx.lineWidth = 2;
+                canvasCtx.strokeStyle = '#0f0';
+                canvasCtx.beginPath();
+
+                const sliceWidth = visualizer.width / dataArray.length;
+                let x = 0;
+                for (let i = 0; i < dataArray.length; i++) {
+                    const v = dataArray[i] / 128.0;
+                    const y = v * visualizer.height / 2;
+
+                    if (i === 0) {
+                        canvasCtx.moveTo(x, y);
+                    } else {
+                        canvasCtx.lineTo(x, y);
+                    }
+
+                    x += sliceWidth;
+                }
+                canvasCtx.lineTo(visualizer.width, visualizer.height / 2);
+                canvasCtx.stroke();
+            }
+
+            draw();
+
+            recordButton.disabled = true;
+            stopButton.disabled = false;
+        });
+
+        // Stop button functionality
+        stopButton.addEventListener('click', () => {
+            recorder.stop();
+            mediaStream.getTracks().forEach(track => track.stop());
+            recordButton.disabled = false;
+            stopButton.disabled = true;
+        });
+
+        // Add Playlist functionality
+        addPlaylistButton.addEventListener('click', () => {
+    let playlistName = `Playlist ${++playlistId}`;
+    // Ensure playlist name is unique
+    const existingPlaylists = document.querySelectorAll('.playlist h2');
+    existingPlaylists.forEach(playlist => {
+        if (playlist.textContent.trim() === playlistName) {
+            playlistName = `Playlist ${++playlistId}`;
+        }
+    });
+    const newPlaylist = createPlaylist(playlistName);
+    playlistsContainer.appendChild(newPlaylist);
+});
+
+
+        // Create Playlist
+        function createPlaylist(name) {
+            const playlist = document.createElement('div');
+            playlist.classList.add('playlist');
+            playlist.innerHTML = `
+                <h2>${name} <button onclick="renamePlaylist(this)">Rename</button></h2>
+                <ul></ul>
+                <input type="file" accept="audio/*" onchange="loadAudio(this)" style="margin-top: 10px;" />
+                <div class="controls">
+                    <button onclick="deletePlaylist(this)" data-tooltip="Delete">🗑️
+                        <span class="icon-label">Delete</span>
+                    </button>
+                    <button onclick="playPlaylist(this)" data-tooltip="Play">▶️
+                        <span class="icon-label">Play</span>
+                    </button>
+                    <button onclick="loopPlaylist(this)" data-tooltip="Loop">🔁
+                        <span class="icon-label">Loop</span>
+                    </button>
+                    <button onclick="stopLoopingPlaylist(this)" data-tooltip="Stop Looping">⏹️
+                        <span class="icon-label">Stop</span>
+                    </button>
+                </div>
+            `;
+            return playlist;
+        }
+
+        // Create Audio Item in Playlist
+        function createAudioItem(name, url) {
+            const item = document.createElement('li');
+            item.innerHTML = `
+                <span>${name}</span>
+                <div class="controls">
+                    <button onclick="playAudio('${url}', this)" data-tooltip="Play">▶️
+                        <span class="icon-label">Play</span>
+                    </button>
+                    <button onclick="stopAudio(this)" data-tooltip="Stop">⏹️
+                        <span class="icon-label">Stop</span>
+                    </button>
+                    <a href="${url}" download="${name}.mp3"><button data-tooltip="Save">💾
+                        <span class="icon-label">Save</span>
+                    </button></a>
+                    <button onclick="deleteAudio(this)" data-tooltip="Delete">🗑️
+                        <span class="icon-label">Delete</span>
+                    </button>
+                </div>
+            `;
+            return item;
+        }
+
+        // Play Audio Item
+        function playAudio(url, button) {
+            if (currentAudio) {
+                currentAudio.pause();
+            }
+            currentAudio = new Audio(url);
+            currentAudio.play();
+            button.disabled = true;
+        }
+
+        // Stop Audio Item
+        function stopAudio(button) {
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio.currentTime = 0;
+            }
+            button.disabled = true;
+            button.previousElementSibling.disabled = false;
+        }
+
+        // Load Audio into Playlist
+        function loadAudio(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const url = URL.createObjectURL(file);
+            const fileName = file.name;
+            const playlist = input.closest('.playlist');
+            const newItem = createAudioItem(fileName, url);
+            playlist.querySelector('ul').appendChild(newItem);
+        }
+
+        // Delete Audio Item
+        function deleteAudio(button) {
+            const item = button.closest('li');
+            item.remove();
+        }
+
+        // Delete Playlist
+        function deletePlaylist(button) {
+            const playlist = button.closest('.playlist');
+            playlist.remove();
+        }
+
+        // Play Playlist
+        function playPlaylist(element) {
+            const playlist = element.closest('.playlist');
+            const items = playlist.querySelectorAll('li');
+            let currentIndex = 0;
+
+            // Play first item in playlist
+            const playNext = () => {
+                const audioUrl = items[currentIndex].querySelector('button').getAttribute('onclick').match(/'(.*)'/)[1];
+                playAudio(audioUrl, items[currentIndex].querySelector('button'));
+                currentIndex = (currentIndex + 1) % items.length;
+            };
+
+            playNext();  // Play first item
+        }
+
+        // Loop Playlist
+        function loopPlaylist(button) {
+            const playlist = button.closest('.playlist');
+            const items = playlist.querySelectorAll('li');
+            let currentIndex = 0;
+
+            if (currentLooping) {
+                clearInterval(currentLooping);
+            }
+
+            currentLooping = setInterval(() => {
+                const audioUrl = items[currentIndex].querySelector('button').getAttribute('onclick').match(/'(.*)'/)[1];
+                playAudio(audioUrl, items[currentIndex].querySelector('button'));
+                currentIndex = (currentIndex + 1) % items.length;
+            }, 3000); // Adjust interval for looping
+        }
+
+        // Stop Looping Playlist
+        function stopLoopingPlaylist(button) {
+            if (currentLooping) {
+                clearInterval(currentLooping);
+            }
+            currentLooping = null;
+        }
+
+        // Rename Playlist
+        function renamePlaylist(button) {
+            const newName = prompt('Enter new name for this playlist:');
+            if (newName) {
+                button.closest('h2').textContent = newName + ' ';
+                const renameButton = button.cloneNode(true);
+                renameButton.onclick = function() { renamePlaylist(this) };
+                button.replaceWith(renameButton);
+            }
+        }
+    </script>
+</body>
+</html>
