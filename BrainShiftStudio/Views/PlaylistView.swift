@@ -13,6 +13,8 @@ struct PlaylistView: View {
     @State private var selectedPlaylist: Playlist?
     @State private var showingRenameAlert = false
     @State private var renameText = ""
+    @State private var showingErrorAlert = false
+    @State private var errorMessage = ""
     
     var body: some View {
         List {
@@ -75,6 +77,11 @@ struct PlaylistView: View {
                 }
             }
         }
+        .alert("Error", isPresented: $showingErrorAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(errorMessage)
+        }
     }
     
     private func createNewPlaylist() {
@@ -109,9 +116,13 @@ struct PlaylistView: View {
             let generator = UINotificationFeedbackGenerator()
             generator.notificationOccurred(.success)
             #endif
+            print(successMessage)
+            
         } catch {
             // Show error message
-            print("Failed to rename playlist: \(error.localizedDescription)")
+            errorMessage = "Failed to rename playlist: \(error.localizedDescription)"
+            showingErrorAlert = true
+            
             #if os(iOS)
             let generator = UINotificationFeedbackGenerator()
             generator.notificationOccurred(.error)
@@ -145,6 +156,8 @@ struct PlaylistRow: View {
 struct PlaylistDetailView: View {
     @ObservedObject var playlist: Playlist
     @StateObject private var audioEngine = AudioEngine.shared
+    @State private var showingErrorAlert = false
+    @State private var errorMessage = ""
     
     var sortedTracks: [AudioTrack] {
         let tracks = playlist.tracks?.allObjects as? [AudioTrack] ?? []
@@ -159,6 +172,11 @@ struct PlaylistDetailView: View {
             .onDelete(perform: deleteTracks)
         }
         .navigationTitle(playlist.name ?? "")
+        .alert("Error", isPresented: $showingErrorAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(errorMessage)
+        }
     }
     
     private func deleteTracks(at offsets: IndexSet) {
@@ -175,20 +193,12 @@ struct AudioTrackRow: View {
     @ObservedObject var track: AudioTrack
     @StateObject private var audioEngine = AudioEngine.shared
     @State private var isPlaying = false
+    @State private var showingErrorAlert = false
+    @State private var errorMessage = ""
     
     var body: some View {
         HStack {
-            Button(action: {
-                if isPlaying {
-                    audioEngine.stopPlayback()
-                    isPlaying = false
-                } else {
-                    if let url = URL(string: track.audioUrl ?? "") {
-                        audioEngine.playAudio(url: url)
-                        isPlaying = true
-                    }
-                }
-            }) {
+            Button(action: togglePlayback) {
                 Image(systemName: isPlaying ? "stop.fill" : "play.fill")
                     .foregroundColor(isPlaying ? .red : .accentColor)
             }
@@ -208,6 +218,29 @@ struct AudioTrackRow: View {
             if isPlaying {
                 audioEngine.stopPlayback()
                 isPlaying = false
+            }
+        }
+        .alert("Error", isPresented: $showingErrorAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(errorMessage)
+        }
+    }
+    
+    private func togglePlayback() {
+        if isPlaying {
+            audioEngine.stopPlayback()
+            isPlaying = false
+        } else {
+            if let urlString = track.audioUrl,
+               let url = URL(string: urlString) {
+                do {
+                    audioEngine.playAudio(url: url)
+                    isPlaying = true
+                } catch {
+                    errorMessage = "Failed to play audio: \(error.localizedDescription)"
+                    showingErrorAlert = true
+                }
             }
         }
     }

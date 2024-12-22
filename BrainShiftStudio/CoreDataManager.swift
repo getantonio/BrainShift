@@ -130,14 +130,48 @@ class CoreDataManager {
         return track
     }
     
-    func updateTrack(_ track: AudioTrack, newName: String) {
-        track.name = newName
-        saveContext()
+    func updateTrack(_ track: AudioTrack, newName: String) throws {
+        // Use background context for track updates
+        let backgroundContext = persistentContainer.newBackgroundContext()
+        backgroundContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+        
+        try backgroundContext.performAndWait {
+            guard let trackInContext = try? backgroundContext.existingObject(with: track.objectID) as? AudioTrack else {
+                throw NSError(domain: "CoreDataManager",
+                            code: -1,
+                            userInfo: [NSLocalizedDescriptionKey: "Could not locate track"])
+            }
+            
+            trackInContext.name = newName
+            
+            try backgroundContext.save()
+            
+            viewContext.performAndWait {
+                viewContext.refreshAllObjects()
+            }
+        }
     }
     
-    func moveTrack(_ track: AudioTrack, to playlist: Playlist) {
-        track.playlist = playlist
-        saveContext()
+    func moveTrack(_ track: AudioTrack, to playlist: Playlist) throws {
+        let backgroundContext = persistentContainer.newBackgroundContext()
+        backgroundContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+        
+        try backgroundContext.performAndWait {
+            guard let trackInContext = try? backgroundContext.existingObject(with: track.objectID) as? AudioTrack,
+                  let playlistInContext = try? backgroundContext.existingObject(with: playlist.objectID) as? Playlist else {
+                throw NSError(domain: "CoreDataManager",
+                            code: -1,
+                            userInfo: [NSLocalizedDescriptionKey: "Could not locate track or playlist"])
+            }
+            
+            trackInContext.playlist = playlistInContext
+            
+            try backgroundContext.save()
+            
+            viewContext.performAndWait {
+                viewContext.refreshAllObjects()
+            }
+        }
     }
     
     func deleteTrack(_ track: AudioTrack) {
