@@ -4,6 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, Save, Upload, Download, FileAudio } from "lucide-react";
 import { Playlist } from "@/components/Playlist";
 import { useToast } from "@/hooks/use-toast";
+import { audioStorage } from "@/lib/audioStorage";
+import type { AudioRecord } from "@/lib/audioStorage";
 
 interface PlaylistData {
   id: number;
@@ -21,229 +23,88 @@ export function PlaylistManager({ allCollapsed = false }: PlaylistManagerProps) 
   ]);
   const { toast } = useToast();
 
-  // Load playlists from localStorage on component mount
+  // Load playlists from IndexedDB on component mount
   useEffect(() => {
-    const loadSavedPlaylists = async () => {
-      const savedPlaylists = localStorage.getItem('audioPlaylists');
-      if (!savedPlaylists) return;
-
+    const loadRecordings = async () => {
       try {
-        const parsed = JSON.parse(savedPlaylists);
-        const reconstructedPlaylists = await Promise.all(
-          parsed.map(async (playlist: PlaylistData) => {
-            const reconstructedTracks = await Promise.all(
-              playlist.tracks.map(async (track) => {
-                if (track.url.startsWith('data:')) {
-                  try {
-                    // Create a new blob from the data URL
-                    const base64Response = await fetch(track.url);
-                    if (!base64Response.ok) throw new Error('Failed to fetch audio data');
-                    const audioBlob = await base64Response.blob();
-                    
-                    // Verify the blob is valid audio
-                    const validationAudio = new Audio();
-                    validationAudio.src = URL.createObjectURL(audioBlob);
-                    
-                    await new Promise((resolve, reject) => {
-                      validationAudio.onloadedmetadata = resolve;
-                      validationAudio.onerror = () => reject(new Error('Invalid audio data'));
-                      
-                      // Set a timeout in case the audio never loads
-                      setTimeout(() => reject(new Error('Audio load timeout')), 5000);
-                    });
-                    
-                    // If we get here, the audio is valid
-                    return {
-                      ...track,
-                      url: URL.createObjectURL(audioBlob)
-                    };
-                  } catch (error) {
-                    console.error('Failed to reconstruct track:', error);
-                    toast({
-                      title: "Warning",
-                      description: `Failed to load track: ${track.name}`,
-                      variant: "destructive"
-                    });
-                    return null;
-                  }
-                }
-                return track;
-              })
-            );
-
-            const validTracks = reconstructedTracks.filter(Boolean);
-            if (validTracks.length < reconstructedTracks.length) {
-              toast({
-                title: "Warning",
-                description: `Some tracks in playlist "${playlist.name}" could not be loaded`,
-                variant: "destructive"
-              });
-            }
-
-            return {
-              ...playlist,
-              tracks: validTracks
-            };
-          })
-        );
-
-        setPlaylists(reconstructedPlaylists);
+        const categories = await audioStorage.getAllCategories();
+        const playlistsByCategory: { [key: string]: AudioRecord[] } = {};
         
-        if (reconstructedPlaylists.some(p => p.tracks.length > 0)) {
+        for (const category of categories) {
+          playlistsByCategory[category] = await audioStorage.getRecordingsByCategory(category);
+        }
+
+        const loadedPlaylists = Object.entries(playlistsByCategory).map(([category, recordings]) => ({
+          id: Date.now() + Math.random(),
+          name: category,
+          tracks: recordings.map(recording => ({
+            name: recording.name,
+            url: URL.createObjectURL(recording.audioData)
+          }))
+        }));
+
+        setPlaylists(loadedPlaylists);
+        
+        if (loadedPlaylists.some(p => p.tracks.length > 0)) {
           toast({
-            title: "Playlists loaded",
-            description: "Your saved playlists have been restored"
+            title: "Recordings loaded",
+            description: "Your recordings have been organized into playlists"
           });
         }
       } catch (error) {
-        console.error('Failed to load playlists:', error);
+        console.error('Failed to load recordings:', error);
         toast({
           title: "Error",
-          description: "Failed to load saved playlists",
+          description: "Failed to load your recordings",
           variant: "destructive"
         });
       }
     };
 
-    loadSavedPlaylists();
+    loadRecordings();
+
+    // Listen for updates to recordings
+    const handleRecordingsUpdate = () => {
+      loadRecordings();
+    };
+
+    window.addEventListener('recordingsUpdated', handleRecordingsUpdate);
+    return () => {
+      window.removeEventListener('recordingsUpdated', handleRecordingsUpdate);
+    };
   }, []);
 
   const savePlaylist = async (playlistId?: number) => {
     try {
-      const playlistsToSave = playlistId 
-        ? playlists.filter(p => p.id === playlistId)
-        : playlists;
-
-      // Convert all blob URLs to base64 before saving
-      const processedPlaylists = await Promise.all(
-        playlistsToSave.map(async (playlist) => {
-          const processedTracks = [];
-          let skippedTracks = 0;
-          
-          for (const track of playlist.tracks) {
-            if (!track?.url || !track?.name) {
-              console.error('Invalid track data:', track);
-              skippedTracks++;
-              continue;
-            }
-
-            try {
-              // If the track URL is already a data URL, verify it and use it directly
-              if (track.url.startsWith('data:audio/')) {
-                processedTracks.push(track);
-                continue;
-              }
-
-              // For blob URLs, try to convert them to data URLs
-              if (track.url.startsWith('blob:')) {
-                try {
-                  // Add timeout to fetch operation
-                  const controller = new AbortController();
-                  const timeoutId = setTimeout(() => controller.abort(), 5000);
-
-                  const response = await fetch(track.url, { signal: controller.signal });
-                  clearTimeout(timeoutId);
-
-                  if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                  }
-
-                  const blob = await response.blob();
-                  
-                  // Verify blob is audio
-                  if (!blob.type.startsWith('audio/')) {
-                    throw new Error('Invalid audio format');
-                  }
-
-                  // Create a temporary audio element to verify the blob
-                  const audio = new Audio();
-                  const objectUrl = URL.createObjectURL(blob);
-                  
-                  try {
-                    await new Promise((resolve, reject) => {
-                      audio.onloadedmetadata = resolve;
-                      audio.onerror = () => reject(new Error('Invalid audio data'));
-                      audio.src = objectUrl;
-                      
-                      // Set a timeout for audio validation
-                      setTimeout(() => reject(new Error('Audio validation timeout')), 3000);
-                    });
-
-                    const base64Url = await new Promise<string>((resolve, reject) => {
-                      const reader = new FileReader();
-                      reader.onloadend = () => {
-                        if (typeof reader.result === 'string') {
-                          resolve(reader.result);
-                        } else {
-                          reject(new Error('Failed to read blob as DataURL'));
-                        }
-                      };
-                      reader.onerror = () => reject(reader.error);
-                      reader.readAsDataURL(blob);
-                    });
-
-                    processedTracks.push({
-                      name: track.name,
-                      url: base64Url
-                    });
-                  } finally {
-                    URL.revokeObjectURL(objectUrl);
-                  }
-                } catch (error) {
-                  console.error(`Failed to process blob URL for track: ${track.name}`, error);
-                  skippedTracks++;
-                  continue;
-                }
-              } else {
-                // For other URL types (e.g., remote URLs), store as is
-                processedTracks.push(track);
-              }
-            } catch (error) {
-              console.error('Error processing track:', error);
-              skippedTracks++;
-              continue;
-            }
-          }
-
-          if (skippedTracks > 0) {
-            toast({
-              title: "Warning",
-              description: `${skippedTracks} track(s) could not be saved in playlist "${playlist.name}"`,
-              variant: "destructive"
-            });
-          }
-
-          return {
-            ...playlist,
-            tracks: processedTracks
-          };
-        })
-      );
-
-      if (playlistId) {
-        // Save single playlist
-        const existingPlaylists = JSON.parse(localStorage.getItem('audioPlaylists') || '[]');
-        const updatedPlaylists = existingPlaylists.map((p: PlaylistData) =>
-          p.id === playlistId ? processedPlaylists[0] : p
-        );
-        localStorage.setItem('audioPlaylists', JSON.stringify(updatedPlaylists));
-        toast({
-          title: "Playlist saved",
-          description: `${processedPlaylists[0].name} has been saved successfully`
-        });
-      } else {
-        // Save all playlists
-        localStorage.setItem('audioPlaylists', JSON.stringify(processedPlaylists));
-        toast({
-          title: "All playlists saved",
-          description: "Your playlists have been saved successfully"
-        });
+      // Fetch all recordings from IndexedDB and organize them by category
+      const categories = await audioStorage.getAllCategories();
+      const playlistsByCategory: { [key: string]: AudioRecord[] } = {};
+      
+      for (const category of categories) {
+        playlistsByCategory[category] = await audioStorage.getRecordingsByCategory(category);
       }
+
+      // Update playlists state with the organized recordings
+      const updatedPlaylists = Object.entries(playlistsByCategory).map(([category, recordings]) => ({
+        id: Date.now() + Math.random(), // Generate unique ID
+        name: category,
+        tracks: recordings.map(recording => ({
+          name: recording.name,
+          url: URL.createObjectURL(recording.audioData)
+        }))
+      }));
+
+      setPlaylists(updatedPlaylists);
+
+      toast({
+        title: "Playlists updated",
+        description: "Your recordings have been organized into playlists"
+      });
     } catch (error) {
-      console.error('Failed to save playlists:', error);
+      console.error('Failed to update playlists:', error);
       toast({
         title: "Error",
-        description: "Failed to save playlists",
+        description: "Failed to organize recordings into playlists",
         variant: "destructive"
       });
     }
