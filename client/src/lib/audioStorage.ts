@@ -14,22 +14,38 @@ interface AudioPlaylist {
 }
 
 const DB_NAME = 'brain-shift-audio-db';
-const STORE_NAME = 'recordings';
-const DB_VERSION = 1;
+const RECORDINGS_STORE = 'recordings';
+const PLAYLISTS_STORE = 'playlists';
+const DB_VERSION = 2;
+
+export interface PlaylistMetadata {
+  id: number;
+  name: string;
+  order: number;
+}
 
 class AudioStorageService {
   private db: IDBPDatabase | null = null;
 
   async initialize() {
     this.db = await openDB(DB_NAME, DB_VERSION, {
-      upgrade(db) {
-        if (!db.objectStoreNames.contains(STORE_NAME)) {
-          const store = db.createObjectStore(STORE_NAME, { 
+      upgrade(db, oldVersion) {
+        // Create or update stores based on version
+        if (oldVersion < 1) {
+          const recordingsStore = db.createObjectStore(RECORDINGS_STORE, { 
             keyPath: 'id', 
             autoIncrement: true 
           });
-          store.createIndex('category', 'category');
-          store.createIndex('timestamp', 'timestamp');
+          recordingsStore.createIndex('category', 'category');
+          recordingsStore.createIndex('timestamp', 'timestamp');
+        }
+        
+        if (oldVersion < 2) {
+          const playlistsStore = db.createObjectStore(PLAYLISTS_STORE, {
+            keyPath: 'id',
+            autoIncrement: true
+          });
+          playlistsStore.createIndex('order', 'order');
         }
       },
     });
@@ -45,13 +61,13 @@ class AudioStorageService {
       timestamp: Date.now(),
     };
 
-    await this.db!.add(STORE_NAME, record);
+    await this.db!.add(RECORDINGS_STORE, record);
   }
 
   async getRecordingsByCategory(category: string): Promise<AudioRecord[]> {
     if (!this.db) await this.initialize();
 
-    const tx = this.db!.transaction(STORE_NAME, 'readonly');
+    const tx = this.db!.transaction(RECORDINGS_STORE, 'readonly');
     const index = tx.store.index('category');
     return await index.getAll(category);
   }
@@ -59,7 +75,7 @@ class AudioStorageService {
   async getAllCategories(): Promise<string[]> {
     if (!this.db) await this.initialize();
 
-    const tx = this.db!.transaction(STORE_NAME, 'readonly');
+    const tx = this.db!.transaction(RECORDINGS_STORE, 'readonly');
     const recordings = await tx.store.getAll();
     const categories = new Set(recordings.map(r => r.category));
     return Array.from(categories);
@@ -67,23 +83,18 @@ class AudioStorageService {
 
   async deleteRecording(id: number): Promise<void> {
     if (!this.db) await this.initialize();
-    await this.db!.delete(STORE_NAME, id);
-    
-    // After deletion, check if this was the last recording in its category
-    const remainingRecordings = await this.db!.getAll(STORE_NAME);
-    const categories = new Set(remainingRecordings.map(r => r.category));
-    return Array.from(categories);
+    await this.db!.delete(RECORDINGS_STORE, id);
   }
 
   async deleteCategory(category: string): Promise<void> {
     if (!this.db) await this.initialize();
     
-    const tx = this.db!.transaction(STORE_NAME, 'readwrite');
+    const tx = this.db!.transaction(RECORDINGS_STORE, 'readwrite');
     const index = tx.store.index('category');
     const recordingsToDelete = await index.getAll(category);
     
     for (const recording of recordingsToDelete) {
-      await this.db!.delete(STORE_NAME, recording.id!);
+      await this.db!.delete(RECORDINGS_STORE, recording.id!);
     }
   }
 
@@ -101,6 +112,26 @@ class AudioStorageService {
       reader.onerror = () => reject(reader.error);
       reader.readAsDataURL(recording.audioData);
     });
+  }
+
+  // New playlist methods
+  async savePlaylists(playlists: PlaylistMetadata[]): Promise<void> {
+    if (!this.db) await this.initialize();
+    
+    const tx = this.db!.transaction(PLAYLISTS_STORE, 'readwrite');
+    await tx.store.clear(); // Clear existing playlists
+    
+    for (const playlist of playlists) {
+      await tx.store.add(playlist);
+    }
+  }
+
+  async getPlaylists(): Promise<PlaylistMetadata[]> {
+    if (!this.db) await this.initialize();
+    
+    const tx = this.db!.transaction(PLAYLISTS_STORE, 'readonly');
+    const playlists = await tx.store.getAll();
+    return playlists.sort((a, b) => a.order - b.order);
   }
 }
 
