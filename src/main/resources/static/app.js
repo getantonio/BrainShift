@@ -8,9 +8,86 @@ class AudioManager {
         this.visualizerCtx = this.visualizerCanvas.getContext('2d');
         this.recordButton = document.getElementById('recordButton');
         this.stopButton = document.getElementById('stopButton');
+        this.audioBuffers = new Map(); // Cache for loaded audio buffers
+        this.currentSource = null;
+        this.gainNode = null;
+
+        // Bind methods
+        this.playAudio = this.playAudio.bind(this);
+        this.stopAudio = this.stopAudio.bind(this);
+        this.loadAudioBuffer = this.loadAudioBuffer.bind(this);
 
         this.initializeAudio();
         this.setupEventListeners();
+    }
+
+    async playAudio(url) {
+        try {
+            if (!this.audioContext) {
+                await this.initializeAudio();
+            }
+
+            // Resume audio context if suspended (required for iOS)
+            if (this.audioContext.state === 'suspended') {
+                await this.audioContext.resume();
+            }
+
+            // Stop any currently playing audio
+            this.stopAudio();
+
+            // Get or load audio buffer
+            let buffer = this.audioBuffers.get(url);
+            if (!buffer) {
+                buffer = await this.loadAudioBuffer(url);
+                this.audioBuffers.set(url, buffer);
+            }
+
+            // Create and configure source
+            this.currentSource = this.audioContext.createBufferSource();
+            this.currentSource.buffer = buffer;
+
+            // Create and configure gain node if not exists
+            if (!this.gainNode) {
+                this.gainNode = this.audioContext.createGain();
+                this.gainNode.connect(this.audioContext.destination);
+            }
+
+            // Connect nodes
+            this.currentSource.connect(this.gainNode);
+            
+            // Start playback
+            this.currentSource.start(0);
+            
+            return true;
+        } catch (error) {
+            console.error('Playback error:', error);
+            throw new Error(`Failed to play audio: ${error.message}`);
+        }
+    }
+
+    stopAudio() {
+        if (this.currentSource) {
+            try {
+                this.currentSource.stop();
+            } catch (e) {
+                // Ignore errors if source has already stopped
+            }
+            this.currentSource = null;
+        }
+    }
+
+    async loadAudioBuffer(url) {
+        try {
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const arrayBuffer = await response.arrayBuffer();
+            return await this.audioContext.decodeAudioData(arrayBuffer);
+        } catch (error) {
+            console.error('Error loading audio:', error);
+            throw new Error(`Failed to load audio: ${error.message}`);
+        }
     }
 
     async initializeAudio() {
@@ -19,12 +96,53 @@ class AudioManager {
             window.AudioContext = window.AudioContext || window.webkitAudioContext;
             this.audioContext = new AudioContext();
 
+            // For iOS, we need to handle the audio context state
+            if (this.audioContext.state === 'suspended') {
+                const resumeAudio = async () => {
+                    await this.audioContext.resume();
+                    // Remove the event listener once audio is running
+                    document.removeEventListener('touchstart', resumeAudio);
+                    document.removeEventListener('mousedown', resumeAudio);
+                };
+
+                // Add both touch and mouse events for maximum compatibility
+                document.addEventListener('touchstart', resumeAudio, { once: true });
+                document.addEventListener('mousedown', resumeAudio, { once: true });
+            }
+
             // Request microphone permissions
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            this.setupAudioNodes(stream);
+            const stream = await navigator.mediaDevices.getUserMedia({ 
+                audio: {
+                    echoCancellation: true,
+                    noiseSuppression: true,
+                    autoGainControl: true
+                }
+            });
+            
+            await this.setupAudioNodes(stream);
+            
+            // Add error handling for audio context state changes
+            this.audioContext.onstatechange = () => {
+                console.log('Audio context state changed:', this.audioContext.state);
+                if (this.audioContext.state === 'interrupted') {
+                    this.handleAudioInterruption();
+                }
+            };
+
+            return true;
         } catch (error) {
             console.error('Error initializing audio:', error);
-            alert('Unable to access microphone. Please ensure you have granted permission.');
+            throw new Error(`Unable to initialize audio: ${error.message}`);
+        }
+    }
+
+    async handleAudioInterruption() {
+        try {
+            if (this.audioContext.state !== 'running') {
+                await this.audioContext.resume();
+            }
+        } catch (error) {
+            console.error('Error handling audio interruption:', error);
         }
     }
 
