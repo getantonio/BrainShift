@@ -101,16 +101,16 @@ class AudioStorageService {
     try {
       if (!this.db) await this.initialize();
 
-      // Convert Blob to ArrayBuffer for better iOS compatibility
-      const arrayBuffer = await new Promise<ArrayBuffer>((resolve, reject) => {
+      // Convert to base64 for better persistence
+      const base64Data = await new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
-        reader.onload = () => resolve(reader.result as ArrayBuffer);
-        reader.onerror = () => reject(reader.error);
-        reader.readAsArrayBuffer(audioBlob);
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(audioBlob);
       });
 
-      // Create a new Blob from ArrayBuffer
-      const audioData = new Blob([arrayBuffer], { type: audioBlob.type });
+      // Store as base64 string
+      const audioData = base64Data;
 
       const record: AudioRecord = {
         name,
@@ -206,9 +206,14 @@ class AudioStorageService {
   async getRecordingUrl(recording: AudioRecord): Promise<string> {
     return new Promise((resolve, reject) => {
       try {
-        // For iOS, always convert to base64 data URL for persistence
         if (!recording.audioData) {
           throw new Error('No audio data found');
+        }
+        
+        // If already base64, return directly
+        if (typeof recording.audioData === 'string' && recording.audioData.startsWith('data:')) {
+          resolve(recording.audioData);
+          return;
         }
 
         const audioBlob = recording.audioData instanceof Blob ? 

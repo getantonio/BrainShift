@@ -69,6 +69,20 @@ export function AudioItem({ track, onRename, onDelete }: AudioItemProps) {
           size="icon"
           onClick={isPlaying ? stopAudio : playAudio}
           className="h-8 w-8 bg-gray-800 hover:bg-gray-700 text-gray-200 border-gray-600"
+      onPlay={async () => {
+        try {
+          if (audio) {
+            await audio.play();
+          }
+        } catch (error) {
+          console.error('Playback error:', error);
+          toast({
+            title: "Error",
+            description: "Failed to play audio",
+            variant: "destructive"
+          });
+        }
+      }}
         >
           {isPlaying ? <Square className="h-4 w-4" /> : <Play className="h-4 w-4" />}
         </Button>
@@ -77,6 +91,20 @@ export function AudioItem({ track, onRename, onDelete }: AudioItemProps) {
           size="icon"
           onClick={handleRename}
           className="h-8 w-8 bg-gray-800 hover:bg-gray-700 text-gray-200 border-gray-600"
+      onPlay={async () => {
+        try {
+          if (audio) {
+            await audio.play();
+          }
+        } catch (error) {
+          console.error('Playback error:', error);
+          toast({
+            title: "Error",
+            description: "Failed to play audio",
+            variant: "destructive"
+          });
+        }
+      }}
         >
           <Edit2 className="h-4 w-4" />
         </Button>
@@ -89,6 +117,20 @@ export function AudioItem({ track, onRename, onDelete }: AudioItemProps) {
             variant="outline"
             size="icon"
             className="h-8 w-8 bg-gray-800 hover:bg-gray-700 text-gray-200 border-gray-600"
+      onPlay={async () => {
+        try {
+          if (audio) {
+            await audio.play();
+          }
+        } catch (error) {
+          console.error('Playback error:', error);
+          toast({
+            title: "Error",
+            description: "Failed to play audio",
+            variant: "destructive"
+          });
+        }
+      }}
           >
             <Download className="h-4 w-4" />
           </Button>
@@ -103,6 +145,20 @@ export function AudioItem({ track, onRename, onDelete }: AudioItemProps) {
             }
           }}
           className="h-8 w-8 bg-gray-800 hover:bg-gray-700 text-gray-200 border-gray-600"
+      onPlay={async () => {
+        try {
+          if (audio) {
+            await audio.play();
+          }
+        } catch (error) {
+          console.error('Playback error:', error);
+          toast({
+            title: "Error",
+            description: "Failed to play audio",
+            variant: "destructive"
+          });
+        }
+      }}
         >
           <Trash2 className="h-4 w-4" />
         </Button>
