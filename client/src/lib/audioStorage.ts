@@ -204,24 +204,18 @@ class AudioStorageService {
   }
 
   async getRecordingUrl(recording: AudioRecord): Promise<string> {
-    // For iOS compatibility, convert Blob to base64 data URL with proper error handling
     return new Promise((resolve, reject) => {
       try {
-        // Verify that the Blob is valid
-        if (!(recording.audioData instanceof Blob)) {
-          throw new Error('Invalid audio data format');
-        }
+        // Handle case where audioData might be serialized
+        const audioBlob = recording.audioData instanceof Blob ? 
+          recording.audioData : 
+          new Blob([recording.audioData], { type: 'audio/wav' });
 
         const reader = new FileReader();
         
         reader.onloadend = () => {
           if (typeof reader.result === 'string') {
-            // Verify the data URL is valid
-            if (reader.result.startsWith('data:audio/')) {
-              resolve(reader.result);
-            } else {
-              reject(new Error('Invalid audio data format'));
-            }
+            resolve(reader.result);
           } else {
             reject(new Error('Failed to convert audio to data URL'));
           }

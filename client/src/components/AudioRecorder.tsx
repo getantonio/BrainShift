@@ -85,8 +85,17 @@ export function AudioRecorder({ currentCategory }: AudioRecorderProps) {
             currentCategory || 'custom'
           );
 
-          // Force refresh of playlists
-          const event = new CustomEvent('recordingsUpdated');
+          // Create object URL for immediate playback
+          const url = URL.createObjectURL(processedBlob);
+          
+          // Dispatch event with recording details
+          const event = new CustomEvent('newRecording', {
+            detail: {
+              name: fileName,
+              url: url,
+              category: currentCategory || 'custom'
+            }
+          });
           window.dispatchEvent(event);
           
           toast({
