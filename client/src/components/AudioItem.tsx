@@ -21,12 +21,27 @@ export function AudioItem({ track, onRename, onDelete }: AudioItemProps) {
 
   useEffect(() => {
     if (track?.url) {
-      const newAudio = new Audio(track.url);
+      const newAudio = new Audio();
       newAudio.preload = "auto";
+      
+      // Create and resume AudioContext on iOS
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      if (audioContext.state === 'suspended') {
+        const resumeAudioContext = () => {
+          audioContext.resume();
+          document.removeEventListener('touchstart', resumeAudioContext);
+        };
+        document.addEventListener('touchstart', resumeAudioContext);
+      }
+      
+      // Set audio source after context initialization
+      newAudio.src = track.url;
       setAudio(newAudio);
+      
       return () => {
         newAudio.pause();
         newAudio.src = "";
+        audioContext.close();
       };
     }
   }, [track?.url]);
@@ -35,18 +50,21 @@ export function AudioItem({ track, onRename, onDelete }: AudioItemProps) {
     if (!audio || !track?.url) return;
     try {
       if (audio.paused) {
-        await audio.play();
-        setIsPlaying(true);
-        audio.onended = () => {
-          setIsPlaying(false);
-          audio.currentTime = 0;
-        };
+        const playPromise = audio.play();
+        if (playPromise !== undefined) {
+          await playPromise;
+          setIsPlaying(true);
+          audio.onended = () => {
+            setIsPlaying(false);
+            audio.currentTime = 0;
+          };
+        }
       }
     } catch (error) {
       console.error('Playback error:', error);
       toast({
         title: "Error",
-        description: "Failed to play audio",
+        description: "Failed to play audio. Please try tapping the screen first.",
         variant: "destructive"
       });
     }
