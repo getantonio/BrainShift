@@ -68,6 +68,23 @@ class AudioStorageService {
   async deleteRecording(id: number): Promise<void> {
     if (!this.db) await this.initialize();
     await this.db!.delete(STORE_NAME, id);
+    
+    // After deletion, check if this was the last recording in its category
+    const remainingRecordings = await this.db!.getAll(STORE_NAME);
+    const categories = new Set(remainingRecordings.map(r => r.category));
+    return Array.from(categories);
+  }
+
+  async deleteCategory(category: string): Promise<void> {
+    if (!this.db) await this.initialize();
+    
+    const tx = this.db!.transaction(STORE_NAME, 'readwrite');
+    const index = tx.store.index('category');
+    const recordingsToDelete = await index.getAll(category);
+    
+    for (const recording of recordingsToDelete) {
+      await this.db!.delete(STORE_NAME, recording.id!);
+    }
   }
 
   async getRecordingUrl(recording: AudioRecord): Promise<string> {
