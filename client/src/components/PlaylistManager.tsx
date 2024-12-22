@@ -78,35 +78,47 @@ export function PlaylistManager({ allCollapsed = false }: PlaylistManagerProps) 
 
   const savePlaylist = async (playlistId?: number) => {
     try {
-      // Fetch all recordings from IndexedDB and organize them by category
+      // Get current playlist names to maintain only active playlists
+      const activePlaylistNames = new Set(playlists.map(p => p.name));
+      
+      // Get all categories from storage
       const categories = await audioStorage.getAllCategories();
       const playlistsByCategory: { [key: string]: AudioRecord[] } = {};
       
+      // Only load categories that correspond to active playlists
       for (const category of categories) {
-        playlistsByCategory[category] = await audioStorage.getRecordingsByCategory(category);
+        if (activePlaylistNames.has(category)) {
+          playlistsByCategory[category] = await audioStorage.getRecordingsByCategory(category);
+        }
       }
 
-      // Update playlists state with the organized recordings
-      const updatedPlaylists = Object.entries(playlistsByCategory).map(([category, recordings]) => ({
-        id: Date.now() + Math.random(), // Generate unique ID
-        name: category,
-        tracks: recordings.map(recording => ({
-          name: recording.name,
-          url: URL.createObjectURL(recording.audioData)
-        }))
-      }));
+      // Update playlists while preserving existing IDs
+      const updatedPlaylists = await Promise.all(
+        Object.entries(playlistsByCategory).map(async ([category, recordings]) => {
+          // Find existing playlist to preserve its ID
+          const existingPlaylist = playlists.find(p => p.name === category);
+          return {
+            id: existingPlaylist?.id || Date.now() + Math.random(),
+            name: category,
+            tracks: await Promise.all(recordings.map(async recording => ({
+              name: recording.name,
+              url: await audioStorage.getRecordingUrl(recording)
+            })))
+          };
+        })
+      );
 
       setPlaylists(updatedPlaylists);
 
       toast({
-        title: "Playlists updated",
-        description: "Your recordings have been organized into playlists"
+        title: "Playlists saved",
+        description: "Your playlists have been updated successfully"
       });
     } catch (error) {
-      console.error('Failed to update playlists:', error);
+      console.error('Failed to save playlists:', error);
       toast({
         title: "Error",
-        description: "Failed to organize recordings into playlists",
+        description: "Failed to save playlists",
         variant: "destructive"
       });
     }
