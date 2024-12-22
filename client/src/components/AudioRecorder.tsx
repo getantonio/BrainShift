@@ -57,22 +57,35 @@ export function AudioRecorder({ currentCategory }: AudioRecorderProps) {
       };
 
       recorder.onstop = async () => {
-        const audioBlob = new Blob(audioChunks.current, { type: 'audio/mp3' });
-        
-        const fileName = prompt('Enter a name for your recording:', 'New Recording');
-        if (!fileName) {
-          audioChunks.current = [];
-          return;
-        }
-
         try {
+          // Create blob with explicit type for better iOS compatibility
+          const audioBlob = new Blob(audioChunks.current, { 
+            type: 'audio/wav' 
+          });
+          
+          const fileName = prompt('Enter a name for your recording:', 'New Recording');
+          if (!fileName) {
+            audioChunks.current = [];
+            return;
+          }
+
+          // Convert blob to proper format before saving
+          const arrayBuffer = await new Promise<ArrayBuffer>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as ArrayBuffer);
+            reader.onerror = reject;
+            reader.readAsArrayBuffer(audioBlob);
+          });
+
+          const processedBlob = new Blob([arrayBuffer], { type: 'audio/wav' });
+          
           await audioStorage.saveRecording(
             fileName,
-            audioBlob,
+            processedBlob,
             currentCategory || 'custom'
           );
 
-          // Dispatch event to refresh playlists
+          // Force refresh of playlists
           const event = new CustomEvent('recordingsUpdated');
           window.dispatchEvent(event);
           
