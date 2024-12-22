@@ -24,9 +24,10 @@ export function AudioItem({ track, onRename, onDelete }: AudioItemProps) {
     
     if (track?.url) {
       const newAudio = new Audio();
-      newAudio.preload = "auto";
+      newAudio.preload = "none"; // Changed to none for iOS
+      newAudio.src = track.url;
       
-      // For iOS, we need to set the source after user interaction
+      // For iOS, we need to initialize audio context after user interaction
       const initAudio = async () => {
         try {
           if (!audioContext) {

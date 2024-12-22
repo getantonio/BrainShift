@@ -341,7 +341,7 @@ export function Playlist({
         </CollapsibleTrigger>
         </div>
       <CollapsibleContent>
-        <div className="p-4 space-y-2">
+        <div className="p-2 space-y-1">
           {playlist.tracks.map((track, index) => (
             <div key={index} className="relative group">
               <AudioItem
@@ -376,47 +376,48 @@ export function Playlist({
           ))}
         </div>
         <div className="flex gap-2 mt-4 justify-between">
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={playPlaylist}
-              disabled={playlist.tracks.length === 0}
-              className="bg-gray-800 hover:bg-gray-700 text-gray-200 border-gray-600"
-            >
-              <Play className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={toggleLoop}
-              className={`bg-gray-800 hover:bg-gray-700 text-gray-200 border-gray-600 ${
-                isLooping ? "ring-2 ring-gray-500" : ""
-              }`}
-            >
-              <Repeat className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={toggleShuffle}
-              className={`bg-gray-800 hover:bg-gray-700 text-gray-200 border-gray-600 ${
-                isShuffled ? "ring-2 ring-gray-500" : ""
-              }`}
-            >
-              <Shuffle className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={stopPlaylist}
-              disabled={!currentAudio}
-              className="bg-gray-800 hover:bg-gray-700 text-gray-200 border-gray-600"
-            >
-              <Square className="h-4 w-4" />
-            </Button>
-          </div>
-          <div className="flex gap-2">
+          <div className="space-y-2">
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={playPlaylist}
+                disabled={playlist.tracks.length === 0}
+                className="bg-gray-800 hover:bg-gray-700 text-gray-200 border-gray-600"
+              >
+                <Play className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={toggleLoop}
+                className={`bg-gray-800 hover:bg-gray-700 text-gray-200 border-gray-600 ${
+                  isLooping ? "ring-2 ring-gray-500" : ""
+                }`}
+              >
+                <Repeat className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={toggleShuffle}
+                className={`bg-gray-800 hover:bg-gray-700 text-gray-200 border-gray-600 ${
+                  isShuffled ? "ring-2 ring-gray-500" : ""
+                }`}
+              >
+                <Shuffle className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={stopPlaylist}
+                disabled={!currentAudio}
+                className="bg-gray-800 hover:bg-gray-700 text-gray-200 border-gray-600"
+              >
+                <Square className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="flex gap-2">
             <Button
               variant="outline"
               size="icon"
