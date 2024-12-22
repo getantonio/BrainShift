@@ -20,28 +20,37 @@ export function AudioItem({ track, onRename, onDelete }: AudioItemProps) {
   const [newName, setNewName] = useState(track?.name || '');
 
   useEffect(() => {
+    let audioContext: AudioContext | null = null;
+    
     if (track?.url) {
       const newAudio = new Audio();
       newAudio.preload = "auto";
-      
-      // Create and resume AudioContext on iOS
-      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-      if (audioContext.state === 'suspended') {
-        const resumeAudioContext = () => {
-          audioContext.resume();
-          document.removeEventListener('touchstart', resumeAudioContext);
-        };
-        document.addEventListener('touchstart', resumeAudioContext);
-      }
-      
-      // Set audio source after context initialization
       newAudio.src = track.url;
+      
+      const initAudio = () => {
+        if (!audioContext) {
+          audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+          const source = audioContext.createMediaElementSource(newAudio);
+          source.connect(audioContext.destination);
+        }
+        if (audioContext.state === 'suspended') {
+          audioContext.resume();
+        }
+      };
+
+      newAudio.addEventListener('play', initAudio);
+      document.addEventListener('touchstart', initAudio, { once: true });
+      
       setAudio(newAudio);
       
       return () => {
         newAudio.pause();
         newAudio.src = "";
-        audioContext.close();
+        document.removeEventListener('touchstart', initAudio);
+        newAudio.removeEventListener('play', initAudio);
+        if (audioContext) {
+          audioContext.close();
+        }
       };
     }
   }, [track?.url]);
