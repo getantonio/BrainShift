@@ -182,19 +182,26 @@ class AudioEngine: ObservableObject {
         ]
         
         do {
+            // Ensure proper audio session configuration for recording
+            try audioSession.setActive(false)
+            try audioSession.setCategory(.playAndRecord, mode: .default, options: [.defaultToSpeaker, .allowBluetooth])
+            try audioSession.setActive(true)
+            
             audioRecorder = try AVAudioRecorder(url: audioFilename, settings: settings)
             audioRecorder?.delegate = self
             audioRecorder?.isMeteringEnabled = true
             audioRecorder?.prepareToRecord()
-            audioRecorder?.record()
-            isRecording = true
             
-            // Start monitoring audio levels
-            startMonitoringAudioLevels()
-            
-            return audioFilename
+            if audioRecorder?.record() == true {
+                isRecording = true
+                startMonitoringAudioLevels()
+                print("Recording started successfully")
+                return audioFilename
+            } else {
+                throw NSError(domain: "AudioEngine", code: -3, userInfo: [NSLocalizedDescriptionKey: "Failed to start recording"])
+            }
         } catch {
-            print("Could not start recording: \(error.localizedDescription)")
+            print("Recording error: \(error.localizedDescription)")
             return nil
         }
     }
@@ -202,6 +209,15 @@ class AudioEngine: ObservableObject {
     func stopRecording() {
         audioRecorder?.stop()
         isRecording = false
+        
+        // Reset audio session for playback
+        do {
+            try audioSession.setActive(false)
+            try audioSession.setCategory(.playback, mode: .default)
+            try audioSession.setActive(true)
+        } catch {
+            print("Failed to reset audio session after recording: \(error.localizedDescription)")
+        }
     }
 }
 
@@ -210,6 +226,8 @@ extension AudioEngine: AVAudioRecorderDelegate, AVAudioPlayerDelegate {
         isRecording = false
         if !flag {
             print("Recording finished unsuccessfully")
+        } else {
+            print("Recording completed successfully")
         }
     }
     
@@ -218,6 +236,18 @@ extension AudioEngine: AVAudioRecorderDelegate, AVAudioPlayerDelegate {
         currentTime = 0
         if !flag {
             print("Playback finished unsuccessfully")
+        } else {
+            print("Playback completed successfully")
         }
+    }
+    
+    func audioPlayerDecodeErrorDidOccur(_ player: AVAudioPlayer, error: Error?) {
+        isPlaying = false
+        print("Audio player decode error: \(error?.localizedDescription ?? "unknown error")")
+    }
+    
+    func audioRecorderEncodeErrorDidOccur(_ recorder: AVAudioRecorder, error: Error?) {
+        isRecording = false
+        print("Audio recorder encode error: \(error?.localizedDescription ?? "unknown error")")
     }
 }
