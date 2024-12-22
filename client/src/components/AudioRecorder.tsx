@@ -60,7 +60,7 @@ export function AudioRecorder({ currentCategory }: AudioRecorderProps) {
         try {
           // Create blob with explicit type for better iOS compatibility
           const audioBlob = new Blob(audioChunks.current, { 
-            type: 'audio/wav' 
+            type: 'audio/mpeg' 
           });
           
           const fileName = prompt('Enter a name for your recording:', 'New Recording');

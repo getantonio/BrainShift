@@ -261,6 +261,8 @@ class AudioStorageService {
         console.error('Error in getRecordingUrl:', error);
         reject(error);
       }
+    }).finally(() => {
+      // Cleanup any resources if needed
     });
   }
 
