@@ -50,10 +50,10 @@ class AudioStorageService {
               });
               recordingsStore.createIndex('category', 'category');
               recordingsStore.createIndex('timestamp', 'timestamp');
-            } catch (error) {
+            } catch (error: any) {
               console.error('Error creating recordings store:', error);
               // If store already exists, ignore the error
-              if (!error.message.includes('already exists')) {
+              if (!error.message?.includes('already exists')) {
                 throw error;
               }
             }
@@ -66,10 +66,10 @@ class AudioStorageService {
                 autoIncrement: true
               });
               playlistsStore.createIndex('order', 'order');
-            } catch (error) {
+            } catch (error: any) {
               console.error('Error creating playlists store:', error);
               // If store already exists, ignore the error
-              if (!error.message.includes('already exists')) {
+              if (!error.message?.includes('already exists')) {
                 throw error;
               }
             }
@@ -91,7 +91,7 @@ class AudioStorageService {
       await transaction.done;
 
       return this.db;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to initialize IndexedDB:', error);
       throw new Error(`Failed to initialize database: ${error.message}`);
     }
@@ -101,8 +101,16 @@ class AudioStorageService {
     try {
       if (!this.db) await this.initialize();
 
-      // Create a copy of the Blob to ensure it's stored properly
-      const audioData = await audioBlob.slice(0, audioBlob.size, audioBlob.type);
+      // Convert Blob to ArrayBuffer for better iOS compatibility
+      const arrayBuffer = await new Promise<ArrayBuffer>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as ArrayBuffer);
+        reader.onerror = () => reject(reader.error);
+        reader.readAsArrayBuffer(audioBlob);
+      });
+
+      // Create a new Blob from ArrayBuffer
+      const audioData = new Blob([arrayBuffer], { type: audioBlob.type });
 
       const record: AudioRecord = {
         name,
@@ -196,48 +204,38 @@ class AudioStorageService {
   }
 
   async getRecordingUrl(recording: AudioRecord): Promise<string> {
-    // For iOS compatibility, convert Blob to base64 data URL with proper error handling
     return new Promise((resolve, reject) => {
       try {
-        // Verify that the Blob is valid
-        if (!(recording.audioData instanceof Blob)) {
-          throw new Error('Invalid audio data format');
+        // For iOS, always convert to base64 data URL for persistence
+        if (!recording.audioData) {
+          throw new Error('No audio data found');
         }
+
+        const audioBlob = recording.audioData instanceof Blob ? 
+          recording.audioData : 
+          new Blob([recording.audioData], { type: 'audio/wav' });
 
         const reader = new FileReader();
         
         reader.onloadend = () => {
-          if (typeof reader.result === 'string') {
-            // Verify the data URL is valid
-            if (reader.result.startsWith('data:audio/')) {
-              resolve(reader.result);
-            } else {
-              reject(new Error('Invalid audio data format'));
-            }
+          if (typeof reader.result === 'string' && reader.result.startsWith('data:')) {
+            resolve(reader.result);
           } else {
-            reject(new Error('Failed to convert audio to data URL'));
+            // Convert to base64 for iOS compatibility
+            const base64Reader = new FileReader();
+            base64Reader.onloadend = () => {
+              if (typeof base64Reader.result === 'string') {
+                resolve(base64Reader.result);
+              } else {
+                reject(new Error('Failed to create base64 URL'));
+              }
+            };
+            base64Reader.readAsDataURL(audioBlob);
           }
         };
         
-        reader.onerror = () => {
-          console.error('FileReader error:', reader.error);
-          reject(new Error(`Failed to read audio file: ${reader.error?.message || 'Unknown error'}`));
-        };
-        
-        reader.onabort = () => {
-          reject(new Error('File reading was aborted'));
-        };
-
-        // Start reading with timeout
-        reader.readAsDataURL(recording.audioData);
-        
-        // Add timeout for iOS Safari
-        setTimeout(() => {
-          if (reader.readyState !== FileReader.DONE) {
-            reader.abort();
-            reject(new Error('File reading timed out'));
-          }
-        }, 5000); // 5 second timeout
+        reader.onerror = () => reject(new Error('Failed to read audio data'));
+        reader.readAsDataURL(audioBlob);
       } catch (error) {
         console.error('Error in getRecordingUrl:', error);
         reject(error);
@@ -245,7 +243,6 @@ class AudioStorageService {
     });
   }
 
-  // New playlist methods
   async savePlaylists(playlists: PlaylistMetadata[]): Promise<void> {
     if (!this.db) await this.initialize();
     

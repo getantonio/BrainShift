@@ -57,23 +57,45 @@ export function AudioRecorder({ currentCategory }: AudioRecorderProps) {
       };
 
       recorder.onstop = async () => {
-        const audioBlob = new Blob(audioChunks.current, { type: 'audio/mp3' });
-        
-        const fileName = prompt('Enter a name for your recording:', 'New Recording');
-        if (!fileName) {
-          audioChunks.current = [];
-          return;
-        }
-
         try {
+          // Create blob with explicit type for better iOS compatibility
+          const audioBlob = new Blob(audioChunks.current, { 
+            type: 'audio/mpeg' 
+          });
+          
+          const fileName = prompt('Enter a name for your recording:', 'New Recording');
+          if (!fileName) {
+            audioChunks.current = [];
+            return;
+          }
+
+          // Convert blob to proper format before saving
+          const arrayBuffer = await new Promise<ArrayBuffer>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as ArrayBuffer);
+            reader.onerror = reject;
+            reader.readAsArrayBuffer(audioBlob);
+          });
+
+          const processedBlob = new Blob([arrayBuffer], { type: 'audio/wav' });
+          
           await audioStorage.saveRecording(
             fileName,
-            audioBlob,
+            processedBlob,
             currentCategory || 'custom'
           );
 
-          // Dispatch event to refresh playlists
-          const event = new CustomEvent('recordingsUpdated');
+          // Create object URL for immediate playback
+          const url = URL.createObjectURL(processedBlob);
+          
+          // Dispatch event with recording details
+          const event = new CustomEvent('newRecording', {
+            detail: {
+              name: fileName,
+              url: url,
+              category: currentCategory || 'custom'
+            }
+          });
           window.dispatchEvent(event);
           
           toast({
