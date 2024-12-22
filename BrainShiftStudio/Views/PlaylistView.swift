@@ -95,8 +95,33 @@ struct PlaylistView: View {
     
     private func renamePlaylist(_ playlist: Playlist, to newName: String) {
         guard !newName.isEmpty else { return }
-        CoreDataManager.shared.updatePlaylist(playlist, newName: newName)
-        viewContext.refresh(playlist, mergeChanges: true)
+        
+        do {
+            // Try to update the playlist
+            try CoreDataManager.shared.updatePlaylist(playlist, newName: newName)
+            
+            // Refresh the view context to ensure UI updates
+            viewContext.refresh(playlist, mergeChanges: true)
+            
+            // Show success message
+            let successMessage = "Playlist renamed successfully"
+            #if os(iOS)
+            let generator = UINotificationFeedbackGenerator()
+            generator.notificationOccurred(.success)
+            #endif
+        } catch {
+            // Show error message
+            print("Failed to rename playlist: \(error.localizedDescription)")
+            #if os(iOS)
+            let generator = UINotificationFeedbackGenerator()
+            generator.notificationOccurred(.error)
+            #endif
+            
+            // Reset the name in UI
+            DispatchQueue.main.async {
+                self.renameText = playlist.name ?? ""
+            }
+        }
     }
 }
 

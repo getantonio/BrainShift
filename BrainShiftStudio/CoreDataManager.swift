@@ -57,12 +57,48 @@ class CoreDataManager {
         return 0
     }
     
-    func updatePlaylist(_ playlist: Playlist, newName: String) {
-        viewContext.performAndWait {
+    func updatePlaylist(_ playlist: Playlist, newName: String) throws {
+        let context = persistentContainer.viewContext
+        
+        context.performAndWait {
+            // Create a temporary ID to identify this playlist
+            let playlistID = playlist.id
+            
+            // Update the playlist
             playlist.name = newName
-            playlist.modifiedAt = Date()
-            saveContext()
+            
+            // Save changes
+            do {
+                try context.save()
+                
+                // Verify the save was successful
+                if let updatedPlaylist = try? fetchPlaylist(byID: playlistID) {
+                    guard updatedPlaylist.name == newName else {
+                        // If verification fails, throw an error
+                        context.rollback()
+                        throw NSError(domain: "CoreDataManager",
+                                    code: -1,
+                                    userInfo: [NSLocalizedDescriptionKey: "Failed to verify playlist update"])
+                    }
+                }
+            } catch {
+                // If save fails, roll back and throw the error
+                context.rollback()
+                print("Error updating playlist: \(error.localizedDescription)")
+                throw error
+            }
         }
+    }
+    
+    // Helper method to fetch playlist by ID
+    private func fetchPlaylist(byID id: UUID?) -> Playlist? {
+        guard let id = id else { return nil }
+        
+        let fetchRequest: NSFetchRequest<Playlist> = Playlist.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "id == %@", id as CVarArg)
+        fetchRequest.fetchLimit = 1
+        
+        return try? viewContext.fetch(fetchRequest).first
     }
     
     func deletePlaylist(_ playlist: Playlist) {

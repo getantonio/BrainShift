@@ -24,57 +24,91 @@ class AudioEngine: ObservableObject {
     
     private func setupAudioSession() {
         do {
-            try audioSession.setCategory(.playAndRecord, mode: .default, options: [.defaultToSpeaker, .allowBluetooth])
+            // Configure audio session for iOS compatibility
+            try audioSession.setCategory(.playAndRecord, mode: .default, options: [.defaultToSpeaker, .allowBluetooth, .mixWithOthers])
             try audioSession.setActive(true)
+            
+            // Add audio session notification observers
+            NotificationCenter.default.addObserver(self,
+                selector: #selector(handleInterruption),
+                name: AVAudioSession.interruptionNotification,
+                object: nil)
+            NotificationCenter.default.addObserver(self,
+                selector: #selector(handleRouteChange),
+                name: AVAudioSession.routeChangeNotification,
+                object: nil)
         } catch {
             print("Failed to set up audio session: \(error.localizedDescription)")
         }
     }
     
-    func startRecording(fileName: String) -> URL? {
-        let audioFilename = getDocumentsDirectory().appendingPathComponent("\(fileName).wav")
+    @objc private func handleInterruption(notification: Notification) {
+        guard let userInfo = notification.userInfo,
+              let typeValue = userInfo[AVAudioSessionInterruptionTypeKey] as? UInt,
+              let type = AVAudioSession.InterruptionType(rawValue: typeValue) else {
+            return
+        }
         
-        let settings = [
-            AVFormatIDKey: Int(kAudioFormatLinearPCM),
-            AVSampleRateKey: 44100,
-            AVNumberOfChannelsKey: 2,
-            AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue
-        ]
-        
-        do {
-            audioRecorder = try AVAudioRecorder(url: audioFilename, settings: settings)
-            audioRecorder?.delegate = self
-            audioRecorder?.isMeteringEnabled = true
-            audioRecorder?.prepareToRecord()
-            audioRecorder?.record()
-            isRecording = true
-            
-            // Start monitoring audio levels
-            startMonitoringAudioLevels()
-            
-            return audioFilename
-        } catch {
-            print("Could not start recording: \(error.localizedDescription)")
-            return nil
+        switch type {
+        case .began:
+            // Interruption began, pause playback
+            if isPlaying {
+                pausePlayback()
+            }
+        case .ended:
+            // Interruption ended, resume if needed
+            guard let optionsValue = userInfo[AVAudioSessionInterruptionOptionKey] as? UInt else { return }
+            let options = AVAudioSession.InterruptionOptions(rawValue: optionsValue)
+            if options.contains(.shouldResume) {
+                playAudio(url: currentAudioURL)
+            }
+        @unknown default:
+            break
         }
     }
     
-    func stopRecording() {
-        audioRecorder?.stop()
-        isRecording = false
+    @objc private func handleRouteChange(notification: Notification) {
+        guard let userInfo = notification.userInfo,
+              let reasonValue = userInfo[AVAudioSessionRouteChangeReasonKey] as? UInt,
+              let reason = AVAudioSession.RouteChangeReason(rawValue: reasonValue) else {
+            return
+        }
+        
+        switch reason {
+        case .oldDeviceUnavailable:
+            // Audio route changed (e.g., headphones unplugged), pause playback
+            if isPlaying {
+                pausePlayback()
+            }
+        default:
+            break
+        }
     }
+
+    private var currentAudioURL: URL!
     
     func playAudio(url: URL) {
         do {
-            audioPlayer = try AVAudioPlayer(contentsOf: url)
-            audioPlayer?.delegate = self
-            audioPlayer?.prepareToPlay()
-            audioPlayer?.play()
-            isPlaying = true
-            duration = audioPlayer?.duration ?? 0
+            // Ensure audio session is active
+            try audioSession.setActive(true)
             
-            // Start updating current time
-            startUpdatingCurrentTime()
+            // Create and configure audio player
+            let player = try AVAudioPlayer(contentsOf: url)
+            player.delegate = self
+            player.prepareToPlay()
+            
+            // Store references
+            audioPlayer = player
+            currentAudioURL = url
+            
+            // Start playback
+            if player.play() {
+                isPlaying = true
+                duration = player.duration
+                startUpdatingCurrentTime()
+            } else {
+                print("Failed to start audio playback")
+            }
         } catch {
             print("Could not play audio: \(error.localizedDescription)")
         }
@@ -118,6 +152,39 @@ class AudioEngine: ObservableObject {
     
     private func getDocumentsDirectory() -> URL {
         FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+    }
+    
+    func startRecording(fileName: String) -> URL? {
+        let audioFilename = getDocumentsDirectory().appendingPathComponent("\(fileName).wav")
+        
+        let settings = [
+            AVFormatIDKey: Int(kAudioFormatLinearPCM),
+            AVSampleRateKey: 44100,
+            AVNumberOfChannelsKey: 2,
+            AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue
+        ]
+        
+        do {
+            audioRecorder = try AVAudioRecorder(url: audioFilename, settings: settings)
+            audioRecorder?.delegate = self
+            audioRecorder?.isMeteringEnabled = true
+            audioRecorder?.prepareToRecord()
+            audioRecorder?.record()
+            isRecording = true
+            
+            // Start monitoring audio levels
+            startMonitoringAudioLevels()
+            
+            return audioFilename
+        } catch {
+            print("Could not start recording: \(error.localizedDescription)")
+            return nil
+        }
+    }
+    
+    func stopRecording() {
+        audioRecorder?.stop()
+        isRecording = false
     }
 }
 
