@@ -322,7 +322,7 @@ export function Playlist({
         }
       }}
     >
-      <div className="p-4 flex flex-row items-center justify-between">
+      <div className="p-4 space-y-4">
         <CollapsibleTrigger asChild>
           <div className="flex items-center gap-2 cursor-pointer">
             <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isOpen ? '' : '-rotate-90'}`} />
@@ -339,7 +339,7 @@ export function Playlist({
             )}
           </div>
         </CollapsibleTrigger>
-        <div className="flex gap-2">
+        <div className="flex gap-2 justify-end">
           <Button
             variant="outline"
             size="icon"
