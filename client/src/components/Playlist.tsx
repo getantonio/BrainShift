@@ -370,7 +370,7 @@ export function Playlist({
                 size="sm"
                 onClick={currentAudio ? stopPlaylist : playPlaylist}
                 disabled={playlist.tracks.length === 0}
-                className="bg-gray-800 hover:bg-gray-700 text-gray-200 border-gray-600"
+                className="bg-gray-800 hover:bg-gray-700 text-gray-200 border-gray-600 w-[115%]"
               >
                 {currentAudio ? <Square className="h-4 w-4" /> : <Play className="h-4 w-4" />}
               </Button>
@@ -378,7 +378,7 @@ export function Playlist({
                 variant="outline"
                 size="sm"
                 onClick={toggleLoop}
-                className={`bg-gray-800 hover:bg-gray-700 text-gray-200 border-gray-600 ${
+                className={`bg-gray-800 hover:bg-gray-700 text-gray-200 border-gray-600 w-[115%] ${
                   isLooping ? "ring-2 ring-gray-500" : ""
                 }`}
               >
@@ -388,14 +388,14 @@ export function Playlist({
                 variant="outline"
                 size="sm"
                 onClick={toggleShuffle}
-                className={`bg-gray-800 hover:bg-gray-700 text-gray-200 border-gray-600 ${
+                className={`bg-gray-800 hover:bg-gray-700 text-gray-200 border-gray-600 w-[115%] ${
                   isShuffled ? "ring-2 ring-gray-500" : ""
                 }`}
               >
                 <Shuffle className="h-4 w-4" />
               </Button>
             </div>
-            <div className="flex justify-end gap-2">
+            <div className="flex justify-center gap-2">
               <Button
                 variant="outline"
                 size="icon"
