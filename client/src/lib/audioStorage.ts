@@ -62,14 +62,7 @@ class AudioStorageService {
     const tx = this.db!.transaction(STORE_NAME, 'readonly');
     const recordings = await tx.store.getAll();
     const categories = new Set(recordings.map(r => r.category));
-    
-    // Ensure 'custom' is always first
-    const sortedCategories = Array.from(categories);
-    const customIndex = sortedCategories.indexOf('custom');
-    if (customIndex > -1) {
-      sortedCategories.splice(customIndex, 1);
-    }
-    return ['custom', ...sortedCategories];
+    return Array.from(categories);
   }
 
   async deleteRecording(id: number): Promise<void> {
@@ -91,15 +84,6 @@ class AudioStorageService {
       reader.onerror = () => reject(reader.error);
       reader.readAsDataURL(recording.audioData);
     });
-  }
-
-  async getAllCategories(): Promise<string[]> {
-    if (!this.db) await this.initialize();
-
-    const tx = this.db!.transaction(STORE_NAME, 'readonly');
-    const recordings = await tx.store.getAll();
-    const categories = new Set(recordings.map(r => r.category));
-    return Array.from(categories).sort();
   }
 }
 
