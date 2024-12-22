@@ -39,10 +39,36 @@ class AudioCompatibilityLayer {
   private async ensureAudioContext(): Promise<AudioContext> {
     if (!this.audioContext) {
       this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      
+      // iOS requires sound to be triggered from a user interaction
+      if (this.isiOS) {
+        const silentBuffer = this.audioContext.createBuffer(1, 1, 22050);
+        const source = this.audioContext.createBufferSource();
+        source.buffer = silentBuffer;
+        source.connect(this.audioContext.destination);
+        source.start();
+      }
     }
 
     if (this.audioContext.state === 'suspended' && this.autoResume) {
-      await this.audioContext.resume();
+      try {
+        await this.audioContext.resume();
+        
+        // Additional iOS wake-up sequence
+        if (this.isiOS) {
+          const silentBuffer = this.audioContext.createBuffer(1, 1, 22050);
+          const source = this.audioContext.createBufferSource();
+          source.buffer = silentBuffer;
+          source.connect(this.audioContext.destination);
+          source.start();
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+      } catch (error) {
+        console.error('Error resuming audio context:', error);
+        // Try to recreate context if resume fails
+        this.audioContext = null;
+        return this.ensureAudioContext();
+      }
     }
 
     return this.audioContext;
@@ -64,8 +90,46 @@ class AudioCompatibilityLayer {
     const audio = new Audio();
     
     try {
+      // Set up audio element for iOS
+      if (this.isiOS) {
+        audio.preload = 'auto';
+        audio.autoplay = false;
+        // iOS requires these attributes
+        audio.setAttribute('webkit-playsinline', 'true');
+        audio.setAttribute('playsinline', 'true');
+        
+        // Unlock audio on first touch
+        await new Promise((resolve) => {
+          const unlockAudio = async () => {
+            try {
+              await this.ensureAudioContext();
+              await audio.play();
+              audio.pause();
+              audio.currentTime = 0;
+              document.removeEventListener('touchstart', unlockAudio);
+              resolve(true);
+            } catch (error) {
+              console.error('Error unlocking audio:', error);
+              resolve(false);
+            }
+          };
+          
+          if (document.visibilityState === 'visible') {
+            document.addEventListener('touchstart', unlockAudio, { once: true });
+          } else {
+            document.addEventListener('visibilitychange', function onVisibilityChange() {
+              if (document.visibilityState === 'visible') {
+                document.removeEventListener('visibilitychange', onVisibilityChange);
+                document.addEventListener('touchstart', unlockAudio, { once: true });
+              }
+            });
+          }
+        });
+      }
+
       if (url.startsWith('data:')) {
-        const audioFormat = url.match(/data:(audio\/[^;]+);base64,/)?.[1] || this.preferredFormat;
+        // Always convert to WAV for iOS compatibility
+        const audioFormat = 'audio/wav';
         const base64Data = url.split(',')[1];
         const binaryData = atob(base64Data);
         const arrayBuffer = new ArrayBuffer(binaryData.length);
@@ -75,8 +139,15 @@ class AudioCompatibilityLayer {
           uint8Array[i] = binaryData.charCodeAt(i);
         }
         
+        // Create blob with WAV format
         const blob = new Blob([arrayBuffer], { type: audioFormat });
-        audio.src = URL.createObjectURL(blob);
+        const blobUrl = URL.createObjectURL(blob);
+        
+        // Cache the blob URL for cleanup
+        this._blobUrls = this._blobUrls || new Map();
+        this._blobUrls.set(id, blobUrl);
+        
+        audio.src = blobUrl;
       } else {
         audio.src = url;
       }

@@ -182,39 +182,26 @@ export function Playlist({
   const stopPlaylist = () => {
     if (currentAudio) {
       try {
-        // First pause the audio
         currentAudio.pause();
-        
-        // Remove all event listeners
         currentAudio.onended = null;
         currentAudio.onplay = null;
         currentAudio.onerror = null;
-        
-        // Reset the audio state
         currentAudio.currentTime = 0;
-        
-        // Clear the source and release memory
         const currentSrc = currentAudio.src;
         currentAudio.src = '';
-        currentAudio.load(); // Force browser to release resources
-        
-        // Revoke the object URL if it exists
+        currentAudio.load();
         if (currentSrc.startsWith('blob:')) {
           URL.revokeObjectURL(currentSrc);
         }
-        
-        // Remove the element and clear the reference
         currentAudio.remove();
         setCurrentAudio(null);
       } catch (error) {
         console.error('Error stopping playlist:', error);
       }
     }
-    // Reset playback state
     setCurrentTrackIndex(0);
   };
 
-  // Clean up audio resources when component unmounts
   useEffect(() => {
     return () => {
       if (currentAudio) {
@@ -376,22 +363,22 @@ export function Playlist({
           ))}
         </div>
         <div className="flex gap-2 mt-4 justify-between">
-          <div className="space-y-2">
-            <div className="flex gap-2">
+          <div className="w-full space-y-2">
+            <div className="flex justify-center gap-2 mb-4">
               <Button
                 variant="outline"
                 size="sm"
-                onClick={playPlaylist}
+                onClick={currentAudio ? stopPlaylist : playPlaylist}
                 disabled={playlist.tracks.length === 0}
-                className="bg-gray-800 hover:bg-gray-700 text-gray-200 border-gray-600"
+                className="bg-gray-800 hover:bg-gray-700 text-gray-200 border-gray-600 w-[115%]"
               >
-                <Play className="h-4 w-4" />
+                {currentAudio ? <Square className="h-4 w-4" /> : <Play className="h-4 w-4" />}
               </Button>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={toggleLoop}
-                className={`bg-gray-800 hover:bg-gray-700 text-gray-200 border-gray-600 ${
+                className={`bg-gray-800 hover:bg-gray-700 text-gray-200 border-gray-600 w-[115%] ${
                   isLooping ? "ring-2 ring-gray-500" : ""
                 }`}
               >
@@ -401,23 +388,14 @@ export function Playlist({
                 variant="outline"
                 size="sm"
                 onClick={toggleShuffle}
-                className={`bg-gray-800 hover:bg-gray-700 text-gray-200 border-gray-600 ${
+                className={`bg-gray-800 hover:bg-gray-700 text-gray-200 border-gray-600 w-[115%] ${
                   isShuffled ? "ring-2 ring-gray-500" : ""
                 }`}
               >
                 <Shuffle className="h-4 w-4" />
               </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={stopPlaylist}
-                disabled={!currentAudio}
-                className="bg-gray-800 hover:bg-gray-700 text-gray-200 border-gray-600"
-              >
-                <Square className="h-4 w-4" />
-              </Button>
             </div>
-            <div className="flex gap-2">
+            <div className="flex justify-center gap-2">
               <Button
                 variant="outline"
                 size="icon"

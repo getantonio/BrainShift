@@ -329,10 +329,37 @@ export function PlaylistManager({ allCollapsed = false }: PlaylistManagerProps) 
     }
   };
 
-  const renamePlaylist = (id: number, newName: string) => {
-    setPlaylists(playlists.map(p => 
-      p.id === id ? { ...p, name: newName } : p
-    ));
+  const renamePlaylist = async (id: number, newName: string) => {
+    const playlist = playlists.find(p => p.id === id);
+    if (!playlist) return;
+
+    const oldName = playlist.name;
+    if (oldName === newName) return;
+
+    try {
+      // Update the category for all recordings
+      await audioStorage.renamePlaylistWithFiles(oldName, newName);
+      
+      // Update state
+      setPlaylists(playlists.map(p => 
+        p.id === id ? { ...p, name: newName } : p
+      ));
+      
+      // Save updated playlist metadata
+      await savePlaylist();
+      
+      toast({
+        title: "Playlist renamed",
+        description: `Successfully renamed playlist to "${newName}"`
+      });
+    } catch (error) {
+      console.error('Failed to rename playlist:', error);
+      toast({
+        title: "Error",
+        description: "Failed to rename playlist",
+        variant: "destructive"
+      });
+    }
   };
 
   const updateTrack = (
