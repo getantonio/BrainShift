@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Play, Square, Download, Trash2, Edit2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { toast } from "@/components/ui/use-toast";
+
 interface AudioItemProps {
   track: {
     name: string;
@@ -13,22 +15,52 @@ interface AudioItemProps {
 
 export function AudioItem({ track, onRename, onDelete }: AudioItemProps) {
   const [isPlaying, setIsPlaying] = useState(false);
-  const [audio] = useState(() => track?.url ? new Audio(track.url) : null);
+  const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
   const [isRenaming, setIsRenaming] = useState(false);
   const [newName, setNewName] = useState(track?.name || '');
 
-  const playAudio = () => {
+  useEffect(() => {
+    if (track?.url) {
+      const newAudio = new Audio(track.url);
+      newAudio.preload = "auto";
+      setAudio(newAudio);
+      return () => {
+        newAudio.pause();
+        newAudio.src = "";
+      };
+    }
+  }, [track?.url]);
+
+  const playAudio = async () => {
     if (!audio || !track?.url) return;
-    audio.play().catch(console.error);
-    setIsPlaying(true);
-    audio.onended = () => setIsPlaying(false);
+    try {
+      if (audio.paused) {
+        await audio.play();
+        setIsPlaying(true);
+        audio.onended = () => {
+          setIsPlaying(false);
+          audio.currentTime = 0;
+        };
+      }
+    } catch (error) {
+      console.error('Playback error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to play audio",
+        variant: "destructive"
+      });
+    }
   };
 
   const stopAudio = () => {
     if (!audio) return;
-    audio.pause();
-    audio.currentTime = 0;
-    setIsPlaying(false);
+    try {
+      audio.pause();
+      audio.currentTime = 0;
+      setIsPlaying(false);
+    } catch (error) {
+      console.error('Stop audio error:', error);
+    }
   };
 
   const handleRename = () => {
