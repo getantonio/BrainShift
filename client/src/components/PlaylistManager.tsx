@@ -27,11 +27,34 @@ export function PlaylistManager({ allCollapsed = false }: PlaylistManagerProps) 
   useEffect(() => {
     const loadPlaylists = async () => {
       try {
+        // Initialize storage with retries for iOS
+        let retryCount = 0;
+        const maxRetries = 3;
+        let lastError;
+
+        while (retryCount < maxRetries) {
+          try {
+            await audioStorage.initialize();
+            break;
+          } catch (error) {
+            lastError = error;
+            retryCount++;
+            if (retryCount < maxRetries) {
+              console.log(`Retry ${retryCount} initializing IndexedDB...`);
+              await new Promise(resolve => setTimeout(resolve, 500 * retryCount));
+            }
+          }
+        }
+
+        if (retryCount === maxRetries) {
+          throw new Error(`Failed to initialize after ${maxRetries} attempts: ${lastError?.message}`);
+        }
+
         // Load saved playlist metadata
         let savedPlaylists = await audioStorage.getPlaylists();
         
         // If no playlists exist, create a default one
-        if (savedPlaylists.length === 0) {
+        if (!savedPlaylists || savedPlaylists.length === 0) {
           savedPlaylists = [{
             id: Date.now(),
             name: "My Playlist",
@@ -40,18 +63,38 @@ export function PlaylistManager({ allCollapsed = false }: PlaylistManagerProps) 
           await audioStorage.savePlaylists(savedPlaylists);
         }
 
-        // Load recordings for each playlist
+        // Load recordings for each playlist with individual error handling
         const loadedPlaylists = await Promise.all(
           savedPlaylists.map(async (playlist) => {
-            const recordings = await audioStorage.getRecordingsByCategory(playlist.name);
-            return {
-              id: playlist.id,
-              name: playlist.name,
-              tracks: await Promise.all(recordings.map(async recording => ({
-                name: recording.name,
-                url: await audioStorage.getRecordingUrl(recording)
-              })))
-            };
+            try {
+              const recordings = await audioStorage.getRecordingsByCategory(playlist.name);
+              const tracks = await Promise.all(
+                recordings.map(async (recording) => {
+                  try {
+                    return {
+                      name: recording.name,
+                      url: await audioStorage.getRecordingUrl(recording)
+                    };
+                  } catch (error) {
+                    console.error(`Failed to load recording ${recording.name}:`, error);
+                    return null;
+                  }
+                })
+              );
+
+              return {
+                id: playlist.id,
+                name: playlist.name,
+                tracks: tracks.filter(track => track !== null)
+              };
+            } catch (error) {
+              console.error(`Failed to load playlist ${playlist.name}:`, error);
+              return {
+                id: playlist.id,
+                name: playlist.name,
+                tracks: []
+              };
+            }
           })
         );
 
@@ -67,7 +110,7 @@ export function PlaylistManager({ allCollapsed = false }: PlaylistManagerProps) 
         console.error('Failed to load playlists:', error);
         toast({
           title: "Error",
-          description: "Failed to load your playlists",
+          description: `Failed to load your playlists: ${error.message}`,
           variant: "destructive"
         });
       }

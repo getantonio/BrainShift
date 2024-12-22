@@ -28,27 +28,73 @@ class AudioStorageService {
   private db: IDBPDatabase | null = null;
 
   async initialize() {
-    this.db = await openDB(DB_NAME, DB_VERSION, {
-      upgrade(db, oldVersion) {
-        // Create or update stores based on version
-        if (oldVersion < 1) {
-          const recordingsStore = db.createObjectStore(RECORDINGS_STORE, { 
-            keyPath: 'id', 
-            autoIncrement: true 
-          });
-          recordingsStore.createIndex('category', 'category');
-          recordingsStore.createIndex('timestamp', 'timestamp');
+    try {
+      // Check if IndexedDB is available
+      if (!window.indexedDB) {
+        throw new Error('IndexedDB is not supported in this browser');
+      }
+
+      // Add a small delay for iOS Safari to properly initialize IndexedDB
+      if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+
+      this.db = await openDB(DB_NAME, DB_VERSION, {
+        upgrade(db, oldVersion) {
+          // Create or update stores based on version
+          if (oldVersion < 1) {
+            try {
+              const recordingsStore = db.createObjectStore(RECORDINGS_STORE, { 
+                keyPath: 'id', 
+                autoIncrement: true 
+              });
+              recordingsStore.createIndex('category', 'category');
+              recordingsStore.createIndex('timestamp', 'timestamp');
+            } catch (error) {
+              console.error('Error creating recordings store:', error);
+              // If store already exists, ignore the error
+              if (!error.message.includes('already exists')) {
+                throw error;
+              }
+            }
+          }
+          
+          if (oldVersion < 2) {
+            try {
+              const playlistsStore = db.createObjectStore(PLAYLISTS_STORE, {
+                keyPath: 'id',
+                autoIncrement: true
+              });
+              playlistsStore.createIndex('order', 'order');
+            } catch (error) {
+              console.error('Error creating playlists store:', error);
+              // If store already exists, ignore the error
+              if (!error.message.includes('already exists')) {
+                throw error;
+              }
+            }
+          }
+        },
+        blocked() {
+          console.warn('Database upgrade was blocked. Please close other tabs/windows.');
+        },
+        blocking() {
+          console.warn('Database is being blocked by other version.');
+        },
+        terminated() {
+          console.error('Database connection was terminated unexpectedly.');
         }
-        
-        if (oldVersion < 2) {
-          const playlistsStore = db.createObjectStore(PLAYLISTS_STORE, {
-            keyPath: 'id',
-            autoIncrement: true
-          });
-          playlistsStore.createIndex('order', 'order');
-        }
-      },
-    });
+      });
+
+      // Verify the stores exist
+      const transaction = this.db.transaction([RECORDINGS_STORE, PLAYLISTS_STORE], 'readonly');
+      await transaction.done;
+
+      return this.db;
+    } catch (error) {
+      console.error('Failed to initialize IndexedDB:', error);
+      throw new Error(`Failed to initialize database: ${error.message}`);
+    }
   }
 
   async saveRecording(name: string, audioBlob: Blob, category: string): Promise<void> {
