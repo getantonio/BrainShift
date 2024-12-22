@@ -101,8 +101,16 @@ class AudioStorageService {
     try {
       if (!this.db) await this.initialize();
 
-      // Create a copy of the Blob to ensure it's stored properly
-      const audioData = await audioBlob.slice(0, audioBlob.size, audioBlob.type);
+      // Convert Blob to ArrayBuffer for better iOS compatibility
+      const arrayBuffer = await new Promise<ArrayBuffer>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as ArrayBuffer);
+        reader.onerror = () => reject(reader.error);
+        reader.readAsArrayBuffer(audioBlob);
+      });
+
+      // Create a new Blob from ArrayBuffer
+      const audioData = new Blob([arrayBuffer], { type: audioBlob.type });
 
       const record: AudioRecord = {
         name,
