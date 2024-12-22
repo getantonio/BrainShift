@@ -334,31 +334,31 @@ export function PlaylistManager({ allCollapsed = false }: PlaylistManagerProps) 
     if (!playlist) return;
 
     const oldName = playlist.name;
-    // Update state
-    setPlaylists(playlists.map(p => 
-      p.id === id ? { ...p, name: newName } : p
-    ));
+    if (oldName === newName) return;
 
     try {
-      // Get all recordings from old category
-      const recordings = await audioStorage.getRecordingsByCategory(oldName);
+      // Update the category for all recordings
+      await audioStorage.renamePlaylistWithFiles(oldName, newName);
       
-      // Save recordings under new category
-      for (const recording of recordings) {
-        await audioStorage.saveRecording(
-          recording.name,
-          recording.audioData as Blob,
-          newName
-        );
-      }
-
-      // Delete old category
-      await audioStorage.deleteCategory(oldName);
+      // Update state
+      setPlaylists(playlists.map(p => 
+        p.id === id ? { ...p, name: newName } : p
+      ));
       
       // Save updated playlist metadata
       await savePlaylist();
+      
+      toast({
+        title: "Playlist renamed",
+        description: `Successfully renamed playlist to "${newName}"`
+      });
     } catch (error) {
       console.error('Failed to rename playlist:', error);
+      toast({
+        title: "Error",
+        description: "Failed to rename playlist",
+        variant: "destructive"
+      });
     }
   };
 
