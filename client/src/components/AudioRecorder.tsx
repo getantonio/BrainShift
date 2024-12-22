@@ -25,7 +25,27 @@ export function AudioRecorder({ currentCategory }: AudioRecorderProps) {
   const { toast } = useToast();
   const [audioContext, setAudioContext] = useState<AudioContext | null>(null);
   const [analyserNode, setAnalyserNode] = useState<AnalyserNode | null>(null);
-  
+  const [stats, setStats] = useState({
+    totalRecordings: 0,
+    todayRecordings: 0,
+    streakDays: 0,
+    lastRecordingDate: null as string | null
+  });
+
+  // Load stats on mount
+  useEffect(() => {
+    const savedStats = localStorage.getItem('recordingStats');
+    if (savedStats) {
+      const parsedStats = JSON.parse(savedStats);
+      // Reset daily count if it's a new day
+      const today = new Date().toDateString();
+      if (parsedStats.lastRecordingDate !== today) {
+        parsedStats.todayRecordings = 0;
+      }
+      setStats(parsedStats);
+    }
+  }, []);
+
   useEffect(() => {
     // Initialize IndexedDB when component mounts
     audioStorage.initialize().catch(error => {
@@ -71,6 +91,17 @@ export function AudioRecorder({ currentCategory }: AudioRecorderProps) {
             audioBlob,
             currentCategory || 'custom'
           );
+
+          // Update stats
+          const today = new Date().toDateString();
+          const newStats = {
+            totalRecordings: stats.totalRecordings + 1,
+            todayRecordings: stats.todayRecordings + 1,
+            streakDays: today !== stats.lastRecordingDate ? stats.streakDays + 1 : stats.streakDays,
+            lastRecordingDate: today
+          };
+          setStats(newStats);
+          localStorage.setItem('recordingStats', JSON.stringify(newStats));
 
           // Dispatch event to refresh playlists
           const event = new CustomEvent('recordingsUpdated');
@@ -118,6 +149,11 @@ export function AudioRecorder({ currentCategory }: AudioRecorderProps) {
         <CardTitle className="text-white font-display text-2xl">Record Audio</CardTitle>
       </CardHeader>
       <CardContent className="py-2">
+        <div className="flex justify-between text-xs text-gray-400 mb-2 px-2">
+          <span>Total: {stats.totalRecordings}</span>
+          <span>Today: {stats.todayRecordings}</span>
+          <span>Streak: {stats.streakDays} days</span>
+        </div>
         <div className="flex justify-center gap-2 mb-2">
           <Button
             onClick={startRecording}
