@@ -329,10 +329,37 @@ export function PlaylistManager({ allCollapsed = false }: PlaylistManagerProps) 
     }
   };
 
-  const renamePlaylist = (id: number, newName: string) => {
+  const renamePlaylist = async (id: number, newName: string) => {
+    const playlist = playlists.find(p => p.id === id);
+    if (!playlist) return;
+
+    const oldName = playlist.name;
+    // Update state
     setPlaylists(playlists.map(p => 
       p.id === id ? { ...p, name: newName } : p
     ));
+
+    try {
+      // Get all recordings from old category
+      const recordings = await audioStorage.getRecordingsByCategory(oldName);
+      
+      // Save recordings under new category
+      for (const recording of recordings) {
+        await audioStorage.saveRecording(
+          recording.name,
+          recording.audioData as Blob,
+          newName
+        );
+      }
+
+      // Delete old category
+      await audioStorage.deleteCategory(oldName);
+      
+      // Save updated playlist metadata
+      await savePlaylist();
+    } catch (error) {
+      console.error('Failed to rename playlist:', error);
+    }
   };
 
   const updateTrack = (

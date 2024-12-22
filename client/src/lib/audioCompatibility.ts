@@ -64,8 +64,23 @@ class AudioCompatibilityLayer {
     const audio = new Audio();
     
     try {
+      if (this.isiOS) {
+        audio.preload = 'auto';
+        await new Promise((resolve) => {
+          const unlockAudio = () => {
+            audio.play().then(() => {
+              audio.pause();
+              audio.currentTime = 0;
+              document.removeEventListener('touchstart', unlockAudio);
+              resolve(true);
+            }).catch(() => resolve(false));
+          };
+          document.addEventListener('touchstart', unlockAudio, { once: true });
+        });
+      }
+
       if (url.startsWith('data:')) {
-        const audioFormat = url.match(/data:(audio\/[^;]+);base64,/)?.[1] || this.preferredFormat;
+        const audioFormat = 'audio/wav'; // Force WAV format for iOS
         const base64Data = url.split(',')[1];
         const binaryData = atob(base64Data);
         const arrayBuffer = new ArrayBuffer(binaryData.length);
