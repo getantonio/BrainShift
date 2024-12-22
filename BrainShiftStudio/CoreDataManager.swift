@@ -58,8 +58,11 @@ class CoreDataManager {
     }
     
     func updatePlaylist(_ playlist: Playlist, newName: String) {
-        playlist.name = newName
-        saveContext()
+        viewContext.performAndWait {
+            playlist.name = newName
+            playlist.modifiedAt = Date()
+            saveContext()
+        }
     }
     
     func deletePlaylist(_ playlist: Playlist) {

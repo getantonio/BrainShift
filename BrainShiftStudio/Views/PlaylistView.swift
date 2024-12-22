@@ -94,7 +94,9 @@ struct PlaylistView: View {
     }
     
     private func renamePlaylist(_ playlist: Playlist, to newName: String) {
+        guard !newName.isEmpty else { return }
         CoreDataManager.shared.updatePlaylist(playlist, newName: newName)
+        viewContext.refresh(playlist, mergeChanges: true)
     }
 }
 
