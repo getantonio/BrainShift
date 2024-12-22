@@ -25,6 +25,12 @@ export function AudioRecorder({ currentCategory }: AudioRecorderProps) {
   const { toast } = useToast();
   const [audioContext, setAudioContext] = useState<AudioContext | null>(null);
   const [analyserNode, setAnalyserNode] = useState<AnalyserNode | null>(null);
+const [recordingStats, setRecordingStats] = useState({
+  totalRecordings: 0,
+  todayRecordings: 0,
+  streakDays: 0,
+  lastRecordingDate: null as Date | null
+});
   
   useEffect(() => {
     // Initialize IndexedDB when component mounts

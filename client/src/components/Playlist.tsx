@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AudioItem } from "@/components/AudioItem";
-import { Edit2, Trash2, Play, Repeat, Square, Shuffle, ChevronDown, Download, Upload } from "lucide-react";
+import { Edit2, Trash2, Play, Repeat, Square, Shuffle, ChevronDown, Download, Upload, Music, Volume2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
   Collapsible,
@@ -281,7 +281,10 @@ export function Playlist({
   };
 
   const [isOpen, setIsOpen] = useState(true);
-  
+  const [isBackgroundMusicPlaying, setIsBackgroundMusicPlaying] = useState(false);
+  const [backgroundMusicVolume, setBackgroundMusicVolume] = useState(0.5); // Initial volume
+  const audioContextManager = new AudioContextManager(); // Assuming this is defined elsewhere
+
   useEffect(() => {
     if (allCollapsed !== undefined) {
       setIsOpen(!allCollapsed);
@@ -471,8 +474,84 @@ export function Playlist({
           >
             <Square className="h-4 w-4" />
           </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              if (isBackgroundMusicPlaying) {
+                audioContextManager.stop();
+                setIsBackgroundMusicPlaying(false);
+              } else if (playlist.tracks.length > 0) {
+                audioContextManager.playBackgroundMusic(playlist.tracks[0].url, backgroundMusicVolume);
+                setIsBackgroundMusicPlaying(true);
+              }
+            }}
+            className={`bg-gray-800 hover:bg-gray-700 text-gray-200 border-gray-600 ${
+              isBackgroundMusicPlaying ? "ring-2 ring-gray-500" : ""
+            }`}
+          >
+            <Music className="h-4 w-4" />
+          </Button>
+          <div className="flex items-center gap-2">
+            <Volume2 className="h-4 w-4 text-gray-400" />
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value={backgroundMusicVolume * 100}
+              onChange={(e) => {
+                const newVolume = Number(e.target.value) / 100;
+                setBackgroundMusicVolume(newVolume);
+                audioContextManager.setVolume(newVolume);
+              }}
+              className="w-20"
+            />
+          </div>
         </div>
       </CollapsibleContent>
     </Collapsible>
   );
+}
+
+class AudioContextManager {
+  private audioContext: AudioContext;
+  private gainNode: GainNode;
+  private audioSource: MediaElementAudioSourceNode | null = null;
+
+  constructor() {
+    this.audioContext = new AudioContext();
+    this.gainNode = this.audioContext.createGain();
+    this.gainNode.connect(this.audioContext.destination);
+  }
+
+  playBackgroundMusic(url: string, volume: number) {
+    fetch(url)
+      .then(response => response.blob())
+      .then(blob => URL.createObjectURL(blob))
+      .then(url => {
+        const audio = new Audio(url);
+        audio.loop = true; // Set looping for background music
+        this.audioSource = this.audioContext.createMediaElementSource(audio);
+        this.audioSource.connect(this.gainNode);
+        this.setVolume(volume);
+        audio.play();
+      })
+      .catch(error => console.error("Error playing background music:", error));
+  }
+
+  stop() {
+    if (this.audioSource) {
+      this.audioSource.disconnect();
+      this.audioSource = null;
+      const audio = this.audioSource?.mediaElement;
+      if (audio) {
+        audio.pause();
+        audio.currentTime = 0;
+      }
+    }
+  }
+
+  setVolume(volume: number) {
+    this.gainNode.gain.setValueAtTime(volume, this.audioContext.currentTime);
+  }
 }
