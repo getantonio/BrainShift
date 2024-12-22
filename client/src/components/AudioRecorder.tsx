@@ -12,6 +12,7 @@ import {
   CollapsibleContent,
 } from "@/components/ui/collapsible";
 import { Settings2 } from "lucide-react";
+import { audioStorage } from "@/lib/audioStorage";
 
 interface AudioRecorderProps {
   currentCategory: string;
@@ -25,6 +26,17 @@ export function AudioRecorder({ currentCategory }: AudioRecorderProps) {
   const [audioContext, setAudioContext] = useState<AudioContext | null>(null);
   const [analyserNode, setAnalyserNode] = useState<AnalyserNode | null>(null);
   
+  useEffect(() => {
+    // Initialize IndexedDB when component mounts
+    audioStorage.initialize().catch(error => {
+      console.error('Failed to initialize audio storage:', error);
+      toast({
+        title: "Error",
+        description: "Failed to initialize audio storage",
+        variant: "destructive"
+      });
+    });
+  }, []);
 
   const startRecording = async () => {
     try {
