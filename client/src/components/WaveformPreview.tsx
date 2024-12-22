@@ -27,28 +27,48 @@ export function WaveformPreview({
   const [isDragging, setIsDragging] = useState(false);
 
   useEffect(() => {
-    const audio = new Audio(audioUrl);
-    audioRef.current = audio;
-    const context = new AudioContext();
-    const analyserNode = context.createAnalyser();
-    analyserNode.fftSize = 2048;
-    const source = context.createMediaElementSource(audio);
-    source.connect(analyserNode);
-    analyserNode.connect(context.destination);
-
-    setAudioContext(context);
-    setAnalyser(analyserNode);
-    setAudioSource(source);
-
+    const setupAudio = async () => {
+      try {
+        // Create new audio context and element
+        const audioCtx = new AudioContext();
+        const audio = new Audio();
+        
+        // Handle base64 data URLs
+        if (audioUrl.startsWith('data:')) {
+          audio.src = audioUrl;
+        } else {
+          // Handle blob URLs
+          audio.src = audioUrl;
+        }
+        
+        // Wait for audio to be loaded
+        await new Promise((resolve, reject) => {
+          audio.oncanplaythrough = resolve;
+          audio.onerror = reject;
+          audio.load();
+        });
+        
+        audioRef.current = audio;
+        
+        const source = audioCtx.createMediaElementSource(audio);
+        const analyserNode = audioCtx.createAnalyser();
+        
+        source.connect(analyserNode);
+        analyserNode.connect(audioCtx.destination);
+        
+        setAnalyser(analyserNode);
+      } catch (error) {
+        console.error('Error setting up audio:', error);
+      }
+    };
+    
+    setupAudio();
+    
     return () => {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = '';
       }
-      if (audio) {
-        audio.pause();
-        audio.src = '';
-      }
-      context.close();
     };
   }, [audioUrl]);
   useEffect(() => {

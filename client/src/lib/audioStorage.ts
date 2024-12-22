@@ -75,6 +75,12 @@ class AudioStorageService {
         await this.initialize();
       }
 
+      // Ensure the blob has the correct MIME type
+      const audioType = audioBlob.type || 'audio/wav';
+      const processedBlob = audioBlob.type === audioType ? 
+        audioBlob : 
+        new Blob([await audioBlob.arrayBuffer()], { type: audioType });
+
       // Convert blob to base64 for better storage compatibility
       const base64Data = await new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
@@ -86,7 +92,7 @@ class AudioStorageService {
           }
         };
         reader.onerror = () => reject(reader.error);
-        reader.readAsDataURL(audioBlob);
+        reader.readAsDataURL(processedBlob);
       });
 
       const record: AudioRecord = {
