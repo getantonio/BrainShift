@@ -78,7 +78,28 @@ class AudioStorageService {
   }
 
   async getRecordingUrl(recording: AudioRecord): Promise<string> {
-    return URL.createObjectURL(recording.audioData);
+    // For iOS compatibility, convert Blob to base64 data URL
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (typeof reader.result === 'string') {
+          resolve(reader.result);
+        } else {
+          reject(new Error('Failed to convert audio to data URL'));
+        }
+      };
+      reader.onerror = () => reject(reader.error);
+      reader.readAsDataURL(recording.audioData);
+    });
+  }
+
+  async getAllCategories(): Promise<string[]> {
+    if (!this.db) await this.initialize();
+
+    const tx = this.db!.transaction(STORE_NAME, 'readonly');
+    const recordings = await tx.store.getAll();
+    const categories = new Set(recordings.map(r => r.category));
+    return Array.from(categories).sort();
   }
 }
 

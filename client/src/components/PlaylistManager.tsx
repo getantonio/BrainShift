@@ -34,14 +34,16 @@ export function PlaylistManager({ allCollapsed = false }: PlaylistManagerProps) 
           playlistsByCategory[category] = await audioStorage.getRecordingsByCategory(category);
         }
 
-        const loadedPlaylists = Object.entries(playlistsByCategory).map(([category, recordings]) => ({
-          id: Date.now() + Math.random(),
-          name: category,
-          tracks: recordings.map(recording => ({
-            name: recording.name,
-            url: URL.createObjectURL(recording.audioData)
-          }))
-        }));
+        const loadedPlaylists = await Promise.all(
+            Object.entries(playlistsByCategory).map(async ([category, recordings]) => ({
+              id: Date.now() + Math.random(),
+              name: category,
+              tracks: await Promise.all(recordings.map(async recording => ({
+                name: recording.name,
+                url: await audioStorage.getRecordingUrl(recording)
+              })))
+            }))
+          );
 
         setPlaylists(loadedPlaylists);
         
