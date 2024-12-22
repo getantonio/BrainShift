@@ -158,18 +158,52 @@ class AudioStorageService {
   }
 
   async getRecordingUrl(recording: AudioRecord): Promise<string> {
-    // For iOS compatibility, convert Blob to base64 data URL
+    // For iOS compatibility, convert Blob to base64 data URL with proper error handling
     return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        if (typeof reader.result === 'string') {
-          resolve(reader.result);
-        } else {
-          reject(new Error('Failed to convert audio to data URL'));
+      try {
+        // Verify that the Blob is valid
+        if (!(recording.audioData instanceof Blob)) {
+          throw new Error('Invalid audio data format');
         }
-      };
-      reader.onerror = () => reject(reader.error);
-      reader.readAsDataURL(recording.audioData);
+
+        const reader = new FileReader();
+        
+        reader.onloadend = () => {
+          if (typeof reader.result === 'string') {
+            // Verify the data URL is valid
+            if (reader.result.startsWith('data:audio/')) {
+              resolve(reader.result);
+            } else {
+              reject(new Error('Invalid audio data format'));
+            }
+          } else {
+            reject(new Error('Failed to convert audio to data URL'));
+          }
+        };
+        
+        reader.onerror = () => {
+          console.error('FileReader error:', reader.error);
+          reject(new Error(`Failed to read audio file: ${reader.error?.message || 'Unknown error'}`));
+        };
+        
+        reader.onabort = () => {
+          reject(new Error('File reading was aborted'));
+        };
+
+        // Start reading with timeout
+        reader.readAsDataURL(recording.audioData);
+        
+        // Add timeout for iOS Safari
+        setTimeout(() => {
+          if (reader.readyState !== FileReader.DONE) {
+            reader.abort();
+            reject(new Error('File reading timed out'));
+          }
+        }, 5000); // 5 second timeout
+      } catch (error) {
+        console.error('Error in getRecordingUrl:', error);
+        reject(error);
+      }
     });
   }
 

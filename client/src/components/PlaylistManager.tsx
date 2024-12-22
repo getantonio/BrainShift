@@ -410,25 +410,67 @@ export function PlaylistManager({ allCollapsed = false }: PlaylistManagerProps) 
                   let importedCount = 0;
                   let errorCount = 0;
 
+                  // Process files sequentially for better stability on iOS
                   for (const file of Array.from(files)) {
                     try {
-                      const text = await file.text();
+                      // Use FileReader for better iOS compatibility
+                      const text = await new Promise<string>((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onload = () => resolve(reader.result as string);
+                        reader.onerror = () => reject(reader.error);
+                        reader.onabort = () => reject(new Error('File reading aborted'));
+                        reader.readAsText(file);
+                      });
+
                       const importedData = JSON.parse(text);
+                      
+                      // Validate playlist data structure
+                      const validatePlaylist = (playlist: any) => {
+                        if (!playlist.name || typeof playlist.name !== 'string') {
+                          throw new Error('Invalid playlist name');
+                        }
+                        if (!Array.isArray(playlist.tracks)) {
+                          throw new Error('Invalid tracks array');
+                        }
+                        playlist.tracks.forEach((track: any, index: number) => {
+                          if (!track.name || !track.url) {
+                            throw new Error(`Invalid track at index ${index}`);
+                          }
+                        });
+                      };
                       
                       // Handle both single playlist and multiple playlist files
                       if (Array.isArray(importedData)) {
                         // Multiple playlists
-                        setPlaylists(current => [...current, ...importedData]);
+                        importedData.forEach(validatePlaylist);
+                        const newPlaylists = importedData.map(playlist => ({
+                          ...playlist,
+                          id: Date.now() + Math.random() // Ensure unique IDs
+                        }));
+                        setPlaylists(current => [...current, ...newPlaylists]);
                         importedCount += importedData.length;
                       } else if (importedData.name && Array.isArray(importedData.tracks)) {
                         // Single playlist
-                        setPlaylists(current => [...current, importedData]);
+                        validatePlaylist(importedData);
+                        const newPlaylist = {
+                          ...importedData,
+                          id: Date.now() + Math.random()
+                        };
+                        setPlaylists(current => [...current, newPlaylist]);
                         importedCount += 1;
                       } else {
                         throw new Error('Invalid playlist format');
                       }
+
+                      // Save the updated playlists immediately
+                      await savePlaylist();
                     } catch (error) {
                       console.error(`Failed to import ${file.name}:`, error);
+                      toast({
+                        title: "Import Error",
+                        description: `Failed to import ${file.name}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                        variant: "destructive"
+                      });
                       errorCount++;
                     }
                   }
