@@ -13,9 +13,10 @@
       box-sizing: border-box;
     }
 
-    /* Intro block at the very top */
+    /* Intro block at the top (500px wide, 300px high) */
     .intro-block {
-      width: 350px;                 
+      width: 500px;
+      height: 300px;
       background-color: #EEEEEE;
       margin: 0 auto 20px auto; 
       padding: 1rem 1.5rem;
@@ -41,30 +42,29 @@
       justify-content: center;
       align-items: center;
       flex-wrap: wrap;
-      gap: 10px; /* spacing between items */
+      gap: 10px;
       margin-bottom: 20px;
     }
 
-    /* Icon button: back home (🏠) */
+    /* Icon button: back home (🏠) 
+       50% darker than #EEEEEE => #BBBBBB 
+       Reduced by ~15px in height => less padding 
+    */
     .icon-btn-home {
       display: inline-flex;
       align-items: center;
-      background-color: #007BFF;
-      color: #fff;
-      padding: 10px 15px;
+      background-color: #BBBBBB;
+      color: #333;
+      padding: 5px 10px;  /* reduced padding to lower height */
       border-radius: 5px;
-      font-size: 16px;
+      font-size: 20px;
       border: none;
       cursor: pointer;
       text-decoration: none;
       transition: background-color 0.3s ease;
     }
     .icon-btn-home:hover {
-      background-color: #0056b3;
-    }
-    /* Just the icon, no text */
-    .icon-btn-home span {
-      font-size: 20px;
+      background-color: #AAAAAA;
     }
 
     /* Category select */
@@ -73,21 +73,24 @@
       font-size: 16px;
     }
 
-    /* Icon button: generate (🔄) */
+    /* Icon button: generate (🔄) 
+       Same 50% darker #EEEEEE => #BBBBBB 
+       also smaller height 
+    */
     .icon-button-generate {
       display: inline-flex;
       align-items: center;
-      background-color: #007BFF;
-      color: #fff;
-      padding: 10px 15px;
+      background-color: #BBBBBB;
+      color: #333;
+      padding: 5px 10px;
       border-radius: 5px;
-      font-size: 20px;  /* bigger icon size */
+      font-size: 20px;  
       border: none;
       cursor: pointer;
       transition: background-color 0.3s ease;
     }
     .icon-button-generate:hover {
-      background-color: #0056b3;
+      background-color: #AAAAAA;
     }
 
     /* Affirmation list styles */
@@ -109,15 +112,19 @@
       box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
 
-    /* Voice recorder section */
+    /* Voice recorder section: max-height 250px */
     .recorder-section {
       max-width: 600px;
       margin: 30px auto;
-      text-align: center;
       background: #fff;
       border-radius: 10px;
       box-shadow: 0 2px 5px rgba(0,0,0,0.15);
       padding: 20px;
+      overflow: hidden; /* ensure anything beyond 250px is not visible */
+      max-height: 250px;
+      box-sizing: border-box;
+      text-align: center;
+      position: relative;
     }
     .recorder-section h3 {
       margin-bottom: 10px;
@@ -129,21 +136,42 @@
       gap: 10px;
       flex-wrap: wrap;
     }
+
+    /* Start (red) and stop (white) icon buttons */
     .recorder-icon-btn {
       display: inline-flex;
       align-items: center;
-      background: #007BFF;
       border: none;
-      color: #fff;
-      padding: 10px 16px;
+      padding: 8px 12px;
       border-radius: 5px;
       cursor: pointer;
       font-size: 18px;
       transition: background 0.3s;
+      height: 40px; /* fix a consistent height if needed */
+      width: 40px;  /* square button for the icon only */
+      justify-content: center;
     }
-    .recorder-icon-btn:hover {
-      background: #0056b3;
+    .recorder-icon-btn i {
+      font-size: 20px;
     }
+
+    .start-btn {
+      background: #FF0000; /* Red background */
+      color: #fff;
+    }
+    .start-btn:hover {
+      background: #cc0000;
+    }
+
+    .stop-btn {
+      background: #ffffff; /* White background */
+      color: #000;
+      border: 1px solid #ccc;
+    }
+    .stop-btn:hover {
+      background: #f1f1f1;
+    }
+
     /* Canvas for waveform */
     #waveformCanvas {
       display: block;
@@ -151,6 +179,7 @@
       background: #EEE;
       border-radius: 5px;
     }
+
     /* Download link styling */
     .download-link {
       display: inline-block;
@@ -166,7 +195,7 @@
 </head>
 <body>
 
-  <!-- Intro block at the top -->
+  <!-- Intro block at the top (500x300) -->
   <div class="intro-block">
     <h3>Discover Easy Note Management</h3>
     <p>
@@ -175,13 +204,12 @@
     </p>
   </div>
 
-  <!-- Controls row -->
+  <!-- Controls row: Back home + dropdown + generate (icon only) -->
   <div class="controls">
-    <!-- Back to Home icon-only button -->
-    <a href="index.html" class="icon-btn-home">
-      <span>🏠</span>
-    </a>
+    <!-- Back to Home icon-only button (🏠) 50% darker than #EEEEEE => #BBBBBB -->
+    <a href="index.html" class="icon-btn-home">🏠</a>
 
+    <!-- Category select -->
     <select id="categorySelect">
       <option value="Confidence">👑 Confidence</option>
       <option value="Happiness">😄 Happiness</option>
@@ -201,7 +229,7 @@
       <option value="CustomTopic">✏️ Custom Topic</option>
     </select>
 
-    <!-- Generate icon-only button -->
+    <!-- Generate icon-only button (🔄) 50% darker #EEEEEE => #BBBBBB -->
     <button class="icon-button-generate" onclick="generateAffirmations()">
       🔄
     </button>
@@ -210,19 +238,19 @@
   <!-- Affirmations output -->
   <div class="affirmation-container" id="affirmationContainer"></div>
 
-  <!-- Voice Recorder Section -->
+  <!-- Voice Recorder Section: max-height 250px -->
   <div class="recorder-section">
     <h3>Voice Recorder</h3>
     <canvas id="waveformCanvas" width="500" height="100"></canvas>
 
     <div class="recorder-buttons">
-      <!-- Start recording icon button -->
-      <button class="recorder-icon-btn" onclick="startRecording()">
-        🎤
+      <!-- Start (red) icon button -->
+      <button class="recorder-icon-btn start-btn" onclick="startRecording()">
+        <i>🎤</i>
       </button>
-      <!-- Stop recording icon button -->
-      <button class="recorder-icon-btn" onclick="stopRecording()">
-        ⏹
+      <!-- Stop (white) icon button -->
+      <button class="recorder-icon-btn stop-btn" onclick="stopRecording()">
+        <i>⏹</i>
       </button>
     </div>
 
@@ -234,7 +262,6 @@
   <script>
     /************************************************************
      * AFFIRMATION LIBRARY (SAMPLE CATEGORIES)
-     * Expand these with more affirmations as needed.
      ************************************************************/
     const affirmationLibrary = {
       "Confidence": [
@@ -402,7 +429,6 @@
       chunks = []; // reset chunks
 
       try {
-        // Request mic
         mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
         audioContext = new AudioContext();
         analyser = audioContext.createAnalyser();
@@ -420,7 +446,7 @@
           if (e.data.size > 0) chunks.push(e.data);
         };
         mediaRecorder.onstop = e => {
-          // Create a blob, generate link for download
+          // Create blob, generate link for download
           const blob = new Blob(chunks, { type: 'audio/webm' });
           const url = URL.createObjectURL(blob);
 
@@ -429,15 +455,14 @@
 
           const link = document.createElement('a');
           link.href = url;
-          link.download = 'myRecording.webm'; // or .ogg, .wav, depends on browser
+          link.download = 'myRecording.webm';
           link.className = 'download-link';
           link.textContent = 'Download Recording';
           downloadContainer.appendChild(link);
         };
 
         mediaRecorder.start();
-
-        drawWaveform(); // start animating waveform
+        drawWaveform();
       } catch (err) {
         console.error("Error accessing microphone:", err);
         isRecording = false;
@@ -448,7 +473,7 @@
       if (!isRecording) return;
       isRecording = false;
 
-      // Stop capturing audio
+      // Stop mic tracks
       if (mediaStream) {
         mediaStream.getTracks().forEach(track => track.stop());
       }
@@ -473,18 +498,17 @@
       canvasCtx.fillStyle = '#EEE';
       canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Wave style
       canvasCtx.lineWidth = 2;
       canvasCtx.strokeStyle = '#007BFF';
 
       canvasCtx.beginPath();
 
-      let sliceWidth = canvas.width * 1.0 / dataArray.length;
+      const sliceWidth = canvas.width * 1.0 / dataArray.length;
       let x = 0;
 
       for (let i = 0; i < dataArray.length; i++) {
-        let v = dataArray[i] / 128.0; // 128 is mid
-        let y = v * canvas.height / 2;
+        const v = dataArray[i] / 128.0;
+        const y = v * (canvas.height / 2);
 
         if (i === 0) {
           canvasCtx.moveTo(x, y);
