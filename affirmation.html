@@ -1,206 +1,565 @@
-<style>
-  /* Global styles */
-  * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-  }
-
-  /* Intro block at the top */
-  .intro-block {
-    width: 500px;
-    height: 200px; /* Adjusted height */
-    background-color: #EEEEEE;
-    margin: 0 auto 20px;
-    padding: 1rem;
-    border-radius: 10px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-  }
-  .intro-block h3 {
-    font-size: 40px;
-    margin-bottom: 0.5rem;
-    color: #333;
-  }
-  .intro-block p {
-    font-size: 0.95rem;
-    color: #555;
-    line-height: 1.4;
-    margin: 0;
-  }
-
-  /* Controls row */
-  .controls {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 10px;
-    margin-bottom: 20px;
-  }
-
-  /* Glossy button styles */
-  .glossy-button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    height: 40px;
-    padding: 0 10px;
-    border: 1px solid #aaa;
-    border-radius: 5px;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 2px 5px rgba(0, 0, 0, 0.2);
-    background: linear-gradient(to bottom, #bbbbbb 0%, #999999 100%);
-    transition: background 0.3s, box-shadow 0.3s;
-  }
-  .glossy-button:hover {
-    background: linear-gradient(to bottom, #cccccc 0%, #aaaaaa 100%);
-  }
-
-  /* Recorder section */
-  .recorder-section {
-    max-width: 600px;
-    margin: 30px auto;
-    padding: 20px;
-    max-height: 200px; /* Adjusted height */
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-  }
-
-  .recorder-buttons {
-    margin-top: 5px;
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-  }
-
-  .recorder-icon-btn {
-    font-size: 20px;
-    width: 40px;
-    height: 40px;
-    color: #fff;
-    border: 1px solid #aaa;
-    border-radius: 5px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    text-decoration: none;
-    transition: background 0.3s, box-shadow 0.3s;
-  }
-
-  .recorder-icon-btn:hover {
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6), 0 2px 6px rgba(0, 0, 0, 0.25);
-  }
-
-  .start-btn {
-    background: linear-gradient(to bottom, #ff4444 0%, #dd0000 100%);
-  }
-  .stop-btn {
-    background: linear-gradient(to bottom, #ffffff 0%, #dddddd 100%);
-    color: #000;
-  }
-  .stop-btn:hover {
-    background: linear-gradient(to bottom, #ffffff 0%, #cccccc 100%);
-  }
-
-  /* Waveform canvas */
-  #waveformCanvas {
-    display: block;
-    background: #EEE;
-    border-radius: 5px;
-    margin-top: 8px;
-  }
-</style>
-
-<script>
-  let isRecording = false;
-  let mediaStream, mediaRecorder, chunks = [], audioContext, analyser, dataArray, animationId;
-
-  async function startRecording() {
-    if (isRecording) return;
-    isRecording = true;
-    chunks = [];
-
-    try {
-      mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      audioContext = new AudioContext();
-      analyser = audioContext.createAnalyser();
-      const mediaStreamSource = audioContext.createMediaStreamSource(mediaStream);
-      mediaStreamSource.connect(analyser);
-
-      analyser.fftSize = 512;
-      dataArray = new Uint8Array(analyser.frequencyBinCount);
-
-      mediaRecorder = new MediaRecorder(mediaStream);
-      mediaRecorder.ondataavailable = e => {
-        if (e.data.size > 0) chunks.push(e.data);
-      };
-
-      mediaRecorder.onstop = () => {
-        const blob = new Blob(chunks, { type: 'audio/webm' });
-        const url = URL.createObjectURL(blob);
-        const downloadContainer = document.getElementById('downloadContainer');
-        downloadContainer.innerHTML = '';
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = 'recording.webm';
-        link.textContent = 'Download Recording';
-        downloadContainer.appendChild(link);
-      };
-
-      mediaRecorder.start();
-      drawWaveform();
-    } catch (err) {
-      console.error('Error accessing microphone:', err);
-      alert('Error accessing mic. Use HTTPS or check console for details.');
-      isRecording = false;
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Affirmation Generation</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 30px;
+      background-color: #f9f9f9;
     }
-  }
-
-  function stopRecording() {
-    if (!isRecording) return;
-    isRecording = false;
-
-    mediaStream.getTracks().forEach(track => track.stop());
-    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-      mediaRecorder.stop();
+    * {
+      box-sizing: border-box;
     }
 
-    cancelAnimationFrame(animationId);
-    if (audioContext) audioContext.close();
-  }
+    /* Intro block at the top: 200px high, 500px wide */
+    .intro-block {
+      width: 500px;
+      height: 200px;
+      background-color: #EEEEEE;
+      margin: 0 auto 20px auto;
+      padding: 1rem;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+    .intro-block h3 {
+      font-size: 40px;
+      margin-bottom: 0.5rem;
+      color: #333;
+    }
+    .intro-block p {
+      font-size: 0.95rem;
+      color: #555;
+      line-height: 1.4;
+      margin: 0;
+    }
 
-  function drawWaveform() {
+    /* The row with back home + category + generate */
+    .controls {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    /* A glossy, beveled look for all buttons */
+    .glossy-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      color: #333;
+      padding: 5px 15px;
+      border-radius: 5px;
+      border: 1px solid #aaa;
+      text-decoration: none;
+      cursor: pointer;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.4), 0 2px 5px rgba(0,0,0,0.2);
+      background: linear-gradient(to bottom, #bbbbbb 0%, #999999 100%);
+      transition: background 0.3s, box-shadow 0.3s;
+    }
+    .glossy-button:hover {
+      background: linear-gradient(to bottom, #cccccc 0%, #aaaaaa 100%);
+    }
+    .glossy-button span {
+      font-size: 20px; /* icon size */
+    }
+
+    /* Affirmation list styles */
+    .affirmation-container {
+      margin-top: 20px;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .affirmation-list {
+      list-style-type: none;
+      padding: 0;
+    }
+    .affirmation-box {
+      background-color: #fff;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    /* Voice recorder section, 200px high */
+    .recorder-section {
+      max-width: 600px;
+      margin: 30px auto;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+      padding: 20px;
+      overflow: hidden;
+      max-height: 200px;
+      box-sizing: border-box;
+      text-align: center;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+    .recorder-section h3 {
+      margin-bottom: 5px;
+    }
+
+    .recorder-buttons {
+      margin-top: 5px;
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .recorder-icon-btn {
+      font-size: 20px;
+      width: 40px;
+      height: 40px;
+      border: 1px solid #aaa;
+      border-radius: 5px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.4), 0 2px 5px rgba(0,0,0,0.2);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      transition: background 0.3s, box-shadow 0.3s;
+    }
+    .recorder-icon-btn:hover {
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.6), 0 2px 6px rgba(0,0,0,0.25);
+    }
+    /* Red for start, white for stop */
+    .start-btn {
+      background: linear-gradient(to bottom, #ff4444 0%, #dd0000 100%);
+      color: #fff;
+    }
+    .stop-btn {
+      background: linear-gradient(to bottom, #ffffff 0%, #dddddd 100%);
+      color: #000;
+    }
+    .stop-btn:hover {
+      background: linear-gradient(to bottom, #ffffff 0%, #cccccc 100%);
+    }
+
+    /* Canvas for waveform */
+    #waveformCanvas {
+      display: block;
+      background: #EEE;
+      border-radius: 5px;
+      margin-top: 8px;
+    }
+
+    /* Download link styling */
+    .download-link {
+      display: inline-block;
+      margin-top: 6px;
+      color: #007BFF;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    .download-link:hover {
+      text-decoration: underline;
+    }
+
+    /* Playlist styling */
+    .playlist {
+      max-height: 70px; /* ensure it fits in the 200px box if you have many recordings */
+      overflow-y: auto; 
+      width: 100%;
+      margin-top: 5px;
+    }
+    .playlist audio {
+      width: 90%;
+      margin-top: 5px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Intro block at the top (200px high) -->
+  <div class="intro-block">
+    <h3>Discover Easy Note Management</h3>
+    <p>
+      Affirmation Generation<br/>
+      Select a category below, then click "Generate" to see five random affirmations.
+    </p>
+  </div>
+
+  <!-- Controls row: place Custom Topic at the top of the dropdown -->
+  <div class="controls">
+    <!-- Back to Home icon-only button (🏠) with glossy style -->
+    <a href="index.html" class="glossy-button">
+      <span>🏠</span>
+    </a>
+
+    <!-- Category select with CustomTopic at top -->
+    <select id="categorySelect">
+      <option value="CustomTopic">✏️ Custom Topic</option>
+      <option value="Confidence">👑 Confidence</option>
+      <option value="Happiness">😄 Happiness</option>
+      <option value="Focus">🎯 Focus</option>
+      <option value="Quit Smoking or Addictions">🚭 Quit/Addictions</option>
+      <option value="Better Sleep">💤 Better Sleep</option>
+      <option value="Emotional Mastery">🌈 Emotional Mastery</option>
+      <option value="Habits & Discipline">🏆 Habits & Discipline</option>
+      <option value="Money & Finance">💰 Money & Finance</option>
+      <option value="Healing and Recovery">💖 Healing & Recovery</option>
+      <option value="Fitness">💪 Fitness</option>
+      <option value="Self-Love">❤️ Self-Love</option>
+      <option value="Strengthening Relationships">🤝 Relationships</option>
+      <option value="Focus (2)">🤔 Focus (Duplicate)</option>
+      <option value="Resilience">🌱 Resilience</option>
+      <option value="Quality of Life">🌟 Quality of Life</option>
+    </select>
+
+    <!-- Generate icon-only button with glossy style -->
+    <button class="glossy-button" onclick="generateAffirmations()">
+      <span>🔄</span>
+    </button>
+  </div>
+
+  <!-- Affirmations output -->
+  <div class="affirmation-container" id="affirmationContainer"></div>
+
+  <!-- Voice Recorder Section: 200px high -->
+  <div class="recorder-section">
+    <h3>Voice Recorder</h3>
+
+    <!-- Start & Stop icons with glossy style -->
+    <div class="recorder-buttons">
+      <button class="recorder-icon-btn start-btn" onclick="startRecording()">
+        🎤
+      </button>
+      <button class="recorder-icon-btn stop-btn" onclick="stopRecording()">
+        ⏹
+      </button>
+    </div>
+
+    <canvas id="waveformCanvas" width="500" height="60"></canvas>
+
+    <!-- Download link for the latest recording -->
+    <div id="downloadContainer"></div>
+
+    <!-- Simple playlist for all recorded clips -->
+    <div class="playlist" id="playlist"></div>
+  </div>
+
+  <script>
+    /************************************************************
+     * AFFIRMATION LIBRARY (ENSURE AT LEAST 5 PER CATEGORY)
+     ************************************************************/
+    const affirmationLibrary = {
+      "Confidence": [
+        "I believe in myself and my abilities.",
+        "I radiate confidence in all that I do.",
+        "Challenges help me grow stronger and more capable.",
+        "I trust my instincts to guide me toward success.",
+        "Confidence is my natural state of being."
+      ],
+      "Happiness": [
+        "I choose happiness in every moment.",
+        "My heart is filled with gratitude and contentment.",
+        "I spread joy wherever I go.",
+        "Happiness flows effortlessly through my life.",
+        "I allow myself to experience happiness fully and freely."
+      ],
+      "Focus": [
+        "I concentrate easily and stay present in the moment.",
+        "Each focused effort brings me closer to success.",
+        "Distractions fade away when I commit to my goals.",
+        "I trust my ability to stay on track and achieve.",
+        "I am proud of the progress I make through focused action."
+      ],
+      "Quit Smoking or Addictions": [
+        "I release the urge to rely on unhealthy habits.",
+        "I deserve a life of clarity, joy, and health.",
+        "I am stronger than my cravings.",
+        "My commitment to healing inspires me daily.",
+        "I take pride in every small victory on my journey."
+      ],
+      "Better Sleep": [
+        "I release the stress of the day and welcome restful sleep.",
+        "I deserve deep, restorative sleep every night.",
+        "My body knows how to rest and heal as I sleep.",
+        "Each night, I drift into a peaceful, rejuvenating sleep.",
+        "I wake up energized and ready for a new day."
+      ],
+      "Emotional Mastery": [
+        "I am the master of my emotions and respond with calmness.",
+        "My emotional resilience grows stronger every day.",
+        "I am in control of how I react to life's challenges.",
+        "I release negativity and welcome positivity.",
+        "Every emotion I feel is valid and helps me grow."
+      ],
+      "Habits & Discipline": [
+        "I create habits that align with my goals and values.",
+        "Discipline is my superpower, and I use it wisely.",
+        "My habits reflect the person I want to become.",
+        "Small, consistent actions lead to big results.",
+        "I celebrate each step toward building positive habits."
+      ],
+      "Money & Finance": [
+        "I attract wealth and abundance effortlessly.",
+        "Money flows to me in expected and unexpected ways.",
+        "I deserve prosperity and financial freedom.",
+        "I make wise financial decisions every day.",
+        "I am confident in my ability to manage my finances."
+      ],
+      "Healing and Recovery": [
+        "My body, mind, and soul are in the process of healing.",
+        "I celebrate every step of progress in my recovery.",
+        "I am resilient, and my healing is a gift to myself.",
+        "I embrace the journey of recovery with patience and love.",
+        "Each day, I grow stronger in body and mind."
+      ],
+      "Fitness": [
+        "I enjoy moving my body and feeling strong.",
+        "I am grateful for the energy and vitality my body provides.",
+        "I fuel my body with nourishing movement.",
+        "Each workout brings me closer to my health goals.",
+        "I celebrate my body's capabilities with every challenge."
+      ],
+      "Self-Love": [
+        "I am worthy of love, respect, and kindness.",
+        "My flaws make me unique and beautiful.",
+        "Every day, I become more confident in my own skin.",
+        "I honor my body and mind with compassion and care.",
+        "I speak to myself with kindness and encouragement."
+      ],
+      "Strengthening Relationships": [
+        "I cultivate relationships filled with love, respect, and trust.",
+        "I listen and communicate with care and understanding.",
+        "I value and appreciate the people in my life.",
+        "My relationships thrive on honesty and compassion.",
+        "I offer empathy and kindness to those around me."
+      ],
+      "Focus (2)": [
+        "I master new levels of focus every day.",
+        "Distraction does not deter me from my goals.",
+        "I find solace in single-minded dedication.",
+        "My concentration sharpens with every task.",
+        "I remain calm and centered amid distractions."
+      ],
+      "Resilience": [
+        "I am stronger than any challenge that comes my way.",
+        "Every setback is an opportunity to grow and learn.",
+        "I bounce back with grace and determination.",
+        "My inner strength guides me through adversity.",
+        "I thrive on overcoming obstacles in my path."
+      ],
+      "Quality of Life": [
+        "I choose to live a life filled with joy and purpose.",
+        "I am grateful for the abundance in my life.",
+        "Every day, I strive to improve my quality of life.",
+        "I cherish meaningful connections and experiences.",
+        "I nurture my well-being by prioritizing what matters."
+      ]
+    };
+
+    /************************************************************
+     * CUSTOM TOPIC TEMPLATES
+     ************************************************************/
+    const customTemplates = [
+      "I am becoming more and more confident in my {topic} every day.",
+      "I approach {topic} with optimism and determination.",
+      "My {topic} skills grow stronger every time I practice.",
+      "I am proud of my progress in {topic} and celebrate every milestone.",
+      "I am worthy of success and happiness in my {topic} pursuits."
+    ];
+
+    /* Generate Affirmations */
+    function generateAffirmations() {
+      const category = document.getElementById("categorySelect").value;
+      if (category === "CustomTopic") {
+        generateCustomAffirmations();
+      } else {
+        const affirmations = affirmationLibrary[category] || [];
+        // Shuffle
+        const shuffled = [...affirmations].sort(() => 0.5 - Math.random());
+        // Always show exactly 5
+        const selectedFive = shuffled.slice(0, 5);
+        displayAffirmations(selectedFive);
+      }
+    }
+
+    function generateCustomAffirmations() {
+      const topic = prompt("Enter your custom topic:", "public speaking");
+      if (!topic) return;  // user canceled
+      const shuffled = [...customTemplates].sort(() => 0.5 - Math.random());
+      const selectedFive = shuffled.slice(0, 5);
+      const results = selectedFive.map(template =>
+        template.replace("{topic}", topic)
+      );
+      displayAffirmations(results);
+    }
+
+    function displayAffirmations(list) {
+      const container = document.getElementById("affirmationContainer");
+      container.innerHTML = ""; // clear old content
+
+      const ul = document.createElement("ul");
+      ul.className = "affirmation-list";
+
+      list.forEach((affirmation) => {
+        const li = document.createElement("li");
+        li.className = "affirmation-box";
+        li.textContent = affirmation;
+        ul.appendChild(li);
+      });
+      container.appendChild(ul);
+    }
+
+    /************************************************************
+     * VOICE RECORDER: 
+     *   - Real-time wave
+     *   - Download link for latest clip
+     *   - Playlist for multiple recordings
+     ************************************************************/
+    let audioContext;
+    let analyser;
+    let dataArray;
+    let animationId;
+    let mediaStreamSource;
+    let mediaStream;
+    let mediaRecorder;
+    let chunks = [];
+    let isRecording = false;
+
     const canvas = document.getElementById('waveformCanvas');
     const canvasCtx = canvas.getContext('2d');
-    animationId = requestAnimationFrame(drawWaveform);
 
-    analyser.getByteTimeDomainData(dataArray);
-    canvasCtx.fillStyle = '#EEE';
-    canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
+    // We'll store multiple recordings in an array
+    // and display them in #playlist
+    const recordings = [];
 
-    canvasCtx.lineWidth = 2;
-    canvasCtx.strokeStyle = '#007BFF';
-    canvasCtx.beginPath();
+    async function startRecording() {
+      if (isRecording) return; // already recording
+      isRecording = true;
+      chunks = [];
 
-    const sliceWidth = canvas.width / dataArray.length;
-    let x = 0;
-    for (let i = 0; i < dataArray.length; i++) {
-      const v = dataArray[i] / 128.0;
-      const y = v * (canvas.height / 2);
-      if (i === 0) {
-        canvasCtx.moveTo(x, y);
-      } else {
-        canvasCtx.lineTo(x, y);
+      try {
+        // ask for mic
+        mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        audioContext = new AudioContext();
+        analyser = audioContext.createAnalyser();
+
+        mediaStreamSource = audioContext.createMediaStreamSource(mediaStream);
+        mediaStreamSource.connect(analyser);
+
+        analyser.fftSize = 512;
+        const bufferLength = analyser.frequencyBinCount;
+        dataArray = new Uint8Array(bufferLength);
+
+        // Setup MediaRecorder
+        mediaRecorder = new MediaRecorder(mediaStream);
+        mediaRecorder.ondataavailable = (e) => {
+          if (e.data.size > 0) chunks.push(e.data);
+        };
+
+        mediaRecorder.onstop = (e) => {
+          // create blob
+          const blob = new Blob(chunks, { type: 'audio/webm' });
+          const url = URL.createObjectURL(blob);
+
+          // create download link
+          const downloadContainer = document.getElementById('downloadContainer');
+          downloadContainer.innerHTML = '';
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = 'myRecording.webm';
+          link.className = 'download-link';
+          link.textContent = 'Download Recording';
+          downloadContainer.appendChild(link);
+
+          // also add to our "playlist"
+          addToPlaylist(url);
+        };
+
+        mediaRecorder.start();
+        drawWaveform();
+      } catch (err) {
+        console.error('Error accessing microphone:', err);
+        isRecording = false;
       }
-      x += sliceWidth;
     }
-    canvasCtx.lineTo(canvas.width, canvas.height / 2);
-    canvasCtx.stroke();
-  }
-</script>
+
+    function stopRecording() {
+      if (!isRecording) return;
+      isRecording = false;
+
+      // Stop mic tracks
+      if (mediaStream) {
+        mediaStream.getTracks().forEach(track => track.stop());
+      }
+
+      // Stop MediaRecorder
+      if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+        mediaRecorder.stop();
+      }
+
+      // Stop drawing
+      cancelAnimationFrame(animationId);
+      if (audioContext) {
+        audioContext.close();
+      }
+    }
+
+    /* create <audio> entry in #playlist for each new recording */
+    function addToPlaylist(url) {
+      recordings.push(url);
+      const playlistDiv = document.getElementById('playlist');
+
+      // create an <audio> element with controls
+      const audioEl = document.createElement('audio');
+      audioEl.src = url;
+      audioEl.controls = true;
+
+      playlistDiv.appendChild(audioEl);
+    }
+
+    /* animation loop for waveform */
+    function drawWaveform() {
+      animationId = requestAnimationFrame(drawWaveform);
+
+      analyser.getByteTimeDomainData(dataArray);
+
+      canvasCtx.fillStyle = '#EEE';
+      canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
+
+      canvasCtx.lineWidth = 2;
+      canvasCtx.strokeStyle = '#007BFF';
+
+      canvasCtx.beginPath();
+
+      const sliceWidth = canvas.width / dataArray.length;
+      let x = 0;
+
+      for (let i = 0; i < dataArray.length; i++) {
+        const v = dataArray[i] / 128.0;
+        const y = v * (canvas.height / 2);
+
+        if (i === 0) {
+          canvasCtx.moveTo(x, y);
+        } else {
+          canvasCtx.lineTo(x, y);
+        }
+        x += sliceWidth;
+      }
+
+      canvasCtx.lineTo(canvas.width, canvas.height / 2);
+      canvasCtx.stroke();
+    }
+  </script>
+</body>
+</html>
