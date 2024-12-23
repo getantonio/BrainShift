@@ -1,235 +1,259 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Brain-Shift</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            background-color: #f5f5f5;
-        }
-        header {
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: rgb(0, 0, 255); /* Solid blue */
-            color: white;
-            padding: 1rem 2rem;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-        }
-        header nav {
-            display: flex;
-            gap: 1rem;
-        }
-        header nav a {
-            color: white;
-            text-decoration: none;
-            font-weight: bold;
-            background: rgb(0, 0, 255);
-            padding: 0.5rem 1rem;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background 0.3s ease, color 0.3s ease;
-        }
-        header nav a:hover {
-            background: white;
-            color: rgb(0, 0, 255);
-        }
-        .top-section {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-            align-items: center;
-            padding: 2rem;
-            background-color: #f9f9f9;
-        }
-        .top-section .text {
-            max-width: 50%;
-        }
-        .top-section img {
-            width: 45%;
-            max-width: 500px;
-            border-radius: 10px;
-        }
-        .compact-block {
-            max-width: 325px;
-            margin: 0 auto;
-            padding: 1rem;
-            text-align: center;
-            background-color: #EEEEEE;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            font-family: Frutiger, sans-serif;
-        }
-        .compact-block h2 {
-            font-size: 15px;
-            color: rgb(0, 0, 255); /* Solid blue */
-            margin-bottom: 0.3rem;
-        }
-        .compact-block h3 {
-            font-size: 50px; /* Increased size */
-            color: #424242;
-            margin-bottom: 0.4rem;
-        }
-        .compact-block p {
-            font-size: 14px;
-            color: #333;
-            margin-bottom: 0;
-        }
-        .sunset-section {
-            text-align: center;
-            background-image: url('images/AI-Generated-Sunset-Image.jpg');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            color: white;
-            padding: 5rem 2rem;
-        }
-        .sunset-section h2 {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
-            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.7);
-        }
-        .sunset-section p {
-            font-size: 1.2rem;
-            margin-bottom: 2rem;
-            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7);
-        }
-        .sunset-section .cta {
-            padding: 0.8rem 1.5rem;
-            background: rgb(0, 0, 255); /* Solid blue */
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-size: 1rem;
-            cursor: pointer;
-        }
-        .horizontal-sections {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-around;
-            align-items: stretch;
-            padding: 3rem 1rem;
-            background-color: #fff;
-        }
-        .section-card {
-            flex: 1;
-            margin: 0 1rem;
-            text-align: center;
-            background: #f9f9f9;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            padding: 1.5rem;
-        }
-        .section-card img {
-            width: 80%;
-            max-width: 150px;
-            margin-bottom: 1rem;
-            border-radius: 10px;
-        }
-        .section-card h3 {
-            font-size: 1.5rem;
-            color: rgb(0, 0, 255);
-            margin-bottom: 0.5rem;
-        }
-        .section-card p {
-            color: #666;
-            margin-bottom: 1.5rem;
-        }
-        .section-card .cta {
-            padding: 0.8rem 1.5rem;
-            background: rgb(0, 0, 255);
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-size: 1rem;
-            cursor: pointer;
-        }
-        .footer {
-            background: rgb(0, 0, 255);
-            color: white;
-            text-align: center;
-            padding: 1rem 0;
-        }
-        @media (max-width: 768px) {
-            .top-section {
-                flex-direction: column;
-            }
-            .top-section .text, .top-section img {
-                max-width: 100%;
-            }
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Brain-Shift Landing</title>
+
+  <style>
+    /* Global reset & basic styling */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    html, body {
+      font-family: Arial, sans-serif;
+      background-color: #f5f5f5;
+      color: #333;
+      overflow-x: hidden; /* prevent horizontal scrolling */
+    }
+
+    /* Sticky Header */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 999;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #0000FF; /* Solid blue */
+      color: white;
+      padding: 1rem 2rem;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+    }
+    .header-logo {
+      font-weight: bold;
+      font-size: 1.2rem;
+    }
+    header nav {
+      display: flex;
+      gap: 1rem;
+    }
+    header nav a {
+      color: white;
+      text-decoration: none;
+      font-weight: 600;
+      padding: 0.5rem 1rem;
+      border-radius: 5px;
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+    header nav a:hover {
+      background: white;
+      color: #0000FF;
+    }
+
+    /* Hero / Top Section */
+    .hero-section {
+      text-align: center;
+      background-color: #fff;
+      padding: 4rem 2rem;
+    }
+    .hero-heading {
+      font-size: 2.5rem;
+      font-weight: bold;
+      margin-bottom: 1rem;
+      color: #222;
+    }
+    .hero-subheading {
+      font-size: 1.2rem;
+      max-width: 700px;
+      margin: 0 auto 2rem auto;
+      line-height: 1.5;
+      color: #444;
+    }
+    .hero-cta {
+      font-size: 1rem;
+      padding: 0.8rem 2rem;
+      background: #0000FF;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    .hero-cta:hover {
+      background: #0033ff;
+    }
+
+    /* Section Container & Headings */
+    .section-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 3rem 2rem;
+    }
+    .section-heading {
+      text-align: center;
+      font-size: 2rem;
+      margin-bottom: 2rem;
+      color: #0000FF;
+      font-weight: bold;
+    }
+    .section-subheading {
+      text-align: center;
+      max-width: 700px;
+      margin: 0 auto 3rem auto;
+      color: #555;
+      line-height: 1.5;
+    }
+
+    /* Cards / Horizontal Rows */
+    .cards-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1.5rem;
+    }
+    .card {
+      background: #fff;
+      flex: 1 1 300px; /* min width of 300px */
+      max-width: 350px; /* optional max width */
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      padding: 1.5rem;
+      text-align: center;
+    }
+    .card img {
+      width: 80px;
+      margin-bottom: 1rem;
+      border-radius: 10px;
+    }
+    .card h3 {
+      font-size: 1.3rem;
+      color: #0000FF;
+      margin-bottom: 0.5rem;
+    }
+    .card p {
+      line-height: 1.4;
+      color: #666;
+      margin-bottom: 1.5rem;
+      font-size: 0.95rem;
+    }
+    .card button {
+      background: #0000FF;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      padding: 0.7rem 1.5rem;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    .card button:hover {
+      background: #0033ff;
+    }
+
+    /* Footer (Sign-Up Section) */
+    footer {
+      background: #0000FF;
+      color: #fff;
+      text-align: center;
+      padding: 1.5rem 1rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .hero-heading {
+        font-size: 2rem;
+      }
+      .hero-subheading {
+        font-size: 1rem;
+      }
+      .cards-row {
+        flex-direction: column;
+        align-items: center;
+      }
+    }
+  </style>
 </head>
 <body>
-    <header>
-        <div></div>
-        <nav>
-            <a href="#how-it-works">How It Works</a>
-            <a href="#benefits">Benefits</a>
-            <a href="#sign-up">Sign Up</a>
-        </nav>
-    </header>
 
-    <!-- Top section: unchanged -->
-    <div class="top-section">
-        <div class="text">
-            <div class="compact-block">
-                <h2>#1 on User Experience</h2>
-                <h3>Discover Easy Note Management</h3>
-                <p>Introducing VoiceBuddy, the app that simplifies voice journaling for a smoother journey towards positivity and growth.</p>
-            </div>
-        </div>
-        <img src="images/AI-Generated-Study.jpg" alt="AI Generated Study Image">
+  <!-- Header: Temporarily linking "How It Works" to affirmation.html -->
+  <header>
+    <div class="header-logo">Brain-Shift</div>
+    <nav>
+      <!-- Instead of #how-it-works, we link to the Affirmation Generator page -->
+      <a href="affirmation.html">How It Works</a>
+      <a href="#benefits">Benefits</a>
+      <a href="#sign-up">Sign Up</a>
+    </nav>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <h1 class="hero-heading">Discover Easy Note Management</h1>
+    <p class="hero-subheading">
+      Introducing VoiceBuddy, the app that simplifies voice journaling for a smoother journey towards positivity and growth.
+    </p>
+    <button class="hero-cta">Get Started</button>
+  </section>
+
+  <!-- 
+    Could place a "How It Works" section here 
+    if we want a real anchor for #how-it-works. 
+    But for now, the link goes to affirmation.html.
+  -->
+
+  <!-- Benefits Section -->
+  <section id="benefits" class="section-container">
+    <h2 class="section-heading">Benefits</h2>
+    <p class="section-subheading">
+      Explore the features that make Brain-Shift the perfect companion for personal growth.
+    </p>
+    <div class="cards-row">
+      <!-- Card 1: Voice Capture -->
+      <div class="card">
+        <!-- Fallback if image fails to load -->
+        <img 
+          src="images/AI-Generated-Mic.jpg" 
+          alt="Microphone Icon"
+          onerror="this.onerror=null; this.src='images/fallback.jpg';"
+        >
+        <h3>Voice Capture</h3>
+        <p>Set aside moments for daily reflections, guiding you to nurture positive growth day by day.</p>
+        <button>Learn More</button>
+      </div>
+
+      <!-- Card 2: Positive Playback -->
+      <div class="card">
+        <img 
+          src="images/AI-Generated-Headphones.jpg" 
+          alt="Headphones Icon"
+          onerror="this.onerror=null; this.src='images/fallback.jpg';"
+        >
+        <h3>Positive Playback</h3>
+        <p>Enhance your mindset by playing back your affirmations in a soothing voice.</p>
+        <button>Learn More</button>
+      </div>
+
+      <!-- Card 3: Daily Reflections -->
+      <div class="card">
+        <img 
+          src="images/AI-Generated-Globe.jpg" 
+          alt="Globe Icon"
+          onerror="this.onerror=null; this.src='images/fallback.jpg';"
+        >
+        <h3>Daily Reflections</h3>
+        <p>Effortlessly record thoughts on the go and transform them into affirmations.</p>
+        <button>Learn More</button>
+      </div>
     </div>
+  </section>
 
-    <!-- Sunset section: unchanged -->
-    <div class="sunset-section">
-        <h2>Start Your Positive Journey</h2>
-        <p>Revolutionize your mindset in four simple steps: Identify, Create, Record, and Loop.</p>
-        <button class="cta">Get Started</button>
-    </div>
+  <!-- Footer / Sign-Up Section -->
+  <footer id="sign-up">
+    <p>&copy; 2024 Brain-Shift. All rights reserved.</p>
+  </footer>
 
-    <!-- "How It Works" section, matching the nav link -->
-    <section id="how-it-works" style="padding: 2rem; text-align: center; background-color: #f9f9f9;">
-        <h2>How It Works</h2>
-        <p style="max-width: 600px; margin: 1rem auto;">
-            Here you can outline the quick steps or flow, so users know exactly what to do.
-        </p>
-    </section>
-
-    <!-- Horizontal sections with "Benefits" ID -->
-    <div class="horizontal-sections" id="benefits">
-        <div class="section-card">
-            <img src="images/AI-Generated-Mic.jpg" alt="Microphone Icon">
-            <h3>Voice Capture</h3>
-            <p>Set aside moments for daily reflections, guiding you to nurture positive growth day by day.</p>
-            <button class="cta">Learn More</button>
-        </div>
-        <div class="section-card">
-            <img src="images/AI-Generated-Headphones.jpg" alt="Woman with Headphones">
-            <h3>Positive Playback</h3>
-            <p>Enhance your mindset by playing back your affirmations in a soothing voice.</p>
-            <button class="cta">Learn More</button>
-        </div>
-        <div class="section-card">
-            <img src="images/AI-Generated-Globe.jpg" alt="AI Generated Globe Image">
-            <h3>Daily Reflections</h3>
-            <p>Effortlessly record thoughts on the go with voice capture and transform them into affirmations.</p>
-            <button class="cta">Learn More</button>
-        </div>
-    </div>
-
-    <!-- Footer with "Sign Up" ID -->
-    <footer class="footer" id="sign-up">
-        <p>&copy; 2024 Brain-Shift. All rights reserved.</p>
-    </footer>
 </body>
 </html>
