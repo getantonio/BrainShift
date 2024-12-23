@@ -52,30 +52,45 @@
             font-size: 1rem;
             cursor: pointer;
         }
-        .section {
-            padding: 2rem;
-            text-align: center;
+        .horizontal-sections {
+            display: flex;
+            justify-content: space-around;
+            align-items: stretch;
+            padding: 3rem 1rem;
+            background-color: #fff;
         }
-        .section img {
+        .section-card {
+            flex: 1;
+            margin: 0 1rem;
+            text-align: center;
+            background: #f9f9f9;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+        }
+        .section-card img {
             width: 80%;
-            max-width: 400px;
-            margin: 1rem;
+            max-width: 150px;
+            margin-bottom: 1rem;
             border-radius: 10px;
         }
-        .section img.right {
-            float: right;
-            margin-left: 2rem;
-        }
-        .section img.left {
-            float: left;
-            margin-right: 2rem;
-        }
-        .section h2 {
+        .section-card h3 {
+            font-size: 1.5rem;
             color: #4CAF50;
+            margin-bottom: 0.5rem;
         }
-        .section p {
-            color: #333;
+        .section-card p {
+            color: #666;
             margin-bottom: 1.5rem;
+        }
+        .section-card .cta {
+            padding: 0.8rem 1.5rem;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
         }
         .footer {
             background: #333;
@@ -100,26 +115,28 @@
         <p>Revolutionize your mindset in three simple steps: Identify, Record, Loop.</p>
         <button class="cta">Get Started</button>
     </div>
-    <div id="how-it-works" class="section">
-        <h2>How It Works</h2>
-        <img src="images/AI-Generated-Mic.jpg" alt="Microphone Icon" class="right">
-        <p>1. Input your problem</p>
-        <p>2. Record your voice</p>
-        <p>3. Receive personalized affirmations</p>
-    </div>
-    <div id="benefits" class="section">
-        <h2>Benefits</h2>
-        <img src="images/AI-Generated-Woman.jpg" alt="Happy Woman with Headphones" class="left">
-        <p>Boost your confidence and reduce procrastination.</p>
-        <p>Turn hurtful thoughts into nourishing positivity.</p>
-    </div>
-    <div id="sign-up" class="section">
-        <h2>Sign Up</h2>
-        <img src="images/AI-Generated-Mic.jpg" alt="Microphone Icon" class="right">
-        <form>
-            <input type="email" placeholder="Enter your email" required>
-            <button type="submit">Submit</button>
-        </form>
+    <div class="horizontal-sections">
+        <!-- Left Section -->
+        <div class="section-card">
+            <img src="images/AI-Generated-Mic.jpg" alt="Microphone Icon">
+            <h3>Voice Capture</h3>
+            <p>Set aside moments for daily reflections, guiding you to nurture positive growth day by day.</p>
+            <button class="cta">Learn More</button>
+        </div>
+        <!-- Middle Section -->
+        <div class="section-card">
+            <img src="images/AI-Generated-Woman.jpg" alt="Woman with Headphones">
+            <h3>Positive Playback</h3>
+            <p>Enhance your mindset by playing back your affirmations in a soothing voice.</p>
+            <button class="cta">Learn More</button>
+        </div>
+        <!-- Right Section -->
+        <div class="section-card">
+            <img src="images/AI-Generated-Study.jpg" alt="Globe Icon">
+            <h3>Daily Reflections</h3>
+            <p>Effortlessly record thoughts on the go with voice capture and transform them into affirmations.</p>
+            <button class="cta">Learn More</button>
+        </div>
     </div>
     <footer class="footer">
         <p>&copy; 2024 Brain-Shift. All rights reserved.</p>
