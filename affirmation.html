@@ -4,6 +4,9 @@
   <meta charset="UTF-8" />
   <title>Affirmation Generation</title>
   <style>
+    /********************************************************
+     * Global + Layout
+     ********************************************************/
     body {
       font-family: Arial, sans-serif;
       margin: 30px;
@@ -13,9 +16,12 @@
       box-sizing: border-box;
     }
 
+    /********************************************************
+     * Intro Block (150px high, 500px wide)
+     ********************************************************/
     .intro-block {
       width: 500px;
-      height: 200px;
+      height: 150px;  /* changed to 150px */
       background-color: #EEEEEE;
       margin: 0 auto 20px auto;
       padding: 1rem;
@@ -28,8 +34,8 @@
       align-items: center;
     }
     .intro-block h3 {
-      font-size: 40px;
-      margin-bottom: 0.5rem;
+      font-size: 32px; /* slightly smaller so it fits well */
+      margin-bottom: 0.3rem;
       color: #333;
     }
     .intro-block p {
@@ -39,6 +45,9 @@
       margin: 0;
     }
 
+    /********************************************************
+     * Controls: Home button + Category Box + Generate button
+     ********************************************************/
     .controls {
       display: flex;
       flex-wrap: wrap;
@@ -48,6 +57,7 @@
       margin-bottom: 20px;
     }
 
+    /* Glossy Button style (silver) */
     .glossy-button {
       display: inline-flex;
       align-items: center;
@@ -71,14 +81,35 @@
       font-size: 20px; /* icon size */
     }
 
-    /* Category select: double its typical height */
-    select {
-      padding: 10px;
-      font-size: 16px;
-      height: 80px;  /* doubled from ~40px to 80px */
-      line-height: 1.2; /* keep some line spacing for text inside */
+    /* The green "Generate" button modifies background color */
+    .glossy-green {
+      background: linear-gradient(to bottom, #73e673 0%, #5bb95b 100%) !important;
+      color: #fff !important;
+      border: 1px solid #5bb95b !important;
+    }
+    .glossy-green:hover {
+      background: linear-gradient(to bottom, #7ef77e 0%, #5bb95b 100%) !important;
     }
 
+    /* Category select: same height as buttons, silver background */
+    select {
+      padding: 0 10px;
+      font-size: 16px;
+      height: 40px;
+      line-height: 1.2;
+      background-color: #bbbbbb; /* match silver of other buttons */
+      border: 1px solid #aaa;
+      border-radius: 5px;
+      cursor: pointer;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.4), 0 2px 5px rgba(0,0,0,0.2);
+    }
+    select:focus {
+      outline: none;
+    }
+
+    /********************************************************
+     * Affirmation Container
+     ********************************************************/
     .affirmation-container {
       margin-top: 20px;
       max-width: 600px;
@@ -97,6 +128,9 @@
       box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
 
+    /********************************************************
+     * Decorative "Voice Recorder" with Animated Waveform
+     ********************************************************/
     .recorder-section {
       max-width: 600px;
       margin: 30px auto;
@@ -104,8 +138,7 @@
       border-radius: 10px;
       box-shadow: 0 2px 5px rgba(0,0,0,0.15);
       padding: 20px;
-      overflow: hidden;
-      max-height: 200px;
+      max-height: 200px;  /* requested height */
       text-align: center;
       position: relative;
       display: flex;
@@ -148,39 +181,68 @@
       background: linear-gradient(to bottom, #ffffff 0%, #dddddd 100%);
       color: #000;
     }
-    .stop-btn:hover {
-      background: linear-gradient(to bottom, #ffffff 0%, #cccccc 100%);
+
+    /********************************************************
+     * Animated Waveform Bars (Purely Visual)
+     ********************************************************/
+    .wave-container {
+      width: 300px;
+      height: 40px;
+      margin-top: 15px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 3px;
     }
-    #waveformCanvas {
-      display: block;
-      background: #EEE;
-      border-radius: 5px;
-      margin-top: 8px;
+    .bar {
+      width: 4px;
+      background: #007BFF;
+      animation: wave 1s ease-in-out infinite alternate;
+      /* start with minimal height */
+      height: 5px;
+      border-radius: 2px;
     }
-    .download-link {
-      display: inline-block;
-      margin-top: 6px;
-      color: #007BFF;
-      text-decoration: none;
-      font-weight: bold;
+    /* Each bar can have a different delay/duration to vary movement */
+    .bar:nth-child(1) {
+      animation-duration: 0.8s;
     }
-    .download-link:hover {
-      text-decoration: underline;
+    .bar:nth-child(2) {
+      animation-duration: 0.95s;
+      animation-delay: 0.1s;
     }
-    .playlist {
-      max-height: 70px;
-      overflow-y: auto;
-      width: 100%;
-      margin-top: 5px;
+    .bar:nth-child(3) {
+      animation-duration: 0.7s;
+      animation-delay: 0.2s;
     }
-    .playlist audio {
-      width: 90%;
-      margin-top: 5px;
+    .bar:nth-child(4) {
+      animation-duration: 0.85s;
+      animation-delay: 0.3s;
+    }
+    .bar:nth-child(5) {
+      animation-duration: 1.0s;
+      animation-delay: 0.15s;
+    }
+
+    /* wave keyframes: from small to large to emulate wave motion */
+    @keyframes wave {
+      0% {
+        height: 5px;
+      }
+      100% {
+        height: 35px;
+      }
+    }
+
+    /* Not Active => no animation => bars at 5px height */
+    .wave-container:not(.active) .bar {
+      animation: none;
+      height: 5px;
     }
   </style>
 </head>
 <body>
 
+  <!-- Intro block: 150px high -->
   <div class="intro-block">
     <h3>Discover Easy Note Management</h3>
     <p>
@@ -189,50 +251,57 @@
     </p>
   </div>
 
+  <!-- Controls row -->
   <div class="controls">
-    <!-- Home button -->
+    <!-- Home button (silver) -->
     <a href="index.html" class="glossy-button">
       <span>🏠</span>
     </a>
 
-    <!-- The category select is now height: 80px -->
+    <!-- Category box, same height as button (40px), background #BBBBBB -->
     <select id="categorySelect">
       <option value="CustomTopic">✏️ Custom Topic</option>
       <option value="Confidence">👑 Confidence</option>
       <option value="Happiness">😄 Happiness</option>
       <option value="Focus">🎯 Focus</option>
       <option value="Quit Smoking or Addictions">🚭 Quit/Addictions</option>
-      <!-- ... rest of categories ... -->
     </select>
 
-    <button class="glossy-button" onclick="generateAffirmations()">
+    <!-- Generate button: glossy green! -->
+    <button class="glossy-button glossy-green" onclick="generateAffirmations()">
       <span>🔄</span>
     </button>
   </div>
 
+  <!-- Affirmation container -->
   <div class="affirmation-container" id="affirmationContainer"></div>
 
-  <!-- Voice Recorder -->
+  <!-- Decorative Voice Recorder -->
   <div class="recorder-section">
-    <h3>Voice Recorder (Requires HTTPS)</h3>
+    <h3>Decorative Waveform (No Actual Recording)</h3>
     <div class="recorder-buttons">
-      <button class="recorder-icon-btn start-btn" onclick="startRecording()">
+      <button class="recorder-icon-btn start-btn" onclick="startWave()">
         🎤
       </button>
-      <button class="recorder-icon-btn stop-btn" onclick="stopRecording()">
+      <button class="recorder-icon-btn stop-btn" onclick="stopWave()">
         ⏹
       </button>
     </div>
-    <canvas id="waveformCanvas" width="500" height="60"></canvas>
 
-    <div id="downloadContainer"></div>
-    <div class="playlist" id="playlist"></div>
+    <!-- The "wave-container" with .bar elements -->
+    <div class="wave-container" id="waveContainer">
+      <div class="bar"></div>
+      <div class="bar"></div>
+      <div class="bar"></div>
+      <div class="bar"></div>
+      <div class="bar"></div>
+    </div>
   </div>
 
   <script>
-    /************************************************************
-     * AFFIRMATION LIBRARY (SAMPLES)
-     ************************************************************/
+    /********************************************************
+     * Affirmation Data
+     ********************************************************/
     const affirmationLibrary = {
       "Confidence": [
         "I believe in myself and my abilities.",
@@ -262,10 +331,8 @@
         "My commitment to healing inspires me daily.",
         "I take pride in every small victory on my journey."
       ]
-      // Add more if needed...
     };
 
-    /* Custom templates */
     const customTemplates = [
       "I am becoming more and more confident in my {topic} every day.",
       "I approach {topic} with optimism and determination.",
@@ -277,22 +344,20 @@
     function generateAffirmations() {
       const category = document.getElementById("categorySelect").value;
       if (category === "CustomTopic") {
-        // Hard-coded or prompt for now
         const topic = prompt("Enter your custom topic:", "public speaking");
         if (!topic) return;
         const shuffled = [...customTemplates].sort(() => 0.5 - Math.random());
         const selectedFive = shuffled.slice(0, 5);
-        const results = selectedFive.map(tmpl => tmpl.replace("{topic}", topic));
+        const results = selectedFive.map(t => t.replace("{topic}", topic));
         displayAffirmations(results);
       } else {
         const affirmations = affirmationLibrary[category] || [];
         if (affirmations.length < 5) {
-          alert("This category doesn't have at least 5 affirmations in the library!");
+          alert("Not enough affirmations in this category!");
           return;
         }
         const shuffled = [...affirmations].sort(() => 0.5 - Math.random());
-        const selectedFive = shuffled.slice(0, 5);
-        displayAffirmations(selectedFive);
+        displayAffirmations(shuffled.slice(0, 5));
       }
     }
 
@@ -302,6 +367,7 @@
 
       const ul = document.createElement("ul");
       ul.className = "affirmation-list";
+
       list.forEach(line => {
         const li = document.createElement("li");
         li.className = "affirmation-box";
@@ -311,118 +377,16 @@
       container.appendChild(ul);
     }
 
-    /************************************************************
-     * VOICE RECORDER 
-     ************************************************************/
-    let audioContext;
-    let analyser;
-    let dataArray;
-    let animationId;
-    let mediaStreamSource;
-    let mediaStream;
-    let mediaRecorder;
-    let chunks = [];
-    let isRecording = false;
+    /********************************************************
+     * Simple "Wave" start/stop (decorative)
+     ********************************************************/
+    const waveContainer = document.getElementById("waveContainer");
 
-    const canvas = document.getElementById('waveformCanvas');
-    const canvasCtx = canvas.getContext('2d');
-    const recordings = [];
-
-    async function startRecording() {
-      if (isRecording) return;
-      isRecording = true;
-      chunks = [];
-
-      try {
-        mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        audioContext = new AudioContext();
-        analyser = audioContext.createAnalyser();
-
-        mediaStreamSource = audioContext.createMediaStreamSource(mediaStream);
-        mediaStreamSource.connect(analyser);
-
-        analyser.fftSize = 512;
-        dataArray = new Uint8Array(analyser.frequencyBinCount);
-
-        mediaRecorder = new MediaRecorder(mediaStream);
-        mediaRecorder.ondataavailable = e => {
-          if (e.data.size > 0) chunks.push(e.data);
-        };
-        mediaRecorder.onstop = e => {
-          const blob = new Blob(chunks, { type: 'audio/webm' });
-          const url = URL.createObjectURL(blob);
-
-          const downloadContainer = document.getElementById('downloadContainer');
-          downloadContainer.innerHTML = '';
-
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = 'myRecording.webm';
-          link.className = 'download-link';
-          link.textContent = 'Download Recording';
-          downloadContainer.appendChild(link);
-
-          // add to playlist
-          addToPlaylist(url);
-        };
-
-        mediaRecorder.start();
-        drawWaveform();
-      } catch (err) {
-        alert("Error accessing mic. Use HTTPS or check console for details.");
-        console.error("Mic error:", err);
-        isRecording = false;
-      }
+    function startWave() {
+      waveContainer.classList.add("active");
     }
-
-    function stopRecording() {
-      if (!isRecording) return;
-      isRecording = false;
-
-      if (mediaStream) {
-        mediaStream.getTracks().forEach(t => t.stop());
-      }
-      if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-        mediaRecorder.stop();
-      }
-      cancelAnimationFrame(animationId);
-      if (audioContext) audioContext.close();
-    }
-
-    function addToPlaylist(url) {
-      recordings.push(url);
-      const playlistDiv = document.getElementById('playlist');
-      const audioEl = document.createElement('audio');
-      audioEl.src = url;
-      audioEl.controls = true;
-      playlistDiv.appendChild(audioEl);
-    }
-
-    function drawWaveform() {
-      animationId = requestAnimationFrame(drawWaveform);
-      analyser.getByteTimeDomainData(dataArray);
-
-      canvasCtx.fillStyle = '#EEE';
-      canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
-
-      canvasCtx.lineWidth = 2;
-      canvasCtx.strokeStyle = '#007BFF';
-      canvasCtx.beginPath();
-
-      const sliceWidth = canvas.width / dataArray.length;
-      let x = 0;
-      for (let i = 0; i < dataArray.length; i++) {
-        const v = dataArray[i] / 128.0;
-        const y = v * (canvas.height / 2);
-        if (i === 0) {
-          canvasCtx.moveTo(x, y);
-        } else {
-          canvasCtx.lineTo(x, y);
-        }
-        x += sliceWidth;
-      }
-      canvasCtx.lineTo(canvas.width, canvas.height / 2);
-      canvasCtx.stroke();
+    function stopWave() {
+      waveContainer.classList.remove("active");
     }
   </script>
 </body>
