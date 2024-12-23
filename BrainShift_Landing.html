@@ -13,7 +13,7 @@
             background-color: #f5f5f5;
         }
         header {
-            background: #87CEEB; /* Sky blue color */
+            background: rgb(0, 0, 255); /* Solid blue with 100% opacity */
             color: white;
             padding: 1rem 2rem;
             text-align: center;
@@ -24,19 +24,26 @@
             text-decoration: none;
             font-weight: bold;
         }
-        .hero {
+        .sunset-section {
             text-align: center;
-            padding: 4rem 2rem;
+            background-image: url('images/AI-Generated-Sunset-Image.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            color: white;
+            padding: 5rem 2rem;
         }
-        .hero h1 {
-            font-size: 3rem;
+        .sunset-section h2 {
+            font-size: 2.5rem;
             margin-bottom: 1rem;
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.7);
         }
-        .hero p {
+        .sunset-section p {
             font-size: 1.2rem;
             margin-bottom: 2rem;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7);
         }
-        .hero .cta {
+        .sunset-section .cta {
             padding: 0.8rem 1.5rem;
             background: #4CAF50;
             color: white;
@@ -70,15 +77,6 @@
             color: #333;
             margin-bottom: 1.5rem;
         }
-        .sunset-image {
-            text-align: center;
-            margin: 3rem 0;
-        }
-        .sunset-image img {
-            width: 100%;
-            max-width: 600px;
-            border-radius: 10px;
-        }
         .footer {
             background: #333;
             color: white;
@@ -97,8 +95,10 @@
             <a href="#sign-up">Sign Up</a>
         </nav>
     </header>
-    <div class="sunset-image">
-        <img src="images/AI-Generated-Sunset-Image.jpg" alt="Sunset Image">
+    <div class="sunset-section">
+        <h2>Start Your Positive Journey</h2>
+        <p>Revolutionize your mindset in three simple steps: Identify, Record, Loop.</p>
+        <button class="cta">Get Started</button>
     </div>
     <div id="how-it-works" class="section">
         <h2>How It Works</h2>
