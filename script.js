@@ -6,7 +6,7 @@ checkbox.addEventListener('change', () => {
   nextButton.disabled = !checkbox.checked;
 });
 
-// Navigate to the next page (example link)
+// Navigate to the next page
 nextButton.addEventListener('click', () => {
-  window.location.href = 'questionnaire.html'; // Replace with your next page
+  window.location.href = 'questionnaire.html'; // Replace with your actual next page
 });
