@@ -1,128 +1,81 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Brain-Shift</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            background-color: #f5f5f5;
-        }
-        header {
-            background: #87CEEB; /* Sky blue color */
-            color: white;
-            padding: 1rem 2rem;
-            text-align: center;
-        }
-        header nav a {
-            margin: 0 1rem;
-            color: white;
-            text-decoration: none;
-            font-weight: bold;
-        }
-        .hero {
-            text-align: center;
-            padding: 4rem 2rem;
-        }
-        .hero h1 {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-        }
-        .hero p {
-            font-size: 1.2rem;
-            margin-bottom: 2rem;
-        }
-        .hero .cta {
-            padding: 0.8rem 1.5rem;
-            background: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-size: 1rem;
-            cursor: pointer;
-        }
-        .section {
-            padding: 2rem;
-            text-align: center;
-        }
-        .section img {
-            width: 80%;
-            max-width: 400px;
-            margin: 1rem;
-            border-radius: 10px;
-        }
-        .section img.right {
-            float: right;
-            margin-left: 2rem;
-        }
-        .section img.left {
-            float: left;
-            margin-right: 2rem;
-        }
-        .section h2 {
-            color: #4CAF50;
-        }
-        .section p {
-            color: #333;
-            margin-bottom: 1.5rem;
-        }
-        .sunset-image {
-            text-align: center;
-            margin: 3rem 0;
-        }
-        .sunset-image img {
-            width: 100%;
-            max-width: 600px;
-            border-radius: 10px;
-        }
-        .footer {
-            background: #333;
-            color: white;
-            text-align: center;
-            padding: 1rem 0;
-            clear: both;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <title>Landing Page</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f0f0f0;
+    }
+
+    header {
+      background-color: #333;
+      color: #fff;
+      padding: 20px;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 30px;
+      line-height: 1.2;
+    }
+
+    main {
+      padding: 40px;
+      text-align: center;
+    }
+
+    .discover-note-management {
+      font-size: 50px;     /* Reduced to 50px */
+      line-height: 1.2;    /* Tightened line spacing */
+      margin-bottom: 20px;
+    }
+
+    .cta-button {
+      display: inline-block;
+      padding: 15px 30px;
+      margin-top: 20px;
+      background-color: #007BFF;
+      color: #fff;
+      border-radius: 5px;
+      text-decoration: none;
+      font-size: 18px;
+    }
+
+    .cta-button:hover {
+      background-color: #0056b3;
+    }
+
+    footer {
+      text-align: center;
+      padding: 20px;
+      background-color: #eee;
+      margin-top: 40px;
+    }
+  </style>
 </head>
 <body>
-    <header>
-        <h1>Brain-Shift</h1>
-        <nav>
-            <a href="#how-it-works">How It Works</a>
-            <a href="#benefits">Benefits</a>
-            <a href="#sign-up">Sign Up</a>
-        </nav>
-    </header>
-    <div class="sunset-image">
-        <img src="images/AI-Generated-Sunset-Image.jpg" alt="Sunset Image">
-    </div>
-    <div id="how-it-works" class="section">
-        <h2>How It Works</h2>
-        <img src="images/AI-Generated-Mic.jpg" alt="Microphone Icon" class="right">
-        <p>1. Input your problem</p>
-        <p>2. Record your voice</p>
-        <p>3. Receive personalized affirmations</p>
-    </div>
-    <div id="benefits" class="section">
-        <h2>Benefits</h2>
-        <img src="images/AI-Generated-Woman.jpg" alt="Happy Woman with Headphones" class="left">
-        <p>Boost your confidence and reduce procrastination.</p>
-        <p>Turn hurtful thoughts into nourishing positivity.</p>
-    </div>
-    <div id="sign-up" class="section">
-        <h2>Sign Up</h2>
-        <img src="images/AI-Generated-Mic.jpg" alt="Microphone Icon" class="right">
-        <form>
-            <input type="email" placeholder="Enter your email" required>
-            <button type="submit">Submit</button>
-        </form>
-    </div>
-    <footer class="footer">
-        <p>&copy; 2024 Brain-Shift. All rights reserved.</p>
-    </footer>
+
+<header>
+  <h1>My Awesome App</h1>
+</header>
+
+<main>
+  <div class="discover-note-management">
+    Discover Easy Note Management
+  </div>
+
+  <p>Welcome to our platform! Here you can manage notes with ease, stay organized, and empower yourself with positivity.</p>
+  
+  <!-- Button to go to the Affirmation Generation page -->
+  <a class="cta-button" href="affirmation.html">Go to Affirmation Generation</a>
+</main>
+
+<footer>
+  <p>&copy; 2024 My Awesome App</p>
+</footer>
+
 </body>
 </html>

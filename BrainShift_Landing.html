@@ -1,219 +1,81 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Brain-Shift</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            background-color: #f5f5f5;
-        }
-        header {
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: rgb(0, 0, 255); /* Solid blue */
-            color: white;
-            padding: 1rem 2rem;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-        }
-        header nav {
-            display: flex;
-            gap: 1rem;
-        }
-        header nav a {
-            color: white;
-            text-decoration: none;
-            font-weight: bold;
-            background: rgb(0, 0, 255);
-            padding: 0.5rem 1rem;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background 0.3s ease, color 0.3s ease;
-        }
-        header nav a:hover {
-            background: white;
-            color: rgb(0, 0, 255);
-        }
-        .top-section {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-            align-items: center;
-            padding: 2rem;
-            background-color: #f9f9f9;
-        }
-        .top-section .text {
-            max-width: 50%;
-        }
-        .top-section img {
-            width: 45%;
-            max-width: 500px;
-            border-radius: 10px;
-        }
-        .compact-block {
-            max-width: 300px;
-            margin: 0 auto;
-            padding: 1rem;
-            text-align: center;
-            background-color: #f9f9f9;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            font-family: Arial, sans-serif;
-        }
-        .compact-block h2 {
-            font-size: 15px;
-            color: rgb(0, 0, 255); /* Solid blue */
-            margin-bottom: 0.5rem;
-        }
-        .compact-block h3 {
-            font-size: 75px; /* Increased size */
-            color: gray;
-            margin-bottom: 0.5rem;
-        }
-        .compact-block p {
-            font-size: 14px;
-            color: #333;
-            margin-bottom: 0;
-        }
-        .sunset-section {
-            text-align: center;
-            background-image: url('images/AI-Generated-Sunset-Image.jpg');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            color: white;
-            padding: 5rem 2rem;
-        }
-        .sunset-section h2 {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
-            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.7);
-        }
-        .sunset-section p {
-            font-size: 1.2rem;
-            margin-bottom: 2rem;
-            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7);
-        }
-        .sunset-section .cta {
-            padding: 0.8rem 1.5rem;
-            background: rgb(0, 0, 255); /* Solid blue */
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-size: 1rem;
-            cursor: pointer;
-        }
-        .horizontal-sections {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-around;
-            align-items: stretch;
-            padding: 3rem 1rem;
-            background-color: #fff;
-        }
-        .section-card {
-            flex: 1;
-            margin: 0 1rem;
-            text-align: center;
-            background: #f9f9f9;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            padding: 1.5rem;
-        }
-        .section-card img {
-            width: 80%;
-            max-width: 150px;
-            margin-bottom: 1rem;
-            border-radius: 10px;
-        }
-        .section-card h3 {
-            font-size: 1.5rem;
-            color: rgb(0, 0, 255);
-            margin-bottom: 0.5rem;
-        }
-        .section-card p {
-            color: #666;
-            margin-bottom: 1.5rem;
-        }
-        .section-card .cta {
-            padding: 0.8rem 1.5rem;
-            background: rgb(0, 0, 255);
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-size: 1rem;
-            cursor: pointer;
-        }
-        .footer {
-            background: rgb(0, 0, 255);
-            color: white;
-            text-align: center;
-            padding: 1rem 0;
-        }
-        @media (max-width: 768px) {
-            .top-section {
-                flex-direction: column;
-            }
-            .top-section .text, .top-section img {
-                max-width: 100%;
-            }
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <title>Landing Page</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f0f0f0;
+    }
+
+    header {
+      background-color: #333;
+      color: #fff;
+      padding: 20px;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 30px;
+      line-height: 1.2;
+    }
+
+    main {
+      padding: 40px;
+      text-align: center;
+    }
+
+    .discover-note-management {
+      font-size: 50px;     /* Reduced to 50px */
+      line-height: 1.2;    /* Tightened line spacing */
+      margin-bottom: 20px;
+    }
+
+    .cta-button {
+      display: inline-block;
+      padding: 15px 30px;
+      margin-top: 20px;
+      background-color: #007BFF;
+      color: #fff;
+      border-radius: 5px;
+      text-decoration: none;
+      font-size: 18px;
+    }
+
+    .cta-button:hover {
+      background-color: #0056b3;
+    }
+
+    footer {
+      text-align: center;
+      padding: 20px;
+      background-color: #eee;
+      margin-top: 40px;
+    }
+  </style>
 </head>
 <body>
-    <header>
-        <div></div>
-        <nav>
-            <a href="#how-it-works">How It Works</a>
-            <a href="#benefits">Benefits</a>
-            <a href="#sign-up">Sign Up</a>
-        </nav>
-    </header>
-    <div class="top-section">
-        <div class="text">
-            <div class="compact-block">
-                <h2>#1 on User Experience</h2>
-                <h3>Discover Easy Note Management</h3>
-                <p>Introducing VoiceBuddy, the app that simplifies voice journaling for a smoother journey towards positivity and growth.</p>
-            </div>
-        </div>
-        <img src="images/AI-Generated-Study.jpg" alt="AI Generated Study Image">
-    </div>
-    <div class="sunset-section">
-        <h2>Start Your Positive Journey</h2>
-        <p>Revolutionize your mindset in four simple steps: Identify, Create, Record, and Loop.</p>
-        <button class="cta">Get Started</button>
-    </div>
-    <div class="horizontal-sections">
-        <div class="section-card">
-            <img src="images/AI-Generated-Mic.jpg" alt="Microphone Icon">
-            <h3>Voice Capture</h3>
-            <p>Set aside moments for daily reflections, guiding you to nurture positive growth day by day.</p>
-            <button class="cta">Learn More</button>
-        </div>
-        <div class="section-card">
-            <img src="images/AI-Generated-Headphones.jpg" alt="Woman with Headphones">
-            <h3>Positive Playback</h3>
-            <p>Enhance your mindset by playing back your affirmations in a soothing voice.</p>
-            <button class="cta">Learn More</button>
-        </div>
-        <div class="section-card">
-            <img src="images/AI-Generated-Globe.jpg" alt="AI Generated Globe Image">
-            <h3>Daily Reflections</h3>
-            <p>Effortlessly record thoughts on the go with voice capture and transform them into affirmations.</p>
-            <button class="cta">Learn More</button>
-        </div>
-    </div>
-    <footer class="footer">
-        <p>&copy; 2024 Brain-Shift. All rights reserved.</p>
-    </footer>
+
+<header>
+  <h1>My Awesome App</h1>
+</header>
+
+<main>
+  <div class="discover-note-management">
+    Discover Easy Note Management
+  </div>
+
+  <p>Welcome to our platform! Here you can manage notes with ease, stay organized, and empower yourself with positivity.</p>
+  
+  <!-- Button to go to the Affirmation Generation page -->
+  <a class="cta-button" href="affirmation.html">Go to Affirmation Generation</a>
+</main>
+
+<footer>
+  <p>&copy; 2024 My Awesome App</p>
+</footer>
+
 </body>
 </html>
