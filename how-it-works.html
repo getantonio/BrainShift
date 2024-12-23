@@ -4,13 +4,11 @@
   <meta charset="UTF-8" />
   <title>Affirmation Generation</title>
   <style>
-    /* Keep header compact and no wider than 350px */
+    /* Adjusting the font size and line height for the "Discover Easy Note Management" element */
     .discover-note-management {
       font-size: 50px;  /* Reduced to 50px */
       line-height: 1.2; /* Tightened line spacing */
       margin-bottom: 20px;
-      max-width: 350px;
-      margin: 0 auto;   /* Centered */
     }
 
     body {
@@ -29,22 +27,14 @@
 
     h1 {
       margin-bottom: 10px;
-      max-width: 350px; /* Keep the header narrow as well */
-      margin: 0 auto;
-      text-align: center;
     }
     p {
       margin-top: 0;
       margin-bottom: 20px;
-      max-width: 350px;
-      margin: 0 auto;
-      text-align: center;
     }
 
     .affirmation-container {
       margin-top: 20px;
-      max-width: 600px;
-      margin: 20px auto 0 auto;
     }
 
     .affirmation-box {
@@ -55,20 +45,10 @@
       box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
 
-    .controls {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-
     select, button {
       padding: 10px;
       margin-right: 10px;
       font-size: 16px;
-    }
-
-    button:hover {
-      background-color: #eeeeee;
-      cursor: pointer;
     }
 
     .affirmation-list {
@@ -83,78 +63,56 @@
       color: #fff;
       padding: 10px 20px;
       border-radius: 5px;
-      text-decoration: none;
-      text-align: center;
     }
     .back-home:hover {
       background-color: #0056b3;
-    }
-
-    /* Custom Topic Input Field */
-    .custom-topic-field {
-      display: none; /* Hidden unless user selects "Custom Topic" */
-      margin-top: 10px;
-    }
-    .custom-topic-field input {
-      padding: 10px;
-      font-size: 16px;
-      width: 300px;
     }
   </style>
 </head>
 <body>
 
+  <!-- Optionally, you can keep this or remove it if you prefer a simpler heading -->
   <div class="discover-note-management">
     Discover Easy Note Management
   </div>
 
   <h1>Affirmation Generation</h1>
-  <p>Select a category below, then click "Generate" to see 5 random affirmations.</p>
-
-  <!-- Back link to Landing Page -->
-  <p style="text-align: center;">
-    <a class="back-home" href="index.html">← Back to Home</a>
+  <p>
+    Select a category below, then click "Generate Affirmations" to get 10 random affirmations.
   </p>
 
-  <div class="controls">
-    <!-- Category Selection with icons (plus a "Custom Topic" option) -->
-    <select id="categorySelect" onchange="handleCategoryChange()">
-      <option value="Quit Smoking or Addictions">🚭 Quit/Addictions</option>
-      <option value="Better Sleep">💤 Better Sleep</option>
-      <option value="Emotional Mastery">🌈 Emotional Mastery</option>
-      <option value="Confidence">👑 Confidence</option>
-      <option value="Happiness">😄 Happiness</option>
-      <option value="Focus">🎯 Focus</option>
-      <option value="Habits & Discipline">🏆 Habits & Discipline</option>
-      <option value="Money & Finance">💰 Money & Finance</option>
-      <option value="Healing and Recovery">💖 Healing & Recovery</option>
-      <option value="Fitness">💪 Fitness</option>
-      <option value="Self-Love">❤️ Self-Love</option>
-      <option value="Strengthening Relationships">🤝 Relationships</option>
-      <option value="Focus (2)">🤔 Focus (Duplicate)</option>
-      <option value="Resilience">🌱 Resilience</option>
-      <option value="Quality of Life">🌟 Quality of Life</option>
-      <!-- The new custom option -->
-      <option value="CustomTopic">✏️ Custom Topic</option>
-    </select>
+  <!-- Back link to Landing Page -->
+  <a class="back-home" href="index.html">← Back to Home</a>
 
-    <!-- Generate & Regenerate Buttons -->
-    <button onclick="generateAffirmations()">Generate</button>
-    <button onclick="regenerateAffirmations()">Regenerate</button>
+  <br /><br />
 
-    <!-- Custom Topic Input (hidden unless selected) -->
-    <div class="custom-topic-field" id="customTopicField">
-      <input type="text" id="customTopicInput" placeholder="Enter your custom topic..." />
-    </div>
-  </div>
+  <!-- Category Selection -->
+  <select id="categorySelect">
+    <option value="Quit Smoking or Addictions">Quit Smoking or Addictions</option>
+    <option value="Better Sleep">Better Sleep</option>
+    <option value="Emotional Mastery">Emotional Mastery</option>
+    <option value="Confidence">Confidence</option>
+    <option value="Happiness">Happiness</option>
+    <option value="Focus">Focus</option>
+    <option value="Habits & Discipline">Habits & Discipline</option>
+    <option value="Money & Finance">Money & Finance</option>
+    <option value="Healing and Recovery">Healing and Recovery</option>
+    <option value="Fitness">Fitness</option>
+    <option value="Self-Love">Self-Love</option>
+    <option value="Strengthening Relationships">Strengthening Relationships</option>
+    <!-- Note: "Focus" was listed twice in your categories, so here's a potential second entry if needed -->
+    <option value="Focus (2)">Focus (Duplicate)</option>
+    <option value="Resilience">Resilience</option>
+    <option value="Quality of Life">Quality of Life</option>
+  </select>
+
+  <button onclick="generateAffirmations()">Generate Affirmations</button>
 
   <div class="affirmation-container" id="affirmationContainer"></div>
 
-  <!-- JavaScript: Affirmation Library + Random Selection + Custom Templates -->
+  <!-- JavaScript: Affirmation Library + Random Selection -->
   <script>
-    /************************************************************
-     * 1. Affirmation Library (Existing Categories)
-     ************************************************************/
+    // Manual Library of Affirmations: 15 categories, each with 20 affirmations
     const affirmationLibrary = {
       "Quit Smoking or Addictions": [
         "I release the urge to rely on unhealthy habits.",
@@ -178,6 +136,7 @@
         "I take pride in every small victory on my journey.",
         "My commitment to healing inspires me daily."
       ],
+
       "Better Sleep": [
         "I release the stress of the day and welcome restful sleep.",
         "My mind and body relax completely as I prepare for sleep.",
@@ -200,6 +159,7 @@
         "I trust my body’s natural ability to fall asleep with ease.",
         "Sleep is my time to heal and recharge for the day ahead."
       ],
+
       "Emotional Mastery": [
         "I am the master of my emotions and respond with calmness.",
         "I allow myself to feel without being overwhelmed.",
@@ -222,6 +182,7 @@
         "I am free from emotional turmoil and grounded in peace.",
         "I honor my emotions without letting them control me."
       ],
+
       "Confidence": [
         "I believe in myself and my abilities.",
         "I deserve success and happiness.",
@@ -244,6 +205,7 @@
         "I am deserving of all the success that comes my way.",
         "Confidence is my natural state, and I carry it effortlessly."
       ],
+
       "Happiness": [
         "I choose happiness in every moment.",
         "Joy flows freely through my life.",
@@ -266,6 +228,7 @@
         "I am grateful for the gift of happiness in my life.",
         "I nurture my happiness by living authentically and joyfully."
       ],
+
       "Focus": [
         "I concentrate easily and stay present in the moment.",
         "I focus on my priorities with clarity and purpose.",
@@ -288,6 +251,7 @@
         "I am fully immersed in my work and achieve great results.",
         "I am proud of the progress I make through focused action."
       ],
+
       "Habits & Discipline": [
         "I create habits that align with my goals and values.",
         "Discipline is my superpower, and I use it wisely.",
@@ -310,6 +274,7 @@
         "I am proud of the structure and discipline I cultivate.",
         "My habits are a reflection of my self-respect and determination."
       ],
+
       "Money & Finance": [
         "I attract wealth and abundance effortlessly.",
         "Money flows to me in expected and unexpected ways.",
@@ -332,6 +297,7 @@
         "I trust in my ability to build and sustain wealth.",
         "Prosperity is drawn to me, and I welcome it with gratitude."
       ],
+
       "Healing and Recovery": [
         "My body, mind, and soul are in the process of healing.",
         "I give myself time and space to recover fully.",
@@ -354,6 +320,7 @@
         "I deserve a life filled with health, happiness, and strength.",
         "Healing is a journey, and I celebrate every milestone."
       ],
+
       "Fitness": [
         "I enjoy moving my body and feeling strong.",
         "Every workout brings me closer to my health goals.",
@@ -376,6 +343,7 @@
         "I prioritize fitness as a key part of my self-care routine.",
         "I am resilient, powerful, and capable of achieving my fitness goals."
       ],
+
       "Self-Love": [
         "I am worthy of love, respect, and kindness.",
         "I honor and cherish myself exactly as I am.",
@@ -398,6 +366,7 @@
         "I am a beautiful work in progress.",
         "Self-love is the foundation of my happiness."
       ],
+
       "Strengthening Relationships": [
         "I cultivate relationships filled with love, respect, and trust.",
         "I listen and communicate with care and understanding.",
@@ -420,6 +389,8 @@
         "I offer compassion and understanding to my loved ones.",
         "I choose kindness and empathy in all my interactions."
       ],
+
+      // If you want a second Focus category (Focus (2)), keep it:
       "Focus (2)": [
         "I am mastering new levels of focus every day.",
         "Distraction does not deter me from my goals.",
@@ -442,6 +413,7 @@
         "I bring energy and enthusiasm to every task.",
         "A focused mind is my greatest ally for success."
       ],
+
       "Resilience": [
         "I am stronger than any challenge that comes my way.",
         "Every setback is an opportunity to grow and learn.",
@@ -464,6 +436,7 @@
         "My resilience shines brightest when life tests me.",
         "I emerge from challenges stronger than before."
       ],
+
       "Quality of Life": [
         "I choose to live a life filled with joy and purpose.",
         "I prioritize my well-being and happiness every day.",
@@ -488,82 +461,24 @@
       ]
     };
 
-    /************************************************************
-     * 2. Template-based approach for Custom Topic
-     ************************************************************/
-    const customTemplates = [
-      "I am becoming more and more confident in my {topic} every day.",
-      "I embrace my {topic} journey with optimism and determination.",
-      "My {topic} skills grow stronger every time I practice.",
-      "I approach {topic} challenges with a calm and focused mind.",
-      "I am proud of my progress in {topic} and celebrate every milestone.",
-      "My positive attitude enhances my success in {topic}.",
-      "I effortlessly attract opportunities to improve my {topic}.",
-      "I trust my ability to excel in {topic} and achieve my goals.",
-      "I welcome growth and learning in all aspects of my {topic}.",
-      "I am worthy of success and happiness in my {topic} pursuits."
-    ];
-
-    // Show or hide the custom topic input field
-    function handleCategoryChange() {
-      const category = document.getElementById("categorySelect").value;
-      const customField = document.getElementById("customTopicField");
-      if (category === "CustomTopic") {
-        customField.style.display = "block";  // Show text input
-      } else {
-        customField.style.display = "none";   // Hide text input
-      }
-    }
-
-    /************************************************************
-     * 3. Generate & Regenerate Affirmations
-     ************************************************************/
+    /**
+     * Generates 10 random affirmations from the selected category
+     * and displays them.
+     */
     function generateAffirmations() {
       const category = document.getElementById("categorySelect").value;
+      const affirmations = affirmationLibrary[category] || [];
 
-      if (category === "CustomTopic") {
-        generateCustomAffirmations();
-      } else {
-        // Normal flow using the affirmationLibrary
-        const affirmations = affirmationLibrary[category] || [];
-        // Shuffle and take 5
-        const shuffled = [...affirmations].sort(() => 0.5 - Math.random());
-        const selectedFive = shuffled.slice(0, 5);
-        displayAffirmations(selectedFive);
-      }
+      // Shuffle a copy of the array and slice the first 10
+      const shuffled = [...affirmations].sort(() => 0.5 - Math.random());
+      const selectedTen = shuffled.slice(0, 10);
+
+      displayAffirmations(selectedTen);
     }
 
-    function regenerateAffirmations() {
-      generateAffirmations();
-    }
-
-    /************************************************************
-     * 4. Custom Affirmation Generation (No External AI)
-     ************************************************************/
-    function generateCustomAffirmations() {
-      const topicInput = document.getElementById("customTopicInput");
-      const topic = topicInput.value.trim();
-      if (!topic) {
-        alert("Please enter a custom topic first.");
-        return;
-      }
-
-      // Shuffle the custom templates
-      const shuffled = [...customTemplates].sort(() => 0.5 - Math.random());
-      // Select 5
-      const selectedFive = shuffled.slice(0, 5);
-
-      // Replace {topic} with the user-provided topic
-      const results = selectedFive.map(template =>
-        template.replace("{topic}", topic)
-      );
-
-      displayAffirmations(results);
-    }
-
-    /************************************************************
-     * 5. Display Affirmations
-     ************************************************************/
+    /**
+     * Displays the affirmations in a list within the page
+     */
     function displayAffirmations(list) {
       const container = document.getElementById("affirmationContainer");
       container.innerHTML = ""; // Clear any previous affirmations
