@@ -43,26 +43,35 @@
         .top-section .text {
             max-width: 50%;
         }
-        .top-section .text h2 {
-            font-size: 15px;
-            color: rgb(0, 0, 255); /* Solid blue */
-            margin-bottom: 0.5rem;
-        }
-        .top-section .text p.header {
-            font-size: 35px;
-            color: gray; /* Gray color */
-            font-weight: bold;
-            margin-bottom: 1rem;
-        }
-        .top-section .text p.small-text {
-            font-size: 1rem;
-            color: #333;
-            margin-bottom: 1.5rem;
-        }
         .top-section img {
             width: 45%;
             max-width: 500px; /* Larger image */
             border-radius: 10px;
+        }
+        .compact-block {
+            max-width: 300px;
+            margin: 0 auto; /* Center the block */
+            padding: 1rem;
+            text-align: center;
+            background-color: #f9f9f9;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            font-family: Arial, sans-serif;
+        }
+        .compact-block h2 {
+            font-size: 15px;
+            color: rgb(0, 0, 255); /* Solid blue */
+            margin-bottom: 0.5rem;
+        }
+        .compact-block h3 {
+            font-size: 20px;
+            color: gray;
+            margin-bottom: 0.5rem;
+        }
+        .compact-block p {
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 0;
         }
         .sunset-section {
             text-align: center;
@@ -152,15 +161,17 @@
     </header>
     <div class="top-section">
         <div class="text">
-            <h2>#1 on User Experience</h2>
-            <p class="header">Discover Easy Note Management</p>
-            <p class="small-text">Introducing VoiceBuddy, the app that simplifies voice journaling for a smoother journey towards positivity and growth.</p>
+            <div class="compact-block">
+                <h2>#1 on User Experience</h2>
+                <h3>Discover Easy Note Management</h3>
+                <p>Introducing VoiceBuddy, the app that simplifies voice journaling for a smoother journey towards positivity and growth.</p>
+            </div>
         </div>
         <img src="images/AI-Generated-Study.jpg" alt="Globe Icon">
     </div>
     <div class="sunset-section">
         <h2>Start Your Positive Journey</h2>
-        <p>Revolutionize your mindset in three simple steps: Identify, Record, Loop.</p>
+        <p>Revolutionize your mindset in four simple steps: Identify, Create, Record, and Loop.</p>
         <button class="cta">Get Started</button>
     </div>
     <div class="horizontal-sections">
