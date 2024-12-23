@@ -1,154 +1,128 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Landing Page - Email Sign-Up</title>
-  <link rel="stylesheet" href="style.css">
-  <style>
-    /* Reset styles */
-    body, html {
-      margin: 0;
-      padding: 0;
-      font-family: Arial, sans-serif;
-      box-sizing: border-box;
-    }
-
-    /* Background setup */
-    .background {
-      background-image: url('images/background.jpg');
-      background-size: cover;
-      background-position: center;
-      height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .overlay {
-      background: rgba(0, 0, 0, 0.6);
-      width: 100%;
-      height: 100%;
-      position: absolute;
-      top: 0;
-      left: 0;
-    }
-
-    .container {
-      position: relative;
-      z-index: 2;
-      width: 90%;
-      max-width: 500px;
-      margin: auto;
-      text-align: center;
-      color: white;
-    }
-
-    .logo {
-      max-width: 150px;
-      margin: 20px auto;
-    }
-
-    h1 {
-      font-size: 2em;
-      margin: 10px 0;
-    }
-
-    p {
-      font-size: 1em;
-      line-height: 1.5;
-      margin: 20px 0;
-    }
-
-    .signup-section {
-      margin-top: 30px;
-      padding: 20px;
-      background: rgba(255, 255, 255, 0.2);
-      border-radius: 8px;
-    }
-
-    .signup-section h2 {
-      font-size: 1.5em;
-      margin-bottom: 10px;
-    }
-
-    .signup-section form {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    .signup-section input[type="email"] {
-      width: 80%;
-      padding: 10px;
-      margin: 10px 0;
-      border: none;
-      border-radius: 5px;
-      font-size: 1em;
-    }
-
-    .signup-section .btn {
-      background: #ff5722;
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      font-size: 1em;
-      border-radius: 5px;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-
-    .signup-section .btn:hover {
-      background: #e64a19;
-    }
-
-    footer {
-      margin-top: 20px;
-      font-size: 0.9em;
-    }
-
-    footer a {
-      color: #ff5722;
-      text-decoration: none;
-    }
-
-    footer a:hover {
-      text-decoration: underline;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brain-Shift</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            background-color: #f5f5f5;
+        }
+        header {
+            background: #87CEEB; /* Sky blue color */
+            color: white;
+            padding: 1rem 2rem;
+            text-align: center;
+        }
+        header nav a {
+            margin: 0 1rem;
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .hero {
+            text-align: center;
+            padding: 4rem 2rem;
+        }
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        .hero p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+        }
+        .hero .cta {
+            padding: 0.8rem 1.5rem;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+        .section {
+            padding: 2rem;
+            text-align: center;
+        }
+        .section img {
+            width: 80%;
+            max-width: 400px;
+            margin: 1rem;
+            border-radius: 10px;
+        }
+        .section img.right {
+            float: right;
+            margin-left: 2rem;
+        }
+        .section img.left {
+            float: left;
+            margin-right: 2rem;
+        }
+        .section h2 {
+            color: #4CAF50;
+        }
+        .section p {
+            color: #333;
+            margin-bottom: 1.5rem;
+        }
+        .sunset-image {
+            text-align: center;
+            margin: 3rem 0;
+        }
+        .sunset-image img {
+            width: 100%;
+            max-width: 600px;
+            border-radius: 10px;
+        }
+        .footer {
+            background: #333;
+            color: white;
+            text-align: center;
+            padding: 1rem 0;
+            clear: both;
+        }
+    </style>
 </head>
 <body>
-  <div class="background">
-    <div class="overlay"></div>
-    <div class="container">
-      <header>
-        <img src="images/logo.jpg" alt="App Logo" class="logo">
-        <h1>Welcome to [Brain-Shift]</h1>
-        <p>Your journey to positive self-talk starts here.</p>
-      </header>
-
-      <main>
-        <section class="signup-section">
-          <h2>Join Us Today</h2>
-          <p>Sign up to access personalized affirmations and transform your mindset.</p>
-          <form id="signupForm">
-            <input type="email" id="email" placeholder="Enter your email" required>
-            <button type="submit" class="btn">Sign Up</button>
-          </form>
-        </section>
-      </main>
-
-      <footer>
-        <p>By signing up, you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.</p>
-      </footer>
+    <header>
+        <h1>Brain-Shift</h1>
+        <nav>
+            <a href="#how-it-works">How It Works</a>
+            <a href="#benefits">Benefits</a>
+            <a href="#sign-up">Sign Up</a>
+        </nav>
+    </header>
+    <div class="sunset-image">
+        <img src="images/AI-Generated-Sunset-Image.jpg" alt="Sunset Image">
     </div>
-  </div>
-
-  <script>
-    document.getElementById('signupForm').addEventListener('submit', function(e) {
-      e.preventDefault();
-      alert('Thank you for signing up!');
-    });
-  </script>
+    <div id="how-it-works" class="section">
+        <h2>How It Works</h2>
+        <img src="images/AI-Generated-Mic.jpg" alt="Microphone Icon" class="right">
+        <p>1. Input your problem</p>
+        <p>2. Record your voice</p>
+        <p>3. Receive personalized affirmations</p>
+    </div>
+    <div id="benefits" class="section">
+        <h2>Benefits</h2>
+        <img src="images/AI-Generated-Woman.jpg" alt="Happy Woman with Headphones" class="left">
+        <p>Boost your confidence and reduce procrastination.</p>
+        <p>Turn hurtful thoughts into nourishing positivity.</p>
+    </div>
+    <div id="sign-up" class="section">
+        <h2>Sign Up</h2>
+        <img src="images/AI-Generated-Mic.jpg" alt="Microphone Icon" class="right">
+        <form>
+            <input type="email" placeholder="Enter your email" required>
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+    <footer class="footer">
+        <p>&copy; 2024 Brain-Shift. All rights reserved.</p>
+    </footer>
 </body>
 </html>
