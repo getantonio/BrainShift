@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -33,7 +32,7 @@
             color: white;
             text-decoration: none;
             font-weight: bold;
-            background: rgb(0, 0, 255); /* Solid blue */
+            background: rgb(0, 0, 255);
             padding: 0.5rem 1rem;
             border-radius: 5px;
             cursor: pointer;
@@ -75,7 +74,7 @@
             margin-bottom: 0.5rem;
         }
         .compact-block h3 {
-            font-size: 20px;
+            font-size: 75px; /* Increased size */
             color: gray;
             margin-bottom: 0.5rem;
         }
@@ -86,7 +85,10 @@
         }
         .sunset-section {
             text-align: center;
-            background-image: linear-gradient(to bottom right, rgb(0, 123, 255), rgb(100, 149, 237));
+            background-image: url('images/AI-Generated-Sunset-Image.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
             color: white;
             padding: 5rem 2rem;
         }
@@ -102,17 +104,12 @@
         }
         .sunset-section .cta {
             padding: 0.8rem 1.5rem;
-            background: white;
-            color: rgb(0, 0, 255);
+            background: rgb(0, 0, 255); /* Solid blue */
+            color: white;
             border: none;
             border-radius: 5px;
             font-size: 1rem;
             cursor: pointer;
-            transition: background 0.3s ease, color 0.3s ease;
-        }
-        .sunset-section .cta:hover {
-            background: rgb(0, 0, 255);
-            color: white;
         }
         .horizontal-sections {
             display: flex;
@@ -130,10 +127,6 @@
             border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             padding: 1.5rem;
-            transition: transform 0.3s ease;
-        }
-        .section-card:hover {
-            transform: scale(1.05);
         }
         .section-card img {
             width: 80%;
@@ -192,7 +185,7 @@
                 <p>Introducing VoiceBuddy, the app that simplifies voice journaling for a smoother journey towards positivity and growth.</p>
             </div>
         </div>
-        <img src="images/AI-Generated-study.jpg" alt="Study jpg">
+        <img src="images/AI-Generated-Study.jpg" alt="AI Generated Study Image">
     </div>
     <div class="sunset-section">
         <h2>Start Your Positive Journey</h2>
@@ -213,7 +206,7 @@
             <button class="cta">Learn More</button>
         </div>
         <div class="section-card">
-            <img src="images/AI-Generated-Study.jpg" alt="Headphones">
+            <img src="images/AI-Generated-Globe.jpg" alt="AI Generated Globe Image">
             <h3>Daily Reflections</h3>
             <p>Effortlessly record thoughts on the go with voice capture and transform them into affirmations.</p>
             <button class="cta">Learn More</button>
