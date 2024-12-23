@@ -16,7 +16,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: rgb(0, 0, 255); /* Solid blue with 100% opacity */
+            background: rgb(0, 0, 255); /* Solid blue */
             color: white;
             padding: 1rem 2rem;
         }
@@ -28,7 +28,7 @@
             color: white;
             text-decoration: none;
             font-weight: bold;
-            background: #4CAF50;
+            background: rgb(0, 0, 255); /* Solid blue */
             padding: 0.5rem 1rem;
             border-radius: 5px;
             cursor: pointer;
@@ -45,11 +45,17 @@
         }
         .top-section .text h2 {
             font-size: 2rem;
-            color: #4CAF50;
+            color: rgb(0, 0, 255); /* Solid blue */
             margin-bottom: 0.5rem;
         }
-        .top-section .text p {
-            font-size: 1.2rem;
+        .top-section .text p.header {
+            font-size: 1.5rem;
+            color: rgb(0, 0, 255); /* Solid blue */
+            font-weight: bold;
+            margin-bottom: 1rem;
+        }
+        .top-section .text p.small-text {
+            font-size: 1rem;
             color: #333;
             margin-bottom: 1.5rem;
         }
@@ -79,7 +85,7 @@
         }
         .sunset-section .cta {
             padding: 0.8rem 1.5rem;
-            background: #4CAF50;
+            background: rgb(0, 0, 255); /* Solid blue */
             color: white;
             border: none;
             border-radius: 5px;
@@ -110,7 +116,7 @@
         }
         .section-card h3 {
             font-size: 1.5rem;
-            color: #4CAF50;
+            color: rgb(0, 0, 255); /* Solid blue */
             margin-bottom: 0.5rem;
         }
         .section-card p {
@@ -119,7 +125,7 @@
         }
         .section-card .cta {
             padding: 0.8rem 1.5rem;
-            background: #4CAF50;
+            background: rgb(0, 0, 255); /* Solid blue */
             color: white;
             border: none;
             border-radius: 5px;
@@ -127,7 +133,7 @@
             cursor: pointer;
         }
         .footer {
-            background: #333;
+            background: rgb(0, 0, 255); /* Solid blue */
             color: white;
             text-align: center;
             padding: 1rem 0;
@@ -147,10 +153,10 @@
     <div class="top-section">
         <div class="text">
             <h2>#1 on User Experience</h2>
-            <h3>Discover Easy Note Management</h3>
-            <p>Introducing VoiceBuddy, the app that simplifies voice journaling for a smoother journey towards positivity and growth.</p>
+            <p class="header">Discover Easy Note Management</p>
+            <p class="small-text">Introducing VoiceBuddy, the app that simplifies voice journaling for a smoother journey towards positivity and growth.</p>
         </div>
-        <img src="images/AI-Generated-Study.jpg" alt="Globe Icon">
+        <img src="images/AI-Generated-globe.jpg" alt="Globe Icon">
     </div>
     <div class="sunset-section">
         <h2>Start Your Positive Journey</h2>
