@@ -13,12 +13,12 @@
       box-sizing: border-box;
     }
 
-    /* Intro block at the top: 200px high */
+    /* Intro block at the top: 200px high, 500px wide */
     .intro-block {
       width: 500px;
-      height: 200px; /* changed from 300px to 200px */
+      height: 200px;
       background-color: #EEEEEE;
-      margin: 0 auto 20px auto; 
+      margin: 0 auto 20px auto;
       padding: 1rem;
       border-radius: 10px;
       box-shadow: 0 2px 5px rgba(0,0,0,0.15);
@@ -69,10 +69,8 @@
     .glossy-button:hover {
       background: linear-gradient(to bottom, #cccccc 0%, #aaaaaa 100%);
     }
-
-    /* Icon size tweaks for the smaller buttons */
     .glossy-button span {
-      font-size: 20px;
+      font-size: 20px; /* icon size */
     }
 
     /* Affirmation list styles */
@@ -102,8 +100,8 @@
       border-radius: 10px;
       box-shadow: 0 2px 5px rgba(0,0,0,0.15);
       padding: 20px;
-      overflow: hidden; 
-      max-height: 200px; /* changed from 250px to 200px */
+      overflow: hidden;
+      max-height: 200px;
       box-sizing: border-box;
       text-align: center;
       position: relative;
@@ -128,7 +126,6 @@
       font-size: 20px;
       width: 40px;
       height: 40px;
-      color: #fff;
       border: 1px solid #aaa;
       border-radius: 5px;
       box-shadow: inset 0 1px 0 rgba(255,255,255,0.4), 0 2px 5px rgba(0,0,0,0.2);
@@ -142,10 +139,10 @@
     .recorder-icon-btn:hover {
       box-shadow: inset 0 1px 0 rgba(255,255,255,0.6), 0 2px 6px rgba(0,0,0,0.25);
     }
-
     /* Red for start, white for stop */
     .start-btn {
       background: linear-gradient(to bottom, #ff4444 0%, #dd0000 100%);
+      color: #fff;
     }
     .stop-btn {
       background: linear-gradient(to bottom, #ffffff 0%, #dddddd 100%);
@@ -173,6 +170,18 @@
     }
     .download-link:hover {
       text-decoration: underline;
+    }
+
+    /* Playlist styling */
+    .playlist {
+      max-height: 70px; /* ensure it fits in the 200px box if you have many recordings */
+      overflow-y: auto; 
+      width: 100%;
+      margin-top: 5px;
+    }
+    .playlist audio {
+      width: 90%;
+      margin-top: 5px;
     }
   </style>
 </head>
@@ -239,7 +248,11 @@
 
     <canvas id="waveformCanvas" width="500" height="60"></canvas>
 
+    <!-- Download link for the latest recording -->
     <div id="downloadContainer"></div>
+
+    <!-- Simple playlist for all recorded clips -->
+    <div class="playlist" id="playlist"></div>
   </div>
 
   <script>
@@ -365,6 +378,7 @@
       "I am worthy of success and happiness in my {topic} pursuits."
     ];
 
+    /* Generate Affirmations */
     function generateAffirmations() {
       const category = document.getElementById("categorySelect").value;
       if (category === "CustomTopic") {
@@ -407,7 +421,10 @@
     }
 
     /************************************************************
-     * VOICE RECORDER WITH WAVEFORM & DOWNLOAD
+     * VOICE RECORDER: 
+     *   - Real-time wave
+     *   - Download link for latest clip
+     *   - Playlist for multiple recordings
      ************************************************************/
     let audioContext;
     let analyser;
@@ -422,45 +439,57 @@
     const canvas = document.getElementById('waveformCanvas');
     const canvasCtx = canvas.getContext('2d');
 
+    // We'll store multiple recordings in an array
+    // and display them in #playlist
+    const recordings = [];
+
     async function startRecording() {
       if (isRecording) return; // already recording
       isRecording = true;
-      chunks = []; // reset
+      chunks = [];
 
       try {
+        // ask for mic
         mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
         audioContext = new AudioContext();
         analyser = audioContext.createAnalyser();
+
         mediaStreamSource = audioContext.createMediaStreamSource(mediaStream);
         mediaStreamSource.connect(analyser);
 
-        analyser.fftSize = 512; 
+        analyser.fftSize = 512;
         const bufferLength = analyser.frequencyBinCount;
         dataArray = new Uint8Array(bufferLength);
 
+        // Setup MediaRecorder
         mediaRecorder = new MediaRecorder(mediaStream);
-        mediaRecorder.ondataavailable = e => {
+        mediaRecorder.ondataavailable = (e) => {
           if (e.data.size > 0) chunks.push(e.data);
         };
-        mediaRecorder.onstop = e => {
+
+        mediaRecorder.onstop = (e) => {
+          // create blob
           const blob = new Blob(chunks, { type: 'audio/webm' });
           const url = URL.createObjectURL(blob);
 
+          // create download link
           const downloadContainer = document.getElementById('downloadContainer');
-          downloadContainer.innerHTML = "";
-
+          downloadContainer.innerHTML = '';
           const link = document.createElement('a');
           link.href = url;
           link.download = 'myRecording.webm';
           link.className = 'download-link';
           link.textContent = 'Download Recording';
           downloadContainer.appendChild(link);
+
+          // also add to our "playlist"
+          addToPlaylist(url);
         };
 
         mediaRecorder.start();
         drawWaveform();
       } catch (err) {
-        console.error("Error accessing microphone:", err);
+        console.error('Error accessing microphone:', err);
         isRecording = false;
       }
     }
@@ -469,19 +498,37 @@
       if (!isRecording) return;
       isRecording = false;
 
+      // Stop mic tracks
       if (mediaStream) {
         mediaStream.getTracks().forEach(track => track.stop());
       }
+
+      // Stop MediaRecorder
       if (mediaRecorder && mediaRecorder.state !== 'inactive') {
         mediaRecorder.stop();
       }
 
+      // Stop drawing
       cancelAnimationFrame(animationId);
       if (audioContext) {
         audioContext.close();
       }
     }
 
+    /* create <audio> entry in #playlist for each new recording */
+    function addToPlaylist(url) {
+      recordings.push(url);
+      const playlistDiv = document.getElementById('playlist');
+
+      // create an <audio> element with controls
+      const audioEl = document.createElement('audio');
+      audioEl.src = url;
+      audioEl.controls = true;
+
+      playlistDiv.appendChild(audioEl);
+    }
+
+    /* animation loop for waveform */
     function drawWaveform() {
       animationId = requestAnimationFrame(drawWaveform);
 
